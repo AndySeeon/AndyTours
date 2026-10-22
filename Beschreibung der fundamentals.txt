@@ -1,0 +1,1 @@
+Ein Tool zur Verwaltung meiner Fahrradtouren erstellen wie im Vorbild BikeXperience. Frage mich zu jeder Funktion, ob ich die tatsächlich nutzen und implementieren will. Jede Funktion soll ein eigener Task in der Map werden.

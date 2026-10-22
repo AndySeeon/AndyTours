@@ -1,0 +1,21 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/RadlDB.App/RadlDB.App.csproj" />
+    <Project Path="src/RadlDB.Core/RadlDB.Core.csproj" />
+    <Project Path="src/RadlDB.Daten/RadlDB.Daten.csproj" />
+    <Project Path="src/RadlDB.Import/RadlDB.Import.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/RadlDB.Tests/RadlDB.Tests.csproj" />
+  </Folder>
+  <Folder Name="/docs/">
+    <File Path="docs/Analyse_und_Plan_Neuprogrammierung.md" />
+    <File Path="docs/Konventionen.md" />
+  </Folder>
+  <Folder Name="/Projektmappenelemente/">
+    <File Path="CLAUDE.md" />
+    <File Path="Directory.Build.props" />
+    <File Path="global.json" />
+    <File Path=".editorconfig" />
+  </Folder>
+</Solution>

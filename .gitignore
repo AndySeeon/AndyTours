@@ -1,0 +1,22 @@
+# Von Git ausgeschlossene Dateien und Ordner
+
+# Persönliche Nutzdaten (Altdaten, FIT-Dateien, später die Datenbank) – nicht versionieren
+/Daten/
+
+# Build-Ausgaben von dotnet/MSBuild
+bin/
+obj/
+
+# Visual Studio: Arbeitsordner und benutzerbezogene Einstellungen
+.vs/
+*.user
+*.suo
+
+# Testergebnisse
+TestResults/
+
+# Office-Sperrdateien (entstehen, solange ein Dokument geöffnet ist)
+~$*
+
+# Originalprogramm BikeXperience (fremde Software, 28 MB)
+/bikeXperience.exe
