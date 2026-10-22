@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text;
 using AndyTours.Core.Berechnungen;
 using AndyTours.Core.Modell;
@@ -26,17 +26,17 @@ public static class ErstelleBerichtstext
         var text = new StringBuilder();
 
         text.AppendLine("AndyTours – Bericht zur Übernahme der BikeXperience-Altdaten");
-        text.AppendLine($"Erstellt: {DateTime.Now.ToString("dd.MM.yyyy HH:mm", de)}");
+        text.AppendLine(de, $"Erstellt: {DateTime.Now.ToString("dd.MM.yyyy HH:mm", de)}");
         text.AppendLine();
 
         text.AppendLine("Übernommen:");
-        text.AppendLine($"  Trainingseinheiten: {bestand.Trainingseinheiten.Count}");
-        text.AppendLine($"  Equipments:         {bestand.Equipments.Count}");
-        text.AppendLine($"  Wartungen:          {bestand.Wartungen.Count}");
-        text.AppendLine($"  Aktivitäten:        {bestand.Aktivitaeten.Count}");
-        text.AppendLine($"  Kategorien:         {bestand.Kategorien.Count}");
-        text.AppendLine($"  Schwellwerte:       {bestand.Schwellwerte.Count}");
-        text.AppendLine($"  Sportler:           {bestand.Fahrer.Count}");
+        text.AppendLine(de, $"  Trainingseinheiten: {bestand.Trainingseinheiten.Count}");
+        text.AppendLine(de, $"  Equipments:         {bestand.Equipments.Count}");
+        text.AppendLine(de, $"  Wartungen:          {bestand.Wartungen.Count}");
+        text.AppendLine(de, $"  Aktivitäten:        {bestand.Aktivitaeten.Count}");
+        text.AppendLine(de, $"  Kategorien:         {bestand.Kategorien.Count}");
+        text.AppendLine(de, $"  Schwellwerte:       {bestand.Schwellwerte.Count}");
+        text.AppendLine(de, $"  Sportler:           {bestand.Fahrer.Count}");
         text.AppendLine();
 
         // Jahressummen zum Vergleich mit der Statistik-Karteikarte des Originals
@@ -53,9 +53,9 @@ public static class ErstelleBerichtstext
         text.AppendLine();
 
         text.AppendLine("Umlaute:");
-        text.AppendLine($"  {bericht.AnzahlLatin1Zeichen} Zeichen exakt wiederhergestellt (Latin-1-Kodierung erkannt)");
-        text.AppendLine($"  {bericht.AnzahlReparierteTexte} Texte über die Korrekturliste repariert");
-        text.AppendLine($"  {bericht.NichtReparierteTexte.Count} Texte mit nicht reparierbaren Zeichen (siehe unten)");
+        text.AppendLine(de, $"  {bericht.AnzahlLatin1Zeichen} Zeichen exakt wiederhergestellt (Latin-1-Kodierung erkannt)");
+        text.AppendLine(de, $"  {bericht.AnzahlReparierteTexte} Texte über die Korrekturliste repariert");
+        text.AppendLine(de, $"  {bericht.NichtReparierteTexte.Count} Texte mit nicht reparierbaren Zeichen (siehe unten)");
         text.AppendLine();
 
         AbschnittAnhaengen(text, "Hinweise", bericht.Hinweise);
@@ -68,7 +68,7 @@ public static class ErstelleBerichtstext
     /// <summary>Hängt eine Überschrift und die Einträge als Aufzählung an; leere Listen erscheinen als „keine".</summary>
     private static void AbschnittAnhaengen(StringBuilder text, string ueberschrift, List<string> eintraege)
     {
-        text.AppendLine($"{ueberschrift} ({eintraege.Count}):");
+        text.AppendLine(CultureInfo.InvariantCulture, $"{ueberschrift} ({eintraege.Count}):");
         if (eintraege.Count == 0)
         {
             text.AppendLine("  keine");
@@ -76,7 +76,7 @@ public static class ErstelleBerichtstext
 
         foreach (string eintrag in eintraege)
         {
-            text.AppendLine($"  - {eintrag}");
+            text.AppendLine(CultureInfo.InvariantCulture, $"  - {eintrag}");
         }
 
         text.AppendLine();

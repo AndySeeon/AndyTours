@@ -45,11 +45,11 @@ public class AltdatenMigrationTests
         foreach (string zeile in File.ReadLines(Path.Combine(datenordner, "workouts.csv")).Skip(1))
         {
             string[] f = zeile.Split(';');
-            int jahr = int.Parse(f[0][6..10]);   // TT.MM.JJJJ → JJJJ
+            int jahr = int.Parse(f[0][6..10], CultureInfo.InvariantCulture);   // TT.MM.JJJJ → JJJJ
             summen.TryGetValue(jahr, out var bisher);
             summen[jahr] = (bisher.Anzahl + 1,
                             bisher.Km + double.Parse(f[3], CultureInfo.InvariantCulture),
-                            bisher.Hm + int.Parse(f[4]));
+                            bisher.Hm + int.Parse(f[4], CultureInfo.InvariantCulture));
         }
 
         return summen;
@@ -68,7 +68,7 @@ public class AltdatenMigrationTests
         Datenbestand bestand = ergebnis.Bestand;
 
         // Erwartete Mengen laut Analyse: 932 Einheiten, 18 Equipments in der INI
-        int erwarteteEinheiten = int.Parse(File.ReadLines(Path.Combine(datenordner, "workouts.csv")).First());
+        int erwarteteEinheiten = int.Parse(File.ReadLines(Path.Combine(datenordner, "workouts.csv")).First(), CultureInfo.InvariantCulture);
         int erwarteteWartungen = File.ReadLines(Path.Combine(datenordner, "maintanence.dat")).Count(z => z.Trim().Length > 0);
 
         Assert.Equal(erwarteteEinheiten, bestand.Trainingseinheiten.Count);

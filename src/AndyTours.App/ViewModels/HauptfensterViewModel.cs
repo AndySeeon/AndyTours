@@ -6,12 +6,12 @@ using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Data.Sqlite;
-using Microsoft.Win32;
 using AndyTours.App.Funktionen;
+using AndyTours.App.Views;
 using AndyTours.Core.Berechnungen;
 using AndyTours.Core.Modell;
 using AndyTours.Daten;
-using AndyTours.Import.Altdaten;
+using AndyTours.Daten.Datenordner;
 
 namespace AndyTours.App.ViewModels;
 
@@ -37,33 +37,25 @@ public partial class HauptfensterViewModel : ObservableObject
     /// <summary>Eintrag in der Aktivitätsauswahl, der alle Aktivitäten zusammenfasst.</summary>
     public const string AlleAktivitaeten = "alle Aktivitäten";
 
-    /// <summary>Der geladene Datenbestand; <c>null</c>, solange keine Datenbank geöffnet ist.</summary>
-    private Datenbestand? _bestand;
+    /// <summary>Der geladene Datenbestand des aktiven Datenordners.</summary>
+    private Datenbestand _bestand = new();
 
     /// <summary>
-    /// Erzeugt das ViewModel und öffnet – falls bekannt – die Datenbank des zuletzt verwendeten Datenordners.
+    /// Erzeugt das ViewModel und lädt den Datenbestand aus dem Datenordner.
     /// </summary>
-    public HauptfensterViewModel()
+    /// <remarks>
+    /// Der Datenordner wurde beim Programmstart bereits ermittelt und geprüft (siehe <c>App</c>).
+    /// </remarks>
+    /// <param name="datenordner">Der aktive Datenordner.</param>
+    /// <exception cref="SqliteException">Die Datenbank im Ordner ist beschädigt oder nicht lesbar.</exception>
+    public HauptfensterViewModel(string datenordner)
     {
         Jahre = new ObservableCollection<string> { AlleJahre };
         Aktivitaeten = new ObservableCollection<string> { AlleAktivitaeten };
         AusgewaehltesJahr = AlleJahre;
         AusgewaehlteAktivitaet = AlleAktivitaeten;
-        Statustext = "Keine Datenbank geöffnet – bitte „Datei → Altdaten aus BikeXperience übernehmen…“ wählen.";
 
-        string? ordner = LeseGemerktenDatenordner.Ausfuehren();
-        if (ordner is not null && File.Exists(Path.Combine(ordner, FuehreAltdatenuebernahmeDurch.Datenbankdatei)))
-        {
-            try
-            {
-                LadeDatenbank(ordner);
-            }
-            catch (Exception fehler)
-            {
-                // Beim Start keinen Dialog zeigen (das Fenster ist noch nicht sichtbar), nur Statusmeldung
-                Statustext = $"Datenbank konnte nicht geöffnet werden: {fehler.Message}";
-            }
-        }
+        LadeDatenbank(datenordner);
     }
 
     /// <summary>Fenstertitel inklusive Programmversion.</summary>
@@ -74,6 +66,10 @@ public partial class HauptfensterViewModel : ObservableObject
     /// </summary>
     public static string Programmversion =>
         Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "?";
+
+    /// <summary>Der aktive Datenordner; wird rechts in der Statusleiste angezeigt.</summary>
+    [ObservableProperty]
+    private string _datenordner = string.Empty;
 
     /// <summary>Auswählbare Jahre in der Werkzeugleiste.</summary>
     public ObservableCollection<string> Jahre { get; }
@@ -89,7 +85,7 @@ public partial class HauptfensterViewModel : ObservableObject
     [ObservableProperty]
     private string _ausgewaehlteAktivitaet = string.Empty;
 
-    /// <summary>Text, der unten in der Statusleiste angezeigt wird.</summary>
+    /// <summary>Text, der links in der Statusleiste angezeigt wird.</summary>
     [ObservableProperty]
     private string _statustext = string.Empty;
 
@@ -100,15 +96,24 @@ public partial class HauptfensterViewModel : ObservableObject
     partial void OnAusgewaehlteAktivitaetChanged(string value) => AktualisiereStatus();
 
     /// <summary>
-    /// Öffnet die Datenbank im angegebenen Datenordner und füllt die Auswahllisten.
+    /// Öffnet die Datenbank im angegebenen Datenordner, übernimmt ihn als aktiven Ordner und füllt die Auswahllisten.
     /// </summary>
-    /// <param name="ordner">Datenordner mit der Datei <c>andytours.db</c>.</param>
+    /// <remarks>
+    /// Enthält der Ordner noch keine Datenbank, wird eine leere angelegt – die App beginnt dann
+    /// mit einem leeren Datenbestand. Schlägt das Laden fehl, bleibt der bisherige Zustand erhalten,
+    /// weil der neue Bestand erst nach dem erfolgreichen Laden übernommen wird.
+    /// </remarks>
+    /// <param name="ordner">Datenordner (erreichbar und beschreibbar).</param>
     private void LadeDatenbank(string ordner)
     {
-        using (SqliteConnection verbindung = OeffneDatenbank.Ausfuehren(Path.Combine(ordner, FuehreAltdatenuebernahmeDurch.Datenbankdatei)))
+        Datenbestand geladen;
+        using (SqliteConnection verbindung = OeffneDatenbank.Ausfuehren(Path.Combine(ordner, DatenordnerInhalt.Datenbankdatei)))
         {
-            _bestand = LadeDatenbestand.Ausfuehren(verbindung);
+            geladen = LadeDatenbestand.Ausfuehren(verbindung);
         }
+
+        _bestand = geladen;
+        Datenordner = ordner;
 
         // Jahresliste: alle Jahre mit Einheiten, das neueste zuerst
         Jahre.Clear();
@@ -136,8 +141,9 @@ public partial class HauptfensterViewModel : ObservableObject
     /// </summary>
     private void AktualisiereStatus()
     {
-        if (_bestand is null)
+        if (_bestand.Trainingseinheiten.Count == 0)
         {
+            Statustext = "Keine Trainingseinheiten im Datenordner.";
             return;
         }
 
@@ -149,7 +155,7 @@ public partial class HauptfensterViewModel : ObservableObject
             auswahl = auswahl.Where(e => e.AktivitaetId == aktivitaet.Id);
         }
 
-        if (int.TryParse(AusgewaehltesJahr, out int jahr))
+        if (int.TryParse(AusgewaehltesJahr, NumberStyles.Integer, CultureInfo.InvariantCulture, out int jahr))
         {
             auswahl = auswahl.Where(e => e.Datum.Year == jahr);
         }
@@ -161,64 +167,43 @@ public partial class HauptfensterViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Befehl „Datei → Altdaten aus BikeXperience übernehmen…": liest den gewählten
-    /// BikeXperience-Datenordner ein und legt daraus die AndyTours-Datenbank an.
+    /// Befehl „Extras → Einstellungen…“: öffnet das Einstellungsfenster.
     /// </summary>
     [RelayCommand]
-    private void AltdatenUebernehmen()
+    private void EinstellungenOeffnen()
     {
-        var dialog = new OpenFolderDialog
-        {
-            Title = "BikeXperience-Datenordner wählen (mit workouts.csv und bikexperience.ini)",
-            InitialDirectory = LeseGemerktenDatenordner.Ausfuehren() ?? string.Empty,
-        };
-        if (dialog.ShowDialog() != true)
-        {
-            return;
-        }
+        var viewModel = new EinstellungenViewModel(Datenordner, !Programmpfade.IstEntwicklung, WechsleZuNeuemDatenordner);
+        var fenster = new EinstellungenFenster(viewModel) { Owner = Application.Current.MainWindow };
+        fenster.ShowDialog();
+    }
 
-        string ordner = dialog.FolderName;
-        if (!File.Exists(Path.Combine(ordner, "workouts.csv")))
+    /// <summary>
+    /// Ablauf „Datenordner ändern“ aus den Einstellungen: Ordner wählen und prüfen lassen
+    /// (inkl. Rückfragen und ggf. Kopieren), dann die Daten des neuen Ordners laden und ihn merken.
+    /// </summary>
+    /// <returns>Der neue Datenordner oder <c>null</c>, wenn der bisherige aktiv bleibt.</returns>
+    private async Task<string?> WechsleZuNeuemDatenordner()
+    {
+        string? neu = await WechsleDatenordner.Ausfuehren(Datenordner, kopierenAnbieten: true);
+        if (neu is null)
         {
-            MessageBox.Show("Im gewählten Ordner gibt es keine workouts.csv.", "Altdaten übernehmen",
-                MessageBoxButton.OK, MessageBoxImage.Warning);
-            return;
-        }
-
-        // Eine vorhandene Datenbank würde ersetzt – das muss ausdrücklich bestätigt werden.
-        if (File.Exists(Path.Combine(ordner, FuehreAltdatenuebernahmeDurch.Datenbankdatei)))
-        {
-            MessageBoxResult antwort = MessageBox.Show(
-                $"Im Ordner gibt es bereits eine AndyTours-Datenbank ({FuehreAltdatenuebernahmeDurch.Datenbankdatei}).\n\n" +
-                "Soll sie durch eine neue Übernahme der Altdaten ersetzt werden? Änderungen, die seitdem in AndyTours gemacht wurden, gehen dabei verloren.",
-                "Altdaten übernehmen", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
-            if (antwort != MessageBoxResult.Yes)
-            {
-                return;
-            }
+            return null;
         }
 
         try
         {
-            Migrationsergebnis ergebnis = FuehreAltdatenuebernahmeDurch.Ausfuehren(ordner);
-            MerkeDatenordner.Ausfuehren(ordner);
-            LadeDatenbank(ordner);
-
-            Migrationsbericht bericht = ergebnis.Bericht;
-            MessageBox.Show(
-                $"Übernommen: {ergebnis.Bestand.Trainingseinheiten.Count} Trainingseinheiten, " +
-                $"{ergebnis.Bestand.Equipments.Count} Equipments, {ergebnis.Bestand.Wartungen.Count} Wartungen.\n\n" +
-                $"Hinweise: {bericht.Hinweise.Count}\nWarnungen: {bericht.Warnungen.Count}\n" +
-                $"Nicht reparierte Umlaute: {bericht.NichtReparierteTexte.Count}\n\n" +
-                $"Der vollständige Bericht steht in:\n{Path.Combine(ordner, FuehreAltdatenuebernahmeDurch.Berichtsdatei)}",
-                "Altdaten übernommen", MessageBoxButton.OK,
-                bericht.Warnungen.Count > 0 ? MessageBoxImage.Warning : MessageBoxImage.Information);
+            LadeDatenbank(neu);
         }
-        catch (Exception fehler)
+        catch (Exception fehler) when (fehler is SqliteException or IOException or UnauthorizedAccessException)
         {
-            MessageBox.Show($"Die Übernahme ist fehlgeschlagen:\n\n{fehler.Message}", "Altdaten übernehmen",
-                MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show($"Die Daten im Ordner\n{neu}\nkonnten nicht geladen werden:\n\n{fehler.Message}\n\nDer bisherige Datenordner bleibt aktiv.",
+                "Datenordner ändern", MessageBoxButton.OK, MessageBoxImage.Error);
+            return null;
         }
+
+        // Erst nach erfolgreichem Laden merken – sonst würde die App beim nächsten Start mit einem defekten Ordner beginnen
+        MerkeDatenordner.Ausfuehren(Programmpfade.Merkdatei, neu);
+        return neu;
     }
 
     /// <summary>

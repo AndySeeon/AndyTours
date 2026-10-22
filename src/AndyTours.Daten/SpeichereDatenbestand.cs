@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.Data.Sqlite;
 using AndyTours.Core.Modell;
 
@@ -30,7 +31,7 @@ public static class SpeichereDatenbestand
         using (SqliteCommand pruefung = verbindung.CreateCommand())
         {
             pruefung.CommandText = "SELECT COUNT(*) FROM Trainingseinheit;";
-            if (Convert.ToInt64(pruefung.ExecuteScalar()) > 0)
+            if (Convert.ToInt64(pruefung.ExecuteScalar(), CultureInfo.InvariantCulture) > 0)
             {
                 throw new InvalidOperationException("Die Datenbank enthält bereits Trainingseinheiten.");
             }

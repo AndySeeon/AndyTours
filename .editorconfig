@@ -32,3 +32,13 @@ dotnet_naming_symbols.private_felder.applicable_kinds = field
 dotnet_naming_symbols.private_felder.applicable_accessibilities = private
 dotnet_naming_style.unterstrich_camel.capitalization = camel_case
 dotnet_naming_style.unterstrich_camel.required_prefix = _
+
+# Tests: Unterstriche in Testnamen sind gewollt, damit sie sich wie Sätze lesen
+# (z. B. „Gespeicherter_Bestand_wird_unveraendert_geladen“)
+[tests/**.cs]
+dotnet_diagnostic.CA1707.severity = none
+
+# ViewModels: Befehle und gebundene Eigenschaften müssen Instanzmitglieder sein
+# (CommunityToolkit [RelayCommand] und WPF-Datenbindung), auch wenn sie keine Instanzdaten nutzen
+[src/AndyTours.App/ViewModels/**.cs]
+dotnet_diagnostic.CA1822.severity = none

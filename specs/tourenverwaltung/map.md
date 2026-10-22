@@ -1,0 +1,128 @@
+# Tourenverwaltung
+
+## Umfang
+- Alle Funktionen der App AndyTours nach dem Vorbild BikeXperience, soweit vom Benutzer ausgewählt (siehe `funktionsauswahl.md`)
+- Einmalige Übernahme der BikeXperience-Altdaten in einem separaten Programm
+- Erfassen, Auswerten und Importieren von Fahrradtouren; Verwaltung von Rädern und deren Wartung
+
+## Nicht enthalten
+- Mehrbenutzer-Verwaltung
+- Altdaten-Import innerhalb der App
+- Schwellwerte mit Farben
+- Tourdetail: Puls-/Zonen-Auswertung, Rundenzeiten, Höhenprofil-Vergleich
+- Karteikarten „Diagramme“, „Statistik“, „Kalender“, „Trainingsplan“, „Planung“
+- Auskünfte: Jahresprognose, Top 50, Gewichtsverlauf, Ruhe-/Erholungspuls, Leistungs-/Trainingskontrolle, Ø-Geschwindigkeits-/Trittfrequenz-Diagramm, Temperatur, virtuelle Weltumrundung
+- Wartung: Kuchendiagramm
+- Werkzeuge: Ritzelrechner, Pulsrechner, Marathonzeitenplaner
+
+## Funktionen
+In Umsetzungsreihenfolge.
+
+- `datenordner-waehlen` — Der Benutzer wählt in den Einstellungen den Datenordner und kann ihn ändern; die Wahl bleibt beim nächsten Start erhalten (während der Entwicklung `AppDaten/`, sonst anfangs `Dokumente\AndyTours`).
+  - Abhängig von: —
+  - Status: done → [001-datenordner-waehlen](001-datenordner-waehlen/spec.md)
+- `altdaten-umwandeln` — Ein separates Programm wandelt die BikeXperience-Daten aus `Daten/` einmalig in den Datenordner von AndyTours um und erstellt einen Bericht.
+  - Abhängig von: `datenordner-waehlen`
+  - Status: open
+- `hauptfenster-auswahl` — Das Hauptfenster bietet eine Jahres- und Aktivitätsauswahl und zeigt die Summen der Auswahl.
+  - Abhängig von: `datenordner-waehlen`
+  - Status: open
+- `datensicherung` — Die Datenbank wird automatisch in regelmäßigen Abständen gesichert.
+  - Abhängig von: `datenordner-waehlen`
+  - Status: open
+- `einheiten-tabelle` — Alle Trainingseinheiten der Auswahl erscheinen in einer sortierbaren Tabelle mit Summenzeile und rot markierten Bestwerten.
+  - Abhängig von: `hauptfenster-auswahl`
+  - Status: open
+- `einheiten-filter` — Die Tabelle lässt sich nach Kategorie, Equipment, Trainingsbereich, Distanz, Höhenmetern und Name filtern.
+  - Abhängig von: `einheiten-tabelle`
+  - Status: open
+- `einheit-bearbeiten` — Der Benutzer kann eine Einheit neu anlegen, bearbeiten, kopieren und löschen.
+  - Abhängig von: `einheiten-tabelle`
+  - Status: open
+- `aktivitaeten-kategorien-verwalten` — Der Benutzer kann Aktivitäten und Kategorien anlegen, umbenennen und löschen.
+  - Abhängig von: `hauptfenster-auswahl`
+  - Status: open
+- `equipments-verwalten` — Der Benutzer kann Räder und Ausrüstung anlegen, bearbeiten und als ausgemustert kennzeichnen.
+  - Abhängig von: `hauptfenster-auswahl`
+  - Status: open
+- `mehrfachauswahl-zuordnen` — Für mehrere markierte Einheiten kann der Benutzer auf einmal Kategorien zuordnen, die Aktivität wechseln oder das Equipment ändern.
+  - Abhängig von: `einheiten-tabelle`, `aktivitaeten-kategorien-verwalten`, `equipments-verwalten`
+  - Status: open
+- `persoenliche-daten` — Der Benutzer pflegt seine persönlichen Daten (Gewicht, Ruhe- und Maximalpuls, Heimatort).
+  - Abhängig von: `hauptfenster-auswahl`
+  - Status: open
+- `saisonziele` — Der Benutzer legt je Aktivität und Jahr Saisonziele für Kilometer, Höhenmeter und Anzahl fest.
+  - Abhängig von: `aktivitaeten-kategorien-verwalten`
+  - Status: open
+- `jahresfortschritt` — Die Ansicht „Aktuell“ zeigt den Jahresfortschritt bei km und hm gegenüber dem Saisonziel und die nötige Wochenleistung bis Saisonende.
+  - Abhängig von: `saisonziele`
+  - Status: open
+- `bestleistungen` — Die Ansicht „Aktuell“ zeigt die Bestleistungen mit dem jeweiligen Rekordjahr.
+  - Abhängig von: `hauptfenster-auswahl`
+  - Status: open
+- `mehrjahresdiagramm` — Die Ansicht „Aktuell“ zeigt ein Diagramm von km, hm und Fahrzeit über alle Jahre.
+  - Abhängig von: `hauptfenster-auswahl`
+  - Status: open
+- `garmin-import` — Neue Touren vom angeschlossenen Garmin Edge 1040 werden eingelesen und als Einheiten angelegt; bereits vorhandene werden erkannt und übersprungen.
+  - Abhängig von: `einheit-bearbeiten`
+  - Status: open
+- `gpx-tcx-import` — Der Benutzer kann GPX- und TCX-Dateien als neue Einheiten importieren.
+  - Abhängig von: `einheit-bearbeiten`
+  - Status: open
+- `anhaenge-oeffnen` — Die Anhänge einer Einheit (Aufzeichnung, Dokumentation) lassen sich öffnen.
+  - Abhängig von: `einheiten-tabelle`
+  - Status: open
+- `hoehenprofil` — Zur gewählten Einheit wird das Höhenprofil der Aufzeichnung angezeigt.
+  - Abhängig von: `einheiten-tabelle`
+  - Status: open
+- `streckenkarte` — Zur gewählten Einheit wird die Strecke auf einer OpenStreetMap-Karte angezeigt.
+  - Abhängig von: `einheiten-tabelle`
+  - Status: open
+- `werte-aus-aufzeichnung` — Der Benutzer kann Distanz, Höhenmeter, Puls und weitere Werte einer Einheit aus ihrer Aufzeichnung neu übernehmen.
+  - Abhängig von: `einheit-bearbeiten`
+  - Status: open
+- `leistungsberechnung` — Zur gewählten Einheit werden Steigleistung, Gesamtleistung und Kalorien berechnet und angezeigt.
+  - Abhängig von: `persoenliche-daten`, `equipments-verwalten`, `hoehenprofil`
+  - Status: open
+- `mehrtagestour` — Mehrere Einheiten lassen sich gemeinsam als Mehrtagestour auswerten (Summen, Höhenprofil, Karte).
+  - Abhängig von: `hoehenprofil`, `streckenkarte`
+  - Status: open
+- `wartung-erfassen` — Der Benutzer erfasst Wartungen mit Datum, Rad, Tätigkeit und Kommentar.
+  - Abhängig von: `equipments-verwalten`
+  - Status: open
+- `wartungsalarme` — Für ein Rad lässt sich ein Alarm nach einer bestimmten Kilometerzahl setzen, der bei Erreichen auffällig angezeigt wird.
+  - Abhängig von: `wartung-erfassen`
+  - Status: open
+- `teile-haltbarkeit` — Die App zeigt, wie viele Kilometer und Tage ein Teil zwischen zwei gleichartigen Wartungen gehalten hat.
+  - Abhängig von: `wartung-erfassen`
+  - Status: open
+- `wartung-csv` — Wartungen lassen sich als CSV exportieren und aus CSV importieren.
+  - Abhängig von: `wartung-erfassen`
+  - Status: open
+- `suche` — Der Benutzer kann Einheiten über einen Suchbegriff finden, auch in Kommentaren und Anhängen.
+  - Abhängig von: `einheiten-tabelle`
+  - Status: open
+- `equipment-einsatz` — Eine Auskunft zeigt die gefahrenen Kilometer je Rad und Jahr.
+  - Abhängig von: `equipments-verwalten`
+  - Status: open
+- `vergleich-aktivitaeten-kategorien` — Eine Auskunft vergleicht Aktivitäten und Kategorien nach km, hm, Zeit und Anzahl.
+  - Abhängig von: `aktivitaeten-kategorien-verwalten`
+  - Status: open
+- `gpx-export` — Der Track einer Einheit lässt sich als GPX-Datei exportieren.
+  - Abhängig von: `streckenkarte`
+  - Status: open
+- `track-bearbeiten` — Der Benutzer kann den Track einer Einheit kürzen, umkehren und glätten.
+  - Abhängig von: `streckenkarte`
+  - Status: open
+- `tourenplanung-karte` — Der Benutzer plant eine neue Strecke per Mausklick auf der Karte und speichert sie.
+  - Abhängig von: `streckenkarte`
+  - Status: open
+- `overlays` — Gespeicherte Strecken lassen sich als zusätzliche Ebene auf der Karte einblenden und in Ordnern verwalten.
+  - Abhängig von: `streckenkarte`
+  - Status: open
+- `courses-uebertragen` — Geplante oder gefahrene Strecken lassen sich als Course auf den Garmin Edge 1040 übertragen.
+  - Abhängig von: `garmin-import`, `tourenplanung-karte`
+  - Status: open
+- `bildergalerie` — Fotos lassen sich einer Einheit zuordnen, als Galerie anzeigen und über die Aufnahmezeit auf der Strecke verorten.
+  - Abhängig von: `streckenkarte`
+  - Status: open
