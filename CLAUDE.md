@@ -1,4 +1,8 @@
-In diesem Projekt bauen wir eine Touren- Verwaltung für Radltouren
+@docs/product.md
+@docs/tech.md
+@docs/structure.md
+
+In diesem Projekt bauen wir AndyTours, eine Touren- Verwaltung für Radltouren
 
 ## Tech Stack
 Programmiersprache: C#
@@ -7,7 +11,7 @@ Programmiersprache: C#
 - Datenhaltung: SQLite über `Microsoft.Data.Sqlite`
 - FIT-Import: `Garmin.FIT.Sdk`
 - Tests: xUnit
-- Geplant (siehe `docs/Analyse_und_Plan_Neuprogrammierung.md`): ScottPlot (Diagramme), Mapsui (OSM-Karte)
+- Bibliotheken für Diagramme und Karte werden erst bei der jeweiligen Funktion festgelegt
 
 ## Werkzeuge (Entwicklungsumgebung)
 | Werkzeug | Zweck | Installation |
@@ -19,9 +23,9 @@ Programmiersprache: C#
 | NuGet | Paketquelle nuget.org, wird über das SDK automatisch genutzt | – |
 
 Befehle (im Projektordner):
-- Bauen: `dotnet build CC_RadlDB.slnx`
-- Testen: `dotnet test CC_RadlDB.slnx`
-- Starten: `dotnet run --project src/RadlDB.App`
+- Bauen: `dotnet build AndyTours.slnx`
+- Testen: `dotnet test AndyTours.slnx`
+- Starten: `dotnet run --project src/AndyTours.App`
  
  ## Arbeitsweise
  Jede Funktion soll in eine eigene Datei geschrieben werden und wird ausführlich mit Kommentaren in deutscher Sprache erläutert.

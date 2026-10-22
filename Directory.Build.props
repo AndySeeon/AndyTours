@@ -18,9 +18,9 @@
     <!-- Programmversion (Major.Minor.Patch); 0.x = Entwicklungsstand vor der ersten nutzbaren Version -->
     <Version>0.1.0</Version>
     <!-- Gemeinsame Produktangaben für alle Assemblies -->
-    <Product>RadlDB</Product>
+    <Product>AndyTours</Product>
     <Authors>Andreas Hensel</Authors>
-    <Company>RadlDB</Company>
+    <Company>AndyTours</Company>
     <NeutralLanguage>de-DE</NeutralLanguage>
   </PropertyGroup>
 </Project>

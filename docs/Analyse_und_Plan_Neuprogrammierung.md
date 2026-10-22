@@ -232,6 +232,11 @@ Solution und Projekte anlegen, NuGet-Pakete, Kommentar-/Dateikonventionen, leere
 4. Umlaut-Reparatur mit Korrekturliste + Bericht der nicht reparierbaren Stellen
 5. **Prüfung:** 932 Einheiten, 18 Equipments, alle Wartungen übernommen; Summen km/hm je Jahr identisch mit dem Original
 
+**Stand 22.10.2026 – umgesetzt.** Ergebnis mit den echten Altdaten: 932 Einheiten, 86 Wartungen, 20 Equipments (18 aus der INI + „GENERIC"/„MOUNTAIN" aus `workouts.csv`), 5 Kategorien (+ „Training"), 28 Schwellwerte. Jahressummen nach Speichern/Laden identisch mit `workouts.csv` (automatischer Test).
+Abweichungen vom Entwurf in 5.3: zusätzliche Spalten `Equipment.CrCoeff`, `Equipment.AnfangsdistanzKm`, `Equipment.StandardKategorie`, `Fahrer.Id` und `Trainingseinheit.FahrerId` (Nutzerverwaltung); Tabelle `Einstellung` und `Trackpunkt` folgen bei Bedarf (Phase 2 ff.).
+Befunde: 19 Umlaute lagen als Latin-1-Bytes vor und wurden exakt wiederhergestellt, 121 Texte über die Korrekturliste repariert; offen sind „Stoisser B�ckeralm" und zweimal „(�PD)". Die FIT-Dateien zu Zeile 344 (2019-11-11) und Zeile 933 (2026-10-05) fehlen im Datenordner.
+Bedienung: *Datei → Altdaten aus BikeXperience übernehmen…* legt `radldb.db` und `migrationsbericht.txt` im Datenordner an.
+
 ### Phase 2 – FIT-Import & Trackmodell
 FIT-Datei lesen (Trackpunkte, Laps, Kennwerte) · Kennwerte berechnen (Distanz, hm mit Schwellwert, Ø-/Max-Werte, Zeit in Zonen) · Neue Einheit aus FIT-Datei · Duplikaterkennung (Datum + Distanz) · Test gegen 930 vorhandene Dateien.
 
@@ -267,6 +272,15 @@ GPS-Track-Editor und Tourenplanung, Overlays, Trainingsplan, Planungs-Karteikart
 4. **Datenhaltung:** SQLite einverstanden, oder sollen die Daten weiterhin als lesbare Textdateien (CSV) liegen?
 5. **Parallelbetrieb:** Soll BikeXperience während der Übergangszeit weiterlaufen? Dann bräuchte RadlDB einen Rück-Export nach `workouts.csv`.
 6. **Garmin:** Welches Gerät nutzen Sie aktuell (für die USB-Synchronisation)?
+
+Antworten:
+1. Frage mich das für jede einzelne Funktion, bevor die im Plan aufgenpommen wird.
+2. einer reicht
+3. nur Windows
+4. SQLite einverstanden
+5. nein
+6. Garmin Egde 1040 Solar. dieses kann bisher in BikeXperience nicht wie ein Laufwerk ausgelesen werden; die aktuelle Technologie dafür musst Du bitte ermitteln und mir mitteilen.
+
 
 ---
 

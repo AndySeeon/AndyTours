@@ -1,4 +1,4 @@
-# RadlDB – Konventionen
+# AndyTours – Konventionen
 
 Verbindliche Regeln für den Quellcode. Grundlage ist die Projektvorgabe in `CLAUDE.md`:
 *„Jede Funktion soll in eine eigene Datei geschrieben werden und wird ausführlich mit Kommentaren erläutert."*
@@ -7,11 +7,11 @@ Verbindliche Regeln für den Quellcode. Grundlage ist die Projektvorgabe in `CLA
 
 | Ordner / Projekt | Inhalt | darf verweisen auf |
 |---|---|---|
-| `src/RadlDB.Core` | Domänenmodell (`Modell/`) und Fachfunktionen (`Berechnungen/`) – ohne Oberfläche, ohne Datenbank | – |
-| `src/RadlDB.Daten` | SQLite-Datenbank: Schema, Lesen und Schreiben | Core |
-| `src/RadlDB.Import` | Einlesen von FIT/GPX/TCX und Übernahme der BikeXperience-Altdaten | Core |
-| `src/RadlDB.App` | WPF-Oberfläche: `Views/` (XAML) und `ViewModels/` | Core, Daten, Import |
-| `tests/RadlDB.Tests` | Unit-Tests (xUnit) | Core, Daten, Import |
+| `src/AndyTours.Core` | Domänenmodell (`Modell/`) und Fachfunktionen (`Berechnungen/`) – ohne Oberfläche, ohne Datenbank | – |
+| `src/AndyTours.Daten` | SQLite-Datenbank: Schema, Lesen und Schreiben | Core |
+| `src/AndyTours.Import` | Einlesen von FIT/GPX/TCX und Übernahme der BikeXperience-Altdaten (`Altdaten/`) | Core |
+| `src/AndyTours.App` | WPF-Oberfläche: `Views/` (XAML), `ViewModels/` und `Funktionen/` (Abläufe, die Daten und Import verbinden) | Core, Daten, Import |
+| `tests/AndyTours.Tests` | Unit-Tests (xUnit) | Core, Daten, Import |
 | `Daten/` | Ihre Nutzdaten (Altdaten, FIT-Dateien, später die Datenbank) – **kein Quellcode** | – |
 | `docs/` | Plan und Dokumentation | – |
 
@@ -40,4 +40,4 @@ Verbindliche Regeln für den Quellcode. Grundlage ist die Projektvorgabe in `CLA
 - .NET 10 (`net10.0`, App: `net10.0-windows`), C# `latest`, Nullable aktiviert – gemeinsam festgelegt in `Directory.Build.props`; die SDK-Version (10.0.4xx, keine Vorabversionen) legt `global.json` fest.
 - Formatierung nach `.editorconfig` (4 Leerzeichen, dateibezogene Namespaces, geschweifte Klammern immer).
 - Oberfläche nach MVVM mit `CommunityToolkit.Mvvm` (`[ObservableProperty]`, `[RelayCommand]`).
-- Fachfunktionen in Core bekommen Unit-Tests in `tests/RadlDB.Tests`.
+- Fachfunktionen in Core bekommen Unit-Tests in `tests/AndyTours.Tests`.

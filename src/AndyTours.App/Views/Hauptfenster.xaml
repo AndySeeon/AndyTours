@@ -1,0 +1,105 @@
+<!--
+  Hauptfenster von AndyTours.
+
+  Aufbau von oben nach unten (DockPanel):
+    1. Menüleiste
+    2. Werkzeugleiste mit Jahres- und Aktivitätsauswahl
+    3. Statusleiste (am unteren Rand angedockt)
+    4. Karteikarten mit den Arbeitsbereichen (füllt den restlichen Platz)
+
+  Alle Inhalte werden per Datenbindung aus dem HauptfensterViewModel gelesen.
+  Die Karteikarten enthalten in Phase 0 nur Platzhalter mit Hinweis auf die Phase,
+  in der sie umgesetzt werden (siehe docs/Analyse_und_Plan_Neuprogrammierung.md).
+-->
+<Window x:Class="AndyTours.App.Views.Hauptfenster"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:AndyTours.App.ViewModels"
+        Title="{Binding Titel}"
+        Width="1200" Height="800"
+        MinWidth="800" MinHeight="500"
+        WindowStartupLocation="CenterScreen">
+
+    <!-- Das ViewModel wird als DataContext gesetzt; alle Bindings beziehen sich darauf. -->
+    <Window.DataContext>
+        <vm:HauptfensterViewModel />
+    </Window.DataContext>
+
+    <Window.Resources>
+        <!-- Einheitliches Aussehen für die Platzhaltertexte in den Karteikarten -->
+        <Style x:Key="PlatzhalterText" TargetType="TextBlock">
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="TextAlignment" Value="Center" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="Foreground" Value="Gray" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+    </Window.Resources>
+
+    <DockPanel>
+
+        <!-- 1. Menüleiste -->
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="_Datei">
+                <MenuItem Header="_Altdaten aus BikeXperience übernehmen…" Command="{Binding AltdatenUebernehmenCommand}" />
+                <Separator />
+                <MenuItem Header="_Beenden" Command="{Binding BeendenCommand}" InputGestureText="Alt+F4" />
+            </MenuItem>
+            <MenuItem Header="_Hilfe">
+                <MenuItem Header="_Über AndyTours" Command="{Binding UeberCommand}" />
+            </MenuItem>
+        </Menu>
+
+        <!-- 2. Werkzeugleiste: Filter für Jahr und Aktivität, wirken später auf alle Karteikarten -->
+        <ToolBarTray DockPanel.Dock="Top">
+            <ToolBar>
+                <Label Content="Jahr:" VerticalAlignment="Center" />
+                <ComboBox Width="110"
+                          ItemsSource="{Binding Jahre}"
+                          SelectedItem="{Binding AusgewaehltesJahr}" />
+                <Separator />
+                <Label Content="Aktivität:" VerticalAlignment="Center" />
+                <ComboBox Width="140"
+                          ItemsSource="{Binding Aktivitaeten}"
+                          SelectedItem="{Binding AusgewaehlteAktivitaet}" />
+            </ToolBar>
+        </ToolBarTray>
+
+        <!-- 3. Statusleiste -->
+        <StatusBar DockPanel.Dock="Bottom">
+            <StatusBarItem>
+                <TextBlock Text="{Binding Statustext}" />
+            </StatusBarItem>
+        </StatusBar>
+
+        <!-- 4. Karteikarten (Reihenfolge wie im Original BikeXperience) -->
+        <TabControl Margin="4">
+            <TabItem Header="Aktuell">
+                <TextBlock Style="{StaticResource PlatzhalterText}"
+                           Text="Übersicht: Jahresfortschritt, Saisonziele und Bestleistungen&#10;– folgt in Phase 4 –" />
+            </TabItem>
+            <TabItem Header="Trainingseinheiten">
+                <TextBlock Style="{StaticResource PlatzhalterText}"
+                           Text="Tabelle aller Trainingseinheiten mit Filtern und Detailansicht&#10;– folgt in Phase 3 –" />
+            </TabItem>
+            <TabItem Header="Diagramme">
+                <TextBlock Style="{StaticResource PlatzhalterText}"
+                           Text="Diagramme nach Woche, Monat und Jahr&#10;– folgt in Phase 4 –" />
+            </TabItem>
+            <TabItem Header="Statistik">
+                <TextBlock Style="{StaticResource PlatzhalterText}"
+                           Text="Statistiktabelle Monat × Jahr&#10;– folgt in Phase 4 –" />
+            </TabItem>
+            <TabItem Header="Kalender">
+                <TextBlock Style="{StaticResource PlatzhalterText}"
+                           Text="Monatskalender mit Trainingseinheiten und Wartungen&#10;– folgt in Phase 6 –" />
+            </TabItem>
+            <TabItem Header="Wartung">
+                <TextBlock Style="{StaticResource PlatzhalterText}"
+                           Text="Wartungsliste und Alarme je Equipment&#10;– folgt in Phase 6 –" />
+            </TabItem>
+        </TabControl>
+
+    </DockPanel>
+</Window>

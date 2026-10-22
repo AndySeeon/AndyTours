@@ -1,7 +1,10 @@
 # Von Git ausgeschlossene Dateien und Ordner
 
-# Persönliche Nutzdaten (Altdaten, FIT-Dateien, später die Datenbank) – nicht versionieren
+# Persönliche Nutzdaten – nicht versionieren
+# Daten/: BikeXperience-Altdaten (Quelle der einmaligen Umwandlung)
 /Daten/
+# AppDaten/: Datenordner von AndyTours während der Entwicklung (Datenbank, FIT-Dateien)
+/AppDaten/
 
 # Build-Ausgaben von dotnet/MSBuild
 bin/
