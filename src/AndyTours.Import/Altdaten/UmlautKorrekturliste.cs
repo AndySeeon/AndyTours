@@ -14,9 +14,9 @@ namespace AndyTours.Import.Altdaten;
 /// Vorrang vor allgemeinen haben.
 /// </para>
 /// <para>
-/// <b>Bewusst nicht aufgenommen</b> (nicht eindeutig, bitte manuell prüfen):
-/// „B�ckeralm" (Bäckeralm oder Böckeralm?) und „(�PD)" (Abkürzung unbekannt).
-/// Neue Einträge können einfach unten ergänzt werden.
+/// „B�ckeralm" und „(�PD)" waren nicht eindeutig; die richtige Schreibweise („Bäckeralm",
+/// „ÜPD") hat der Benutzer festgelegt (Spezifikation 002). Neue Einträge können einfach unten
+/// ergänzt werden.
 /// </para>
 /// </remarks>
 public static class UmlautKorrekturliste
@@ -37,6 +37,8 @@ public static class UmlautKorrekturliste
         ("Unterw�ssen", "Unterwössen"),
         ("St�ffling", "Stöffling"),
         ("M�nchen", "München"),
+        ("B�ckeralm", "Bäckeralm"),   // „Stoisser Bäckeralm" (vom Benutzer bestätigt)
+        ("(�PD)", "(ÜPD)"),           // „Arbeit KW … (ÜPD)" (vom Benutzer bestätigt)
 
         // --- allgemeine Wörter ---
         ("H�tte", "Hütte"),

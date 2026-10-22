@@ -78,6 +78,11 @@ public class AltdatenMigrationTests
         // Keine übersprungenen Zeilen
         Assert.DoesNotContain(ergebnis.Bericht.Warnungen, w => w.Contains("übersprungen"));
 
+        // Alle beschädigten Umlaute sind repariert (zuletzt „Bäckeralm" und „ÜPD", Spezifikation 002)
+        Assert.Empty(ergebnis.Bericht.NichtReparierteTexte);
+        Assert.Contains(bestand.Trainingseinheiten, e => e.Name == "Stoisser Bäckeralm");
+        Assert.Contains(bestand.Trainingseinheiten, e => e.Name.Contains("(ÜPD)"));
+
         // Jede Einheit und jede Wartung (außer „-") hat ihre Zuordnung behalten
         Assert.All(bestand.Trainingseinheiten, e => Assert.NotNull(e.EquipmentId));
         Assert.All(bestand.Wartungen, w => Assert.NotNull(w.EquipmentId));

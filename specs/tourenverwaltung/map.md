@@ -23,7 +23,7 @@ In Umsetzungsreihenfolge.
   - Status: done → [001-datenordner-waehlen](001-datenordner-waehlen/spec.md)
 - `altdaten-umwandeln` — Ein separates Programm wandelt die BikeXperience-Daten aus `Daten/` einmalig in den Datenordner von AndyTours um und erstellt einen Bericht.
   - Abhängig von: `datenordner-waehlen`
-  - Status: open
+  - Status: done → [002-altdaten-umwandeln](002-altdaten-umwandeln/spec.md)
 - `hauptfenster-auswahl` — Das Hauptfenster bietet eine Jahres- und Aktivitätsauswahl und zeigt die Summen der Auswahl.
   - Abhängig von: `datenordner-waehlen`
   - Status: open

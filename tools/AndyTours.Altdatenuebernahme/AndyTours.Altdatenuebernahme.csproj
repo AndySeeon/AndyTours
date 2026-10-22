@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Eigenständiges Kommandozeilenprogramm: wandelt die BikeXperience-Altdaten einmalig
+    in einen AndyTours-Datenordner um (Spezifikation 002). Nicht Teil der App.
+  -->
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\AndyTours.Daten\AndyTours.Daten.csproj" />
+    <ProjectReference Include="..\..\src\AndyTours.Import\AndyTours.Import.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>

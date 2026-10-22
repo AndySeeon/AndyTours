@@ -11,7 +11,8 @@ Verbindliche Regeln für den Quellcode. Grundlage ist die Projektvorgabe in `CLA
 | `src/AndyTours.Daten` | SQLite-Datenbank: Schema, Lesen und Schreiben | Core |
 | `src/AndyTours.Import` | Einlesen von FIT/GPX/TCX und Übernahme der BikeXperience-Altdaten (`Altdaten/`) | Core |
 | `src/AndyTours.App` | WPF-Oberfläche: `Views/` (XAML), `ViewModels/` und `Funktionen/` (Abläufe, die Daten und Import verbinden) | Core, Daten, Import |
-| `tests/AndyTours.Tests` | Unit-Tests (xUnit) | Core, Daten, Import |
+| `tools/AndyTours.Altdatenuebernahme` | Konsolenprogramm für die einmalige Umwandlung der BikeXperience-Altdaten in einen AndyTours-Datenordner | Daten, Import |
+| `tests/AndyTours.Tests` | Unit-Tests (xUnit) | Core, Daten, Import, Altdatenuebernahme |
 | `Daten/` | Ihre Nutzdaten (Altdaten, FIT-Dateien, später die Datenbank) – **kein Quellcode** | – |
 | `docs/` | Plan und Dokumentation | – |
 

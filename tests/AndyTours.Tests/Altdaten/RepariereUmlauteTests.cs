@@ -16,6 +16,8 @@ public class RepariereUmlauteTests
     [InlineData("hei� wars, 40� in der Sonne", "heiß wars, 40° in der Sonne")]
     [InlineData("285 psi f�r 28% SAG", "285 psi für 28% SAG")]
     [InlineData("H gel", "Hügel")]
+    [InlineData("Stoisser B�ckeralm", "Stoisser Bäckeralm")]
+    [InlineData("Arbeit KW 12 (�PD)", "Arbeit KW 12 (ÜPD)")]
     public void Bekannte_Woerter_werden_repariert(string beschaedigt, string erwartet)
     {
         Assert.Equal(erwartet, RepariereUmlaute.Ausfuehren(beschaedigt));
@@ -24,7 +26,8 @@ public class RepariereUmlauteTests
     [Fact]
     public void Unbekannte_Stellen_bleiben_mit_Ersatzzeichen_stehen()
     {
-        string ergebnis = RepariereUmlaute.Ausfuehren("Stoisser B�ckeralm");
+        // Ein erfundener Name, der in keiner Korrekturliste steht
+        string ergebnis = RepariereUmlaute.Ausfuehren("Gipfelkreuz am Gr�nstein");
 
         Assert.Contains(RepariereUmlaute.Ersatzzeichen, ergebnis);
     }
