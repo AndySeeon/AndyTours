@@ -85,15 +85,22 @@ public partial class HauptfensterViewModel : ObservableObject
     [ObservableProperty]
     private string _ausgewaehlteAktivitaet = string.Empty;
 
-    /// <summary>Text, der links in der Statusleiste angezeigt wird.</summary>
+    /// <summary>Text, der links in der Statusleiste angezeigt wird (Gesamtzahl der Einheiten).</summary>
     [ObservableProperty]
     private string _statustext = string.Empty;
 
+    /// <summary>
+    /// Summen der aktuellen Auswahl (Anzahl, km, hm) bzw. der Hinweis, dass noch keine Touren
+    /// vorhanden sind; wird in der Werkzeugleiste neben der Auswahl angezeigt.
+    /// </summary>
+    [ObservableProperty]
+    private string _summentext = string.Empty;
+
     /// <summary>Wird vom CommunityToolkit aufgerufen, sobald sich die Jahresauswahl ändert.</summary>
-    partial void OnAusgewaehltesJahrChanged(string value) => AktualisiereStatus();
+    partial void OnAusgewaehltesJahrChanged(string value) => AktualisiereSummen();
 
     /// <summary>Wird vom CommunityToolkit aufgerufen, sobald sich die Aktivitätsauswahl ändert.</summary>
-    partial void OnAusgewaehlteAktivitaetChanged(string value) => AktualisiereStatus();
+    partial void OnAusgewaehlteAktivitaetChanged(string value) => AktualisiereSummen();
 
     /// <summary>
     /// Öffnet die Datenbank im angegebenen Datenordner, übernimmt ihn als aktiven Ordner und füllt die Auswahllisten.
@@ -115,10 +122,11 @@ public partial class HauptfensterViewModel : ObservableObject
         _bestand = geladen;
         Datenordner = ordner;
 
-        // Jahresliste: alle Jahre mit Einheiten, das neueste zuerst
+        // Jahresliste: „alle Jahre“, dann alle Jahre mit Einheiten und immer das aktuelle Jahr, das neueste zuerst
+        int aktuellesJahr = DateTime.Today.Year;
         Jahre.Clear();
         Jahre.Add(AlleJahre);
-        foreach (int jahr in _bestand.Trainingseinheiten.Select(e => e.Datum.Year).Distinct().OrderDescending())
+        foreach (int jahr in ErmittleAuswahljahre.Ausfuehren(_bestand.Trainingseinheiten, aktuellesJahr))
         {
             Jahre.Add(jahr.ToString(CultureInfo.InvariantCulture));
         }
@@ -130,40 +138,36 @@ public partial class HauptfensterViewModel : ObservableObject
             Aktivitaeten.Add(aktivitaet.Name);
         }
 
-        // Vorauswahl wie im Original: neuestes Jahr und Hauptaktivität
-        AusgewaehltesJahr = Jahre.Count > 1 ? Jahre[1] : AlleJahre;
+        // Vorauswahl: aktuelles Jahr (steht immer in der Liste) und Hauptaktivität; ohne Hauptaktivität alle Aktivitäten
+        AusgewaehltesJahr = aktuellesJahr.ToString(CultureInfo.InvariantCulture);
         AusgewaehlteAktivitaet = _bestand.Aktivitaeten.FirstOrDefault(a => a.IstHaupt)?.Name ?? AlleAktivitaeten;
-        AktualisiereStatus();
+
+        Statustext = string.Format(CultureInfo.GetCultureInfo("de-DE"), "{0:N0} Trainingseinheiten in der Datenbank", _bestand.Trainingseinheiten.Count);
+        AktualisiereSummen();
     }
 
     /// <summary>
-    /// Zeigt in der Statusleiste die Summen für die aktuelle Jahres- und Aktivitätsauswahl.
+    /// Berechnet die Summen der aktuellen Jahres- und Aktivitätsauswahl und zeigt sie neben der Auswahl an.
     /// </summary>
-    private void AktualisiereStatus()
+    /// <remarks>
+    /// Wird bei jeder Änderung der Auswahl aufgerufen. Die Einträge „alle Jahre“ und „alle Aktivitäten“
+    /// werden als „keine Einschränkung“ (<c>null</c>) an <see cref="FiltereAuswahl"/> übergeben.
+    /// </remarks>
+    private void AktualisiereSummen()
     {
         if (_bestand.Trainingseinheiten.Count == 0)
         {
-            Statustext = "Keine Trainingseinheiten im Datenordner.";
+            Summentext = "Noch keine Touren vorhanden.";
             return;
         }
 
-        // Einheiten nach der Auswahl in der Werkzeugleiste filtern
-        IEnumerable<Trainingseinheit> auswahl = _bestand.Trainingseinheiten;
-        Aktivitaet? aktivitaet = _bestand.Aktivitaeten.FirstOrDefault(a => a.Name == AusgewaehlteAktivitaet);
-        if (aktivitaet is not null)
-        {
-            auswahl = auswahl.Where(e => e.AktivitaetId == aktivitaet.Id);
-        }
+        // Auswahl aus der Werkzeugleiste in Filterwerte übersetzen
+        int? jahr = int.TryParse(AusgewaehltesJahr, NumberStyles.Integer, CultureInfo.InvariantCulture, out int j) ? j : null;
+        long? aktivitaetId = _bestand.Aktivitaeten.FirstOrDefault(a => a.Name == AusgewaehlteAktivitaet)?.Id;
 
-        if (int.TryParse(AusgewaehltesJahr, NumberStyles.Integer, CultureInfo.InvariantCulture, out int jahr))
-        {
-            auswahl = auswahl.Where(e => e.Datum.Year == jahr);
-        }
-
-        List<Jahressumme> summen = BerechneJahressummen.Ausfuehren(auswahl);
-        CultureInfo de = CultureInfo.GetCultureInfo("de-DE");
-        Statustext = string.Format(de, "{0} Trainingseinheiten in der Datenbank · Auswahl: {1} Einheiten, {2:N2} km, {3:N0} hm",
-            _bestand.Trainingseinheiten.Count, summen.Sum(s => s.Anzahl), summen.Sum(s => s.DistanzKm), summen.Sum(s => s.Hoehenmeter));
+        Auswahlsumme summe = BerechneAuswahlsummen.Ausfuehren(FiltereAuswahl.Ausfuehren(_bestand.Trainingseinheiten, jahr, aktivitaetId));
+        Summentext = string.Format(CultureInfo.GetCultureInfo("de-DE"), "{0:N0} Einheiten · {1:N2} km · {2:N0} hm",
+            summe.Anzahl, summe.DistanzKm, summe.Hoehenmeter);
     }
 
     /// <summary>

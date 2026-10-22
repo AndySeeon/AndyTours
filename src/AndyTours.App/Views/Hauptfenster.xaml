@@ -3,8 +3,8 @@
 
   Aufbau von oben nach unten (DockPanel):
     1. Menüleiste
-    2. Werkzeugleiste mit Jahres- und Aktivitätsauswahl
-    3. Statusleiste (am unteren Rand angedockt): links Summen der Auswahl, rechts der Datenordner
+    2. Werkzeugleiste mit Jahres- und Aktivitätsauswahl, daneben die Summen der Auswahl (Anzahl, km, hm)
+    3. Statusleiste (am unteren Rand angedockt): links Gesamtzahl der Einheiten, rechts der Datenordner
     4. Karteikarten mit den Arbeitsbereichen (füllt den restlichen Platz)
 
   Alle Inhalte werden per Datenbindung aus dem HauptfensterViewModel gelesen.
@@ -59,6 +59,12 @@
                 <ComboBox Width="140"
                           ItemsSource="{Binding Aktivitaeten}"
                           SelectedItem="{Binding AusgewaehlteAktivitaet}" />
+                <Separator />
+                <!-- Summen der Auswahl bzw. Hinweis „Noch keine Touren vorhanden.“; ändern sich sofort mit der Auswahl -->
+                <TextBlock Text="{Binding Summentext}"
+                           FontWeight="Bold"
+                           VerticalAlignment="Center"
+                           Margin="8,0" />
             </ToolBar>
         </ToolBarTray>
 

@@ -26,7 +26,7 @@ In Umsetzungsreihenfolge.
   - Status: done → [002-altdaten-umwandeln](002-altdaten-umwandeln/spec.md)
 - `hauptfenster-auswahl` — Das Hauptfenster bietet eine Jahres- und Aktivitätsauswahl und zeigt die Summen der Auswahl.
   - Abhängig von: `datenordner-waehlen`
-  - Status: open
+  - Status: done → [003-hauptfenster-auswahl](003-hauptfenster-auswahl/spec.md)
 - `datensicherung` — Die Datenbank wird automatisch in regelmäßigen Abständen gesichert.
   - Abhängig von: `datenordner-waehlen`
   - Status: open
