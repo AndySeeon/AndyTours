@@ -4,9 +4,12 @@
   Aufbau von oben nach unten:
     1. Gruppe „Datenordner“: vollständiger Pfad (nur lesbar) und Schaltfläche „Ändern…“
     2. Hinweis, warum der Ordner in der Entwicklungsversion nicht änderbar ist (nur dort sichtbar)
-    3. Schaltfläche „Schließen“
+    3. Gruppe „Datensicherung“: Sicherungsordner mit „Ändern…“, Intervall (Programmstarts) und
+       Höchstzahl der Sicherungen, jeweils mit Hinweis bei ungültiger Eingabe (erlaubt 1 bis 99)
+    4. Schaltfläche „Schließen“
 
   Ein Ordnerwechsel gilt sofort nach Abschluss der Rückfragen; ein eigenes „OK“ ist nicht nötig.
+  Ebenso werden Sicherungsordner, Intervall und Höchstzahl sofort gespeichert, sobald sie gültig sind.
 -->
 <Window x:Class="AndyTours.App.Views.EinstellungenFenster"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -37,7 +40,54 @@
         <TextBlock Text="{Binding Hinweis}" TextWrapping="Wrap" Foreground="Gray" Margin="0,8,0,0"
                    Visibility="{Binding HinweisSichtbar, Converter={StaticResource SichtbarWennWahr}}" />
 
-        <!-- 3. Schließen -->
+        <!-- 3. Datensicherung: Werte gelten für den oben angezeigten Datenordner -->
+        <GroupBox Header="Datensicherung" Padding="8" Margin="0,12,0,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <Label Grid.Row="0" Grid.Column="0" Content="Sicherungs_ordner:" Target="{Binding ElementName=SicherungsordnerFeld}"
+                       VerticalAlignment="Center" />
+                <DockPanel Grid.Row="0" Grid.Column="1">
+                    <Button DockPanel.Dock="Right" Content="Ä_ndern…" MinWidth="90" Padding="8,3" Margin="8,0,0,0"
+                            Command="{Binding SicherungsordnerAendernCommand}" />
+                    <TextBox x:Name="SicherungsordnerFeld" Text="{Binding Sicherungsordner, Mode=OneWay}" IsReadOnly="True"
+                             VerticalContentAlignment="Center" />
+                </DockPanel>
+
+                <!-- Gültige Werte werden bei jeder Eingabe sofort gespeichert; ungültige nicht, dann erscheint der Hinweis -->
+                <Label Grid.Row="1" Grid.Column="0" Content="Sichern nach _Programmstarts:" Target="{Binding ElementName=IntervallFeld}"
+                       VerticalAlignment="Center" Margin="0,8,0,0" />
+                <TextBox x:Name="IntervallFeld" Grid.Row="1" Grid.Column="1" Width="60" HorizontalAlignment="Left"
+                         Margin="0,8,0,0" VerticalContentAlignment="Center"
+                         Text="{Binding IntervallText, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding IntervallHinweis}" Foreground="Firebrick" TextWrapping="Wrap" />
+
+                <Label Grid.Row="3" Grid.Column="0" Content="_Höchstens aufbewahren:" Target="{Binding ElementName=HoechstzahlFeld}"
+                       VerticalAlignment="Center" Margin="0,8,0,0" />
+                <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Margin="0,8,0,0">
+                    <TextBox x:Name="HoechstzahlFeld" Width="60" VerticalContentAlignment="Center"
+                             Text="{Binding HoechstzahlText, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBlock Text="Sicherungen (die ältesten werden gelöscht)" VerticalAlignment="Center" Margin="8,0,0,0" />
+                </StackPanel>
+                <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding HoechstzahlHinweis}" Foreground="Firebrick" TextWrapping="Wrap" />
+
+                <TextBlock Grid.Row="5" Grid.ColumnSpan="2" Foreground="Gray" TextWrapping="Wrap" Margin="0,8,0,0"
+                           Text="Die Sicherung erfolgt automatisch beim Programmstart." />
+            </Grid>
+        </GroupBox>
+
+        <!-- 4. Schließen -->
         <Button Content="_Schließen" IsCancel="True" IsDefault="True" HorizontalAlignment="Right"
                 MinWidth="90" Padding="8,3" Margin="0,16,0,0" />
 

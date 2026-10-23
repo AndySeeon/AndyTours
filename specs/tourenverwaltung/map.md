@@ -29,6 +29,9 @@ In Umsetzungsreihenfolge.
   - Status: done → [003-hauptfenster-auswahl](003-hauptfenster-auswahl/spec.md)
 - `datensicherung` — Die Datenbank wird automatisch in regelmäßigen Abständen gesichert.
   - Abhängig von: `datenordner-waehlen`
+  - Status: done → [004-datensicherung](004-datensicherung/spec.md)
+- `sicherung-wiederherstellen` — Der Benutzer kann eine Sicherung auswählen und den Datenbestand nach Rückfrage auf deren Stand zurücksetzen.
+  - Abhängig von: `datensicherung`
   - Status: open
 - `einheiten-tabelle` — Alle Trainingseinheiten der Auswahl erscheinen in einer sortierbaren Tabelle mit Summenzeile und rot markierten Bestwerten.
   - Abhängig von: `hauptfenster-auswahl`

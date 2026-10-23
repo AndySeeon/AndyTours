@@ -20,7 +20,7 @@ namespace AndyTours.Daten;
 public static class ErstelleSchema
 {
     /// <summary>Aktuelle Version des Datenbankschemas.</summary>
-    public const int Schemaversion = 1;
+    public const int Schemaversion = 2;
 
     /// <summary>
     /// Führt die CREATE-Anweisungen aus. Vorhandene Tabellen und Daten bleiben unverändert.
@@ -150,6 +150,13 @@ public static class ErstelleSchema
                 Von          REAL    NOT NULL,
                 Bis          REAL    NOT NULL,
                 Farbe        TEXT    NOT NULL
+            );
+
+            -- Einstellungen, die zum Datenbestand gehören (z. B. Datensicherung), als Schlüssel/Wert-Paare;
+            -- seit Schemaversion 2. Ältere Datenbanken erhalten die Tabelle beim nächsten Öffnen automatisch.
+            CREATE TABLE IF NOT EXISTS Einstellung (
+                Schluessel  TEXT    PRIMARY KEY,
+                Wert        TEXT    NOT NULL
             );
 
             PRAGMA user_version = {Schemaversion};

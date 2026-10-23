@@ -6,6 +6,7 @@ using AndyTours.App.Funktionen;
 using AndyTours.App.ViewModels;
 using AndyTours.App.Views;
 using AndyTours.Daten.Datenordner;
+using AndyTours.Daten.Datensicherung;
 
 namespace AndyTours.App;
 
@@ -24,6 +25,7 @@ public partial class App : Application
     /// <item>Ordner prüfen (ein fehlender Ordner wird dabei angelegt).</item>
     /// <item>Nicht erreichbar oder nicht beschreibbar → Meldung mit „Erneut versuchen / Anderen Ordner wählen / Beenden“,
     /// so lange, bis ein brauchbarer Ordner vorliegt oder der Benutzer beendet.</item>
+    /// <item>Automatische Datensicherung, falls fällig (<see cref="SichereBeimStart"/>).</item>
     /// <item>Hauptfenster mit dem Ordner öffnen.</item>
     /// </list>
     /// <c>async void</c> ist hier zulässig, weil es sich um einen Ereignishandler handelt.
@@ -88,6 +90,8 @@ public partial class App : Application
             // „Erneut versuchen“ und ein abgebrochener Ordnerwechsel: Schleife prüft erneut
         }
 
+        await SichereBeimStart(ordner);
+
         HauptfensterViewModel viewModel;
         try
         {
@@ -111,5 +115,38 @@ public partial class App : Application
         MainWindow = hauptfenster;
         ShutdownMode = ShutdownMode.OnMainWindowClose;
         hauptfenster.Show();
+    }
+
+    /// <summary>
+    /// Automatische Datensicherung beim Start, bevor die Touren angezeigt werden.
+    /// </summary>
+    /// <remarks>
+    /// <see cref="FuehreStartsicherungDurch"/> zählt den Start und sichert, wenn die eingestellte Zahl von
+    /// Programmstarts erreicht ist. Das dauert bei Netzlaufwerken einige Sekunden (höchstens 20 s),
+    /// deshalb der Wartecursor. Schlägt die Sicherung fehl, erscheint eine Warnung und der Start geht
+    /// normal weiter; beim nächsten Start wird es erneut versucht.
+    /// </remarks>
+    /// <param name="datenordner">Der geprüfte Datenordner.</param>
+    private static async Task SichereBeimStart(string datenordner)
+    {
+        Startsicherungsergebnis ergebnis;
+        Mouse.OverrideCursor = Cursors.Wait;
+        try
+        {
+            ergebnis = await FuehreStartsicherungDurch.Ausfuehren(datenordner, DateTime.Now);
+        }
+        finally
+        {
+            Mouse.OverrideCursor = null;
+        }
+
+        if (ergebnis.Status == Startsicherungsstatus.Fehlgeschlagen)
+        {
+            MessageBox.Show(
+                $"Die automatische Datensicherung ist fehlgeschlagen.\n\nSicherungsordner:\n{ergebnis.Sicherungsordner ?? "(unbekannt)"}\n\n" +
+                $"{ergebnis.Fehlergrund}\n\nAndyTours startet trotzdem. Beim nächsten Start wird die Sicherung erneut versucht. " +
+                "Den Sicherungsordner können Sie unter „Extras → Einstellungen…“ ändern.",
+                "Datensicherung", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
     }
 }

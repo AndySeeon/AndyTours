@@ -42,3 +42,4 @@ Verbindliche Regeln für den Quellcode. Grundlage ist die Projektvorgabe in `CLA
 - Formatierung nach `.editorconfig` (4 Leerzeichen, dateibezogene Namespaces, geschweifte Klammern immer).
 - Oberfläche nach MVVM mit `CommunityToolkit.Mvvm` (`[ObservableProperty]`, `[RelayCommand]`).
 - Fachfunktionen in Core bekommen Unit-Tests in `tests/AndyTours.Tests`.
+- Einstellungen, die zum Datenbestand gehören (z. B. Datensicherung, später persönliche Daten), liegen in der Tabelle `Einstellung` (Schlüssel/Wert) der Datenbank im Datenordner – nicht unter `%APPDATA%`. Sie wandern so mit dem Datenordner mit. Die Schlüssel stehen in `Einstellungsschluessel` und tragen den Bereich als Vorsilbe (`Sicherung.Intervall`). Unter `%APPDATA%\AndyTours` liegt nur die Merkdatei des Datenordners.
