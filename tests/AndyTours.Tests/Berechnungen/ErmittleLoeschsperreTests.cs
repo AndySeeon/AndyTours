@@ -79,4 +79,34 @@ public class ErmittleLoeschsperreTests
     {
         Assert.Null(ErmittleLoeschsperre.Kategorie(Auswahlbestand.Erzeugen(), 4));
     }
+
+    [Fact]
+    public void Equipment_mit_Einheiten_und_Wartungen_nennt_beides_und_empfiehlt_Ausmustern()
+    {
+        Assert.Equal(
+            "‚Genius‘ wird in 1 Einheit verwendet und hat 1 Wartung; es kann daher nicht gelöscht werden. Bitte stattdessen als ausgemustert kennzeichnen.",
+            ErmittleLoeschsperre.Equipment(Auswahlbestand.MitEquipments(), 1));
+    }
+
+    [Fact]
+    public void Equipment_nur_mit_Wartungen_ist_gesperrt()
+    {
+        Assert.Equal(
+            "‚Rennrad‘ hat 2 Wartungen; es kann daher nicht gelöscht werden. Bitte stattdessen als ausgemustert kennzeichnen.",
+            ErmittleLoeschsperre.Equipment(Auswahlbestand.MitEquipments(), 5));
+    }
+
+    [Fact]
+    public void Ausgemustertes_Equipment_mit_Einheiten_ist_gesperrt_ohne_Empfehlung()
+    {
+        Assert.Equal(
+            "‚Altrad‘ wird in 1 Einheit verwendet; es kann daher nicht gelöscht werden.",
+            ErmittleLoeschsperre.Equipment(Auswahlbestand.MitEquipments(), 4));
+    }
+
+    [Fact]
+    public void Unbenutztes_Equipment_ohne_Wartungen_darf_geloescht_werden()
+    {
+        Assert.Null(ErmittleLoeschsperre.Equipment(Auswahlbestand.MitEquipments(), 7));
+    }
 }

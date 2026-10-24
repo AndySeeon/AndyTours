@@ -3,8 +3,8 @@ using AndyTours.Core.Modell;
 namespace AndyTours.Core.Berechnungen;
 
 /// <summary>
-/// Zählt, wo eine Aktivität oder Kategorie verwendet wird – Grundlage für die Löschsperre und die
-/// Rückfrage beim Zusammenführen.
+/// Zählt, wo eine Aktivität, Kategorie oder ein Equipment verwendet wird – Grundlage für die Löschsperre
+/// und die Rückfrage beim Zusammenführen.
 /// </summary>
 public static class ZaehleVerwendung
 {
@@ -41,4 +41,14 @@ public static class ZaehleVerwendung
                 .ToList();
         return (einheiten, equipments);
     }
+
+    /// <summary>
+    /// Zählt die Einheiten, die ein Equipment verwenden, und die Wartungen, die dazu erfasst sind.
+    /// </summary>
+    /// <param name="bestand">Der Datenbestand.</param>
+    /// <param name="equipmentId">Id des Equipments.</param>
+    /// <returns>Anzahl der Einheiten und Anzahl der Wartungen.</returns>
+    public static (int Einheiten, int Wartungen) Equipment(Datenbestand bestand, long equipmentId) =>
+        (bestand.Trainingseinheiten.Count(e => e.EquipmentId == equipmentId),
+         bestand.Wartungen.Count(w => w.EquipmentId == equipmentId));
 }

@@ -19,6 +19,13 @@ namespace AndyTours.App.ViewModels;
 /// Gelingt es, meldet das ViewModel <see cref="SchliessenAngefordert"/>; sonst bleibt das Fenster mit den
 /// Eingaben offen.
 /// </para>
+/// <para>
+/// Equipment: Die Liste zeigt die Equipments der gewählten Aktivität (<see cref="ErmittleEquipmentauswahl"/>)
+/// und wird beim Wechsel der Aktivität neu zusammengestellt. Bei einer neuen Einheit (auch einer Kopie) wird
+/// dann das Standard-Equipment der neuen Aktivität gewählt, bei einer vorhandenen bleibt das gewählte, wenn
+/// es noch passt, sonst „(kein)“. Wählt der Benutzer ein Equipment mit Standardkategorie, wird diese
+/// zusätzlich angehakt – beim Öffnen nicht, damit die Einheit nicht sofort als geändert gilt.
+/// </para>
 /// </remarks>
 public partial class EinheitBearbeitenViewModel : ObservableObject
 {
@@ -34,6 +41,15 @@ public partial class EinheitBearbeitenViewModel : ObservableObject
     /// <summary>Die zurzeit fehlerhaften Felder.</summary>
     private IReadOnlySet<Eingabefeld> _fehler = new HashSet<Eingabefeld>();
 
+    /// <summary>Der Datenbestand, aus dem Equipment-Liste, Standard-Equipment und Standardkategorie stammen (nur gelesen).</summary>
+    private readonly Datenbestand _bestand;
+
+    /// <summary><c>true</c> bei „Neue Einheit“ und „Kopieren“: Beim Aktivitätswechsel wird das Standard-Equipment gewählt.</summary>
+    private readonly bool _istNeu;
+
+    /// <summary><c>true</c>, während die Equipment-Liste ausgetauscht wird; Änderungen der Wahl haken dann nichts an.</summary>
+    private bool _equipmentsWerdenGetauscht;
+
     /// <summary>
     /// Erzeugt das ViewModel und füllt alle Felder aus der Einheit.
     /// </summary>
@@ -42,18 +58,24 @@ public partial class EinheitBearbeitenViewModel : ObservableObject
     /// <param name="kategorien">Alle Kategorien des Datenbestands.</param>
     /// <param name="titel">Fenstertitel, z. B. „Einheit bearbeiten“.</param>
     /// <param name="speichern">Speichert die Einheit; <c>true</c> bei Erfolg.</param>
+    /// <param name="bestand">Der Datenbestand (nur gelesen) für Equipment-Liste, Standard-Equipment und Standardkategorie.</param>
+    /// <param name="istNeu"><c>true</c> bei „Neue Einheit“ und „Kopieren“.</param>
     public EinheitBearbeitenViewModel(
         Trainingseinheit einheit,
         Eingabelisten listen,
         IEnumerable<Kategorie> kategorien,
         string titel,
-        Func<Trainingseinheit, bool> speichern)
+        Func<Trainingseinheit, bool> speichern,
+        Datenbestand bestand,
+        bool istNeu)
     {
         _basis = einheit;
+        _bestand = bestand;
+        _istNeu = istNeu;
         _speichern = speichern;
         Titel = titel;
         Aktivitaeten = listen.Aktivitaeten;
-        Equipments = listen.Equipments;
+        _equipments = listen.Equipments;
         Trainingsbereiche = listen.Trainingsbereiche;
 
         Einheiteneingaben e = EinheitEingaben.AlsEingaben(einheit);
@@ -61,7 +83,7 @@ public partial class EinheitBearbeitenViewModel : ObservableObject
         _startzeit = e.Startzeit;
         _name = e.Name;
         _aktivitaet = Aktivitaeten.FirstOrDefault(a => a.Id == e.AktivitaetId);
-        _equipment = Equipments.FirstOrDefault(q => q.Id == e.EquipmentId) ?? (Equipments.Count > 0 ? Equipments[0] : null);
+        _equipment = _equipments.FirstOrDefault(q => q.Id == e.EquipmentId) ?? (_equipments.Count > 0 ? _equipments[0] : null);
         _distanz = e.Distanz;
         _hoehenmeter = e.Hoehenmeter;
         _fahrzeit = e.Fahrzeit;
@@ -105,8 +127,9 @@ public partial class EinheitBearbeitenViewModel : ObservableObject
     /// <summary>Einträge der Auswahlliste „Aktivität“.</summary>
     public IReadOnlyList<Auswahleintrag> Aktivitaeten { get; }
 
-    /// <summary>Einträge der Auswahlliste „Equipment“ (beginnend mit „(kein)“).</summary>
-    public IReadOnlyList<Auswahleintrag> Equipments { get; }
+    /// <summary>Einträge der Auswahlliste „Equipment“ (beginnend mit „(kein)“); passend zur gewählten Aktivität.</summary>
+    [ObservableProperty]
+    private IReadOnlyList<Auswahleintrag> _equipments;
 
     /// <summary>Einträge der Auswahlliste „Trainingsbereich“ (beginnend mit dem leeren Eintrag).</summary>
     public IReadOnlyList<string> Trainingsbereiche { get; }
@@ -225,6 +248,57 @@ public partial class EinheitBearbeitenViewModel : ObservableObject
     /// <summary>Freier, mehrzeiliger Kommentar.</summary>
     [ObservableProperty]
     private string _kommentar;
+
+    /// <summary>
+    /// Nach einem Wechsel der Aktivität: Equipment-Liste neu zusammenstellen und das passende Equipment wählen.
+    /// </summary>
+    /// <param name="value">Die neu gewählte Aktivität.</param>
+    partial void OnAktivitaetChanged(Auswahleintrag? value)
+    {
+        long? vorher = Equipment?.Id;
+        List<Auswahleintrag> neu = ErmittleEquipmentauswahl.Ausfuehren(_bestand, value?.Id, _basis.EquipmentId);
+        long? wahl = _istNeu
+            ? ErmittleStandardEquipment.Ausfuehren(_bestand, value?.Id)?.Id
+            : neu.Any(q => q.Id == vorher) ? vorher : null;
+
+        // Beim Austausch setzt die Auswahlliste der Oberfläche die Wahl kurz zurück – das soll nichts anhaken
+        _equipmentsWerdenGetauscht = true;
+        try
+        {
+            Equipments = neu;
+            Equipment = neu.FirstOrDefault(q => q.Id == wahl) ?? neu[0];
+        }
+        finally
+        {
+            _equipmentsWerdenGetauscht = false;
+        }
+
+        if (Equipment?.Id != vorher)
+        {
+            HakeStandardkategorieAn(Equipment?.Id);
+        }
+    }
+
+    /// <summary>Nach der Wahl eines Equipments durch den Benutzer: dessen Standardkategorie anhaken.</summary>
+    /// <param name="value">Das gewählte Equipment.</param>
+    partial void OnEquipmentChanged(Auswahleintrag? value)
+    {
+        if (!_equipmentsWerdenGetauscht && _anfang is not null)
+        {
+            HakeStandardkategorieAn(value?.Id);
+        }
+    }
+
+    /// <summary>Hakt die Standardkategorie eines Equipments an; bereits angehakte bleiben angehakt.</summary>
+    /// <param name="equipmentId">Das Equipment oder <c>null</c> für „(kein)“.</param>
+    private void HakeStandardkategorieAn(long? equipmentId)
+    {
+        if (FindeStandardkategorie.Ausfuehren(_bestand, equipmentId) is long kategorieId
+            && Kategorien.FirstOrDefault(k => k.Id == kategorieId) is { IstGewaehlt: false } kategorie)
+        {
+            kategorie.IstGewaehlt = true;
+        }
+    }
 
     /// <summary>
     /// Befehl „Speichern“: nur ohne fehlerhafte Felder wählbar. Gelingt das Speichern, schließt sich das

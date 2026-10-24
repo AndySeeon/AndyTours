@@ -207,7 +207,9 @@ public partial class HauptfensterViewModel
             ErmittleEingabelisten.Ausfuehren(_bestand, einheit, _trainingsbereiche),
             _bestand.Kategorien,
             titel,
-            gespeichert => SpeichereAusFenster(gespeichert, istNeu));
+            gespeichert => SpeichereAusFenster(gespeichert, istNeu),
+            _bestand,
+            istNeu);
         var fenster = new EinheitBearbeitenFenster(viewModel) { Owner = Application.Current.MainWindow };
         fenster.ShowDialog();
     }

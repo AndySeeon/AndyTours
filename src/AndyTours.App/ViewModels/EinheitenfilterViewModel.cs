@@ -121,23 +121,42 @@ public partial class EinheitenfilterViewModel : ObservableObject
     /// </remarks>
     /// <param name="alt">Bisheriger Name der Kategorie.</param>
     /// <param name="neu">Neuer Name bzw. Name der Zielkategorie.</param>
-    public void ErsetzeKategorie(string alt, string neu)
+    public void ErsetzeKategorie(string alt, string neu) => ErsetzeWahl(Kategorien, Kategorie, alt, neu, wert => Kategorie = wert);
+
+    /// <summary>
+    /// Stellt ein gewähltes Equipment auf seinen neuen Namen um (nach Umbenennen in den Einstellungen);
+    /// ist ein anderes Equipment gewählt, ändert sich nichts. Vorgehen wie bei <see cref="ErsetzeKategorie"/>.
+    /// </summary>
+    /// <param name="alt">Bisheriger Name des Equipments.</param>
+    /// <param name="neu">Neuer Name.</param>
+    public void ErsetzeEquipment(string alt, string neu) => ErsetzeWahl(Equipments, Equipment, alt, neu, wert => Equipment = wert);
+
+    /// <summary>
+    /// Gemeinsamer Ablauf von <see cref="ErsetzeKategorie"/> und <see cref="ErsetzeEquipment"/>: neuen Namen
+    /// hinter dem alten in die Liste einfügen und die Wahl ohne Neuberechnung umstellen.
+    /// </summary>
+    /// <param name="liste">Einträge der Auswahlliste.</param>
+    /// <param name="gewaehlt">Bisher gewählter Eintrag.</param>
+    /// <param name="alt">Bisheriger Name.</param>
+    /// <param name="neu">Neuer Name.</param>
+    /// <param name="setzen">Setzt die gewählte Eigenschaft.</param>
+    private void ErsetzeWahl(ObservableCollection<string> liste, string? gewaehlt, string alt, string neu, Action<string> setzen)
     {
-        if (Kategorie != alt)
+        if (gewaehlt != alt)
         {
             return;
         }
 
-        int stelle = Kategorien.IndexOf(alt);
-        if (!Kategorien.Contains(neu))
+        int stelle = liste.IndexOf(alt);
+        if (!liste.Contains(neu))
         {
-            Kategorien.Insert(stelle < 0 ? Kategorien.Count : stelle + 1, neu);
+            liste.Insert(stelle < 0 ? liste.Count : stelle + 1, neu);
         }
 
         _unterdrueckt = true;
         try
         {
-            Kategorie = neu;
+            setzen(neu);
         }
         finally
         {

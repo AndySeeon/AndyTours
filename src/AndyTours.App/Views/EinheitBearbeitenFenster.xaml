@@ -4,7 +4,8 @@
 
   Aufbau:
     1. Links „Allgemein“: Datum, Startzeit, Name, Aktivität, Equipment, Trainingsbereich und die
-       Kategorien als Liste mit Häkchen
+       Kategorien als Liste mit Häkchen. Die Equipment-Liste folgt der gewählten Aktivität (das ViewModel
+       tauscht sie beim Aktivitätswechsel aus); ein gewähltes Equipment hakt seine Standardkategorie an
     2. Rechts „Werte“: Distanz, Höhenmeter, Fahrzeit, Ø km/h (nur Anzeige), max km/h, Puls (Ø, max, min),
        Trittfrequenz, Temperatur, Leistung, Körpergewicht, Erholungspuls, Starthöhe, Maximalhöhe
     3. Unten: mehrzeiliger Kommentar, darunter „Speichern“ und „Abbrechen“

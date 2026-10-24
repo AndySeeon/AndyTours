@@ -10,7 +10,8 @@ namespace AndyTours.App.ViewModels;
 
 /// <summary>
 /// Teil des Hauptfenster-ViewModels: die in den Einstellungen gepflegten Auswahllisten – Trainingsbereiche,
-/// Aktivitäten und Kategorien – lesen, prüfen und ändern.
+/// Aktivitäten und Kategorien – lesen, prüfen und ändern. Die Equipments stehen in
+/// <c>HauptfensterViewModel.Equipments.cs</c>; hier sind nur ihre Fälle in den gemeinsamen Methoden.
 /// </summary>
 /// <remarks>
 /// Das Hauptfenster hält die Listen, weil es den Datenbestand hält: Ein Umbenennen oder Zusammenführen
@@ -125,6 +126,7 @@ public partial class HauptfensterViewModel : IAuswahllistenSpeicher
             .OrderBy(k => k.Name, StringComparer.CurrentCultureIgnoreCase)
             .Select(k => new Auswahllistenzeile(k.Name, k.IstStandard ? $"{k.Name} (Standard)" : k.Name))
             .ToList(),
+        Auswahlliste.Equipment => LeseEquipments(),
         _ => throw new ArgumentOutOfRangeException(nameof(liste), liste, null),
     };
 
@@ -135,6 +137,7 @@ public partial class HauptfensterViewModel : IAuswahllistenSpeicher
         Auswahlliste.Trainingsbereich => (ZaehleTrainingsbereich.Ausfuehren(_bestand.Trainingseinheiten, name), 0),
         Auswahlliste.Aktivitaet => FindeAktivitaet(name) is { } a ? ZaehleVerwendung.Aktivitaet(_bestand, a.Id) : (0, 0),
         Auswahlliste.Kategorie => FindeKategorie(name) is { } k ? (ZaehleVerwendung.Kategorie(_bestand, k.Id).Einheiten, 0) : (0, 0),
+        Auswahlliste.Equipment => FindeEquipment(name) is { } e ? (ZaehleVerwendung.Equipment(_bestand, e.Id).Einheiten, 0) : (0, 0),
         _ => throw new ArgumentOutOfRangeException(nameof(liste), liste, null),
     };
 
@@ -153,6 +156,8 @@ public partial class HauptfensterViewModel : IAuswahllistenSpeicher
                 return FindeAktivitaet(name) is { } a ? ErmittleLoeschsperre.Aktivitaet(_bestand, a.Id) : null;
             case Auswahlliste.Kategorie:
                 return FindeKategorie(name) is { } k ? ErmittleLoeschsperre.Kategorie(_bestand, k.Id) : null;
+            case Auswahlliste.Equipment:
+                return FindeEquipment(name) is { } e ? ErmittleLoeschsperre.Equipment(_bestand, e.Id) : null;
             default:
                 throw new ArgumentOutOfRangeException(nameof(liste), liste, null);
         }
@@ -318,6 +323,9 @@ public partial class HauptfensterViewModel : IAuswahllistenSpeicher
 
                 return gespeichert;
             }
+
+            case Auswahlliste.Equipment:
+                return LoescheEquipment(name);
 
             default:
                 throw new ArgumentOutOfRangeException(nameof(liste), liste, null);

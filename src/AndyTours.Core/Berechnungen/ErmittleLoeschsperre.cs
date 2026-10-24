@@ -4,13 +4,15 @@ using AndyTours.Core.Modell;
 namespace AndyTours.Core.Berechnungen;
 
 /// <summary>
-/// Ermittelt, ob eine Aktivität oder Kategorie gelöscht werden darf, und liefert sonst den Hinweis
-/// mit dem Grund.
+/// Ermittelt, ob eine Aktivität, Kategorie oder ein Equipment gelöscht werden darf, und liefert sonst den
+/// Hinweis mit dem Grund.
 /// </summary>
 /// <remarks>
 /// Gesperrt ist das Löschen, solange Einheiten oder Equipments den Eintrag verwenden – sonst stünden
 /// sie ohne Aktivität bzw. mit einer verschwundenen Standardkategorie da. Bei Aktivitäten zusätzlich
 /// für die Hauptaktivität und die letzte verbleibende Aktivität, weil jede Einheit eine Aktivität braucht.
+/// Ein Equipment ist gesperrt, solange Einheiten es verwenden oder Wartungen dazu erfasst sind; der Hinweis
+/// empfiehlt dann das Ausmustern, das die Zuordnung erhält.
 /// </remarks>
 public static class ErmittleLoeschsperre
 {
@@ -91,4 +93,43 @@ public static class ErmittleLoeschsperre
     /// <summary>Anzahl mit passender Einzahl oder Mehrzahl, z. B. „1 Einheit“, „1.234 Einheiten“.</summary>
     private static string Anzahl(int anzahl, string einzahl, string mehrzahl) =>
         string.Format(Deutsch, "{0:N0} {1}", anzahl, anzahl == 1 ? einzahl : mehrzahl);
+
+    /// <summary>Prüft, ob ein Equipment gelöscht werden darf.</summary>
+    /// <remarks>
+    /// Beispiel: „‚Genius‘ wird in 1 Einheit verwendet und hat 1 Wartung; es kann daher nicht gelöscht
+    /// werden. Bitte stattdessen als ausgemustert kennzeichnen.“ Ist es bereits ausgemustert, entfällt der
+    /// letzte Satz.
+    /// </remarks>
+    /// <param name="bestand">Der Datenbestand.</param>
+    /// <param name="equipmentId">Id des Equipments.</param>
+    /// <returns>Der Hinweis oder <c>null</c>, wenn gelöscht werden darf (auch bei unbekannter Id).</returns>
+    public static string? Equipment(Datenbestand bestand, long equipmentId)
+    {
+        Equipment? equipment = bestand.Equipments.FirstOrDefault(e => e.Id == equipmentId);
+        if (equipment is null)
+        {
+            return null;
+        }
+
+        (int einheiten, int wartungen) = ZaehleVerwendung.Equipment(bestand, equipmentId);
+        var teile = new List<string>();
+        if (einheiten > 0)
+        {
+            teile.Add($"wird in {Anzahl(einheiten, "Einheit", "Einheiten")} verwendet");
+        }
+
+        if (wartungen > 0)
+        {
+            teile.Add($"hat {Anzahl(wartungen, "Wartung", "Wartungen")}");
+        }
+
+        if (teile.Count == 0)
+        {
+            return null;
+        }
+
+        // Die Empfehlung entfällt, wenn das Equipment schon ausgemustert ist
+        string hinweis = $"‚{equipment.Name}‘ {string.Join(" und ", teile)}; es kann daher nicht gelöscht werden.";
+        return equipment.Ausgemustert ? hinweis : hinweis + " Bitte stattdessen als ausgemustert kennzeichnen.";
+    }
 }

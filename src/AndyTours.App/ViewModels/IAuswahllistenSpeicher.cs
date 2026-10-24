@@ -23,7 +23,7 @@ public interface IAuswahllistenSpeicher
     /// <summary>Zählt, wie viele Einheiten und Equipments einen Eintrag verwenden (für Rückfragen).</summary>
     /// <param name="liste">Die Liste.</param>
     /// <param name="name">Der Eintrag.</param>
-    /// <returns>Anzahl der Einheiten und – nur bei Aktivitäten – der Equipments.</returns>
+    /// <returns>Anzahl der Einheiten und – nur bei Aktivitäten – der Equipments; bei Equipments nur die Einheiten.</returns>
     (int Einheiten, int Equipments) ZaehleVerwendung(Auswahlliste liste, string name);
 
     /// <summary>Liefert den Hinweis, warum ein Eintrag nicht gelöscht werden kann, oder <c>null</c>.</summary>
@@ -76,4 +76,11 @@ public interface IAuswahllistenSpeicher
     /// <param name="ziel">Der Eintrag, der bleibt.</param>
     /// <returns><c>true</c>, wenn gespeichert wurde.</returns>
     bool Zusammenfuehren(Auswahlliste liste, string ursprung, string ziel);
+
+    /// <summary>
+    /// Öffnet das Fenster „Equipment“ für ein neues oder ein vorhandenes Equipment und speichert mit „OK“.
+    /// </summary>
+    /// <param name="name">Name des vorhandenen Equipments oder <c>null</c> für ein neues.</param>
+    /// <returns>Der gespeicherte Name oder <c>null</c>, wenn abgebrochen wurde.</returns>
+    string? BearbeiteEquipment(string? name);
 }

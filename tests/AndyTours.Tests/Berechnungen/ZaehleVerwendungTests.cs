@@ -33,4 +33,14 @@ public class ZaehleVerwendungTests
         Assert.Equal(0, einheiten);
         Assert.Empty(equipments);
     }
+
+    [Theory]
+    [InlineData(1, 1, 1)]
+    [InlineData(4, 1, 0)]
+    [InlineData(5, 0, 2)]
+    [InlineData(7, 0, 0)]
+    public void Zaehlt_Einheiten_und_Wartungen_eines_Equipments(long id, int einheiten, int wartungen)
+    {
+        Assert.Equal((einheiten, wartungen), ZaehleVerwendung.Equipment(Auswahlbestand.MitEquipments(), id));
+    }
 }

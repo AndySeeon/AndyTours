@@ -13,9 +13,10 @@ public static class ErmittleEingabelisten
     /// <remarks>
     /// <list type="bullet">
     /// <item><b>Aktivitäten:</b> alle, in der Reihenfolge des Datenbestands (wie in der Werkzeugleiste).</item>
-    /// <item><b>Equipments:</b> zuerst „(kein)“, dann alle nicht ausgemusterten alphabetisch. Ein
-    /// ausgemustertes erscheint nur, wenn es der Einheit bereits zugeordnet ist – so geht die Zuordnung
-    /// alter Touren nicht verloren, ohne dass alte Räder die Liste füllen.</item>
+    /// <item><b>Equipments:</b> zuerst „(kein)“, dann die nicht ausgemusterten der Aktivität der Einheit
+    /// und die ohne Aktivität, alphabetisch (siehe <see cref="ErmittleEquipmentauswahl"/>). Das Equipment
+    /// der Einheit erscheint immer – so geht die Zuordnung alter Touren nicht verloren, ohne dass alte
+    /// Räder oder Laufschuhe bei Radtouren die Liste füllen.</item>
     /// <item><b>Trainingsbereiche:</b> zuerst ein leerer Eintrag (kein Bereich), dann die in den
     /// Einstellungen gepflegte Liste in deren Reihenfolge. Hat die Einheit einen Bereich, der nicht in der
     /// Liste steht, kommt er am Ende dazu, damit er beim Speichern nicht verloren geht. Neue Kürzel lassen
@@ -30,12 +31,7 @@ public static class ErmittleEingabelisten
     {
         List<Auswahleintrag> aktivitaeten = bestand.Aktivitaeten.Select(a => new Auswahleintrag(a.Id, a.Name)).ToList();
 
-        List<Auswahleintrag> equipments = bestand.Equipments
-            .Where(e => !e.Ausgemustert || e.Id == einheit.EquipmentId)
-            .OrderBy(e => e.Name, StringComparer.CurrentCultureIgnoreCase)
-            .Select(e => new Auswahleintrag(e.Id, e.Name))
-            .Prepend(new Auswahleintrag(null, Eingabelisten.KeinEquipment))
-            .ToList();
+        List<Auswahleintrag> equipments = ErmittleEquipmentauswahl.Ausfuehren(bestand, einheit.AktivitaetId, einheit.EquipmentId);
 
         List<string> bereiche = [string.Empty, .. trainingsbereiche];
         string eigener = einheit.Trainingsbereich.Trim();

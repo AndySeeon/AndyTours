@@ -81,25 +81,7 @@ public static class EquipmentsTabelle
         {
             befehl.Parameters.Clear();
             befehl.Parameters.AddWithValue("$id", e.Id);
-            befehl.Parameters.AddWithValue("$name", e.Name);
-            befehl.Parameters.AddWithValue("$aktivitaetId", (object?)e.AktivitaetId ?? DBNull.Value);
-            befehl.Parameters.AddWithValue("$gewicht", e.GewichtKg);
-            befehl.Parameters.AddWithValue("$radumfang", e.RadumfangMm);
-            befehl.Parameters.AddWithValue("$cr", e.CrCoeff);
-            befehl.Parameters.AddWithValue("$cm", e.CmCoeff);
-            befehl.Parameters.AddWithValue("$cw", e.CwCoeff);
-            befehl.Parameters.AddWithValue("$cwa", e.CwaCoeff);
-            befehl.Parameters.AddWithValue("$sin", e.SinCoeff);
-            // Zähnezahlen als kommagetrennter Text, z. B. „39,53"
-            befehl.Parameters.AddWithValue("$kettenblaetter", string.Join(',', e.Kettenblaetter));
-            befehl.Parameters.AddWithValue("$ritzel", string.Join(',', e.Ritzel));
-            befehl.Parameters.AddWithValue("$zuordnung", e.Geraetezuordnung);
-            befehl.Parameters.AddWithValue("$standardKategorie", e.StandardKategorie);
-            befehl.Parameters.AddWithValue("$istStandard", e.IstStandard);
-            befehl.Parameters.AddWithValue("$ausgemustert", e.Ausgemustert);
-            befehl.Parameters.AddWithValue("$anschaffung", DatumSpalte.AlsText(e.Anschaffungsdatum));
-            befehl.Parameters.AddWithValue("$bild", e.Bildpfad);
-            befehl.Parameters.AddWithValue("$anfangsdistanz", e.AnfangsdistanzKm);
+            SetzeWerte(befehl, e);
             befehl.ExecuteNonQuery();
         }
     }
@@ -125,5 +107,94 @@ public static class EquipmentsTabelle
         befehl.Parameters.AddWithValue("$alt", alt.Trim());
         befehl.Parameters.AddWithValue("$neu", neu.Trim());
         return befehl.ExecuteNonQuery();
+    }
+
+    /// <summary>
+    /// Fügt ein neues Equipment ein; die Datenbank vergibt die Nummer.
+    /// </summary>
+    /// <param name="verbindung">Offene Verbindung.</param>
+    /// <param name="transaktion">Laufende Transaktion.</param>
+    /// <param name="equipment">Das Equipment; seine Nummer wird nicht verwendet.</param>
+    /// <returns>Die vergebene Nummer.</returns>
+    public static long Einfuegen(SqliteConnection verbindung, SqliteTransaction transaktion, Equipment equipment)
+    {
+        using SqliteCommand befehl = verbindung.CreateCommand();
+        befehl.Transaction = transaktion;
+        befehl.CommandText = """
+            INSERT INTO Equipment (Name, AktivitaetId, GewichtKg, RadumfangMm, CrCoeff, CmCoeff, CwCoeff, CwaCoeff,
+                                   SinCoeff, Kettenblaetter, Ritzel, Geraetezuordnung, StandardKategorie, IstStandard,
+                                   Ausgemustert, Anschaffungsdatum, Bildpfad, AnfangsdistanzKm)
+            VALUES ($name, $aktivitaetId, $gewicht, $radumfang, $cr, $cm, $cw, $cwa,
+                    $sin, $kettenblaetter, $ritzel, $zuordnung, $standardKategorie, $istStandard,
+                    $ausgemustert, $anschaffung, $bild, $anfangsdistanz)
+            RETURNING Id;
+            """;
+        SetzeWerte(befehl, equipment);
+        return (long)befehl.ExecuteScalar()!;
+    }
+
+    /// <summary>
+    /// Schreibt alle Felder eines vorhandenen Equipments; die Zuordnung der Einheiten und Wartungen
+    /// (über die Nummer) bleibt erhalten.
+    /// </summary>
+    /// <param name="verbindung">Offene Verbindung.</param>
+    /// <param name="transaktion">Laufende Transaktion.</param>
+    /// <param name="equipment">Das geänderte Equipment.</param>
+    public static void Aendern(SqliteConnection verbindung, SqliteTransaction transaktion, Equipment equipment)
+    {
+        using SqliteCommand befehl = verbindung.CreateCommand();
+        befehl.Transaction = transaktion;
+        befehl.CommandText = """
+            UPDATE Equipment SET
+                Name = $name, AktivitaetId = $aktivitaetId, GewichtKg = $gewicht, RadumfangMm = $radumfang,
+                CrCoeff = $cr, CmCoeff = $cm, CwCoeff = $cw, CwaCoeff = $cwa, SinCoeff = $sin,
+                Kettenblaetter = $kettenblaetter, Ritzel = $ritzel, Geraetezuordnung = $zuordnung,
+                StandardKategorie = $standardKategorie, IstStandard = $istStandard, Ausgemustert = $ausgemustert,
+                Anschaffungsdatum = $anschaffung, Bildpfad = $bild, AnfangsdistanzKm = $anfangsdistanz
+            WHERE Id = $id;
+            """;
+        befehl.Parameters.AddWithValue("$id", equipment.Id);
+        SetzeWerte(befehl, equipment);
+        befehl.ExecuteNonQuery();
+    }
+
+    /// <summary>
+    /// Löscht ein Equipment. Verwenden es noch Einheiten oder Wartungen, scheitert das am Fremdschlüssel;
+    /// die Oberfläche prüft das vorher mit der Löschsperre.
+    /// </summary>
+    /// <param name="verbindung">Offene Verbindung.</param>
+    /// <param name="transaktion">Laufende Transaktion.</param>
+    /// <param name="id">Nummer des Equipments.</param>
+    public static void Loeschen(SqliteConnection verbindung, SqliteTransaction transaktion, long id)
+    {
+        using SqliteCommand befehl = verbindung.CreateCommand();
+        befehl.Transaction = transaktion;
+        befehl.CommandText = "DELETE FROM Equipment WHERE Id = $id;";
+        befehl.Parameters.AddWithValue("$id", id);
+        befehl.ExecuteNonQuery();
+    }
+
+    /// <summary>Setzt die Parameter aller Felder außer der Nummer.</summary>
+    private static void SetzeWerte(SqliteCommand befehl, Equipment e)
+    {
+        befehl.Parameters.AddWithValue("$name", e.Name);
+        befehl.Parameters.AddWithValue("$aktivitaetId", (object?)e.AktivitaetId ?? DBNull.Value);
+        befehl.Parameters.AddWithValue("$gewicht", e.GewichtKg);
+        befehl.Parameters.AddWithValue("$radumfang", e.RadumfangMm);
+        befehl.Parameters.AddWithValue("$cr", e.CrCoeff);
+        befehl.Parameters.AddWithValue("$cm", e.CmCoeff);
+        befehl.Parameters.AddWithValue("$cw", e.CwCoeff);
+        befehl.Parameters.AddWithValue("$cwa", e.CwaCoeff);
+        befehl.Parameters.AddWithValue("$sin", e.SinCoeff);
+        // Zähnezahlen als kommagetrennter Text, z. B. „39,53"
+        befehl.Parameters.AddWithValue("$kettenblaetter", string.Join(',', e.Kettenblaetter));
+        befehl.Parameters.AddWithValue("$ritzel", string.Join(',', e.Ritzel));
+        befehl.Parameters.AddWithValue("$zuordnung", e.Geraetezuordnung);
+        befehl.Parameters.AddWithValue("$standardKategorie", e.StandardKategorie);
+        befehl.Parameters.AddWithValue("$istStandard", e.IstStandard);
+        befehl.Parameters.AddWithValue("$ausgemustert", e.Ausgemustert);
+        befehl.Parameters.AddWithValue("$anschaffung", DatumSpalte.AlsText(e.Anschaffungsdatum));
+        befehl.Parameters.AddWithValue("$bild", e.Bildpfad);
+        befehl.Parameters.AddWithValue("$anfangsdistanz", e.AnfangsdistanzKm);
     }
 }

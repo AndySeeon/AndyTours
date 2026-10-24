@@ -55,6 +55,18 @@ public class ErmittleEingabelistenTests
     }
 
     [Fact]
+    public void Equipments_nur_der_Aktivitaet_der_Einheit_und_ohne_Aktivitaet()
+    {
+        Datenbestand bestand = Bestand();
+        bestand.Equipments.Add(new Equipment { Id = 10, Name = "Wanderschuhe", AktivitaetId = 2 });
+        bestand.Equipments.Add(new Equipment { Id = 11, Name = "Bergrad", AktivitaetId = 1 });
+
+        Eingabelisten listen = ErmittleEingabelisten.Ausfuehren(bestand, new Trainingseinheit { AktivitaetId = 1 }, Bereiche);
+
+        Assert.Equal(["(kein)", "Bergrad", "Genius", "Rennrad"], listen.Equipments.Select(e => e.Name));
+    }
+
+    [Fact]
     public void Trainingsbereiche_leer_vorne_dann_die_gepflegte_Liste_in_ihrer_Reihenfolge()
     {
         // „WSA“ kommt im Datenbestand vor, steht aber nicht in der Liste – es wird nicht angeboten

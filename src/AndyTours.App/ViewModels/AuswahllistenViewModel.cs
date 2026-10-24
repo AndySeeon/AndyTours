@@ -10,7 +10,8 @@ namespace AndyTours.App.ViewModels;
 
 /// <summary>
 /// ViewModel des Bereichs „Auswahllisten“ im Einstellungsfenster: Trainingsbereiche, Aktivitäten und
-/// Kategorien hinzufügen, umbenennen, löschen, verschieben, kennzeichnen und zusammenführen.
+/// Kategorien hinzufügen, umbenennen, löschen, verschieben, kennzeichnen und zusammenführen; Equipments
+/// anlegen, bearbeiten und löschen.
 /// </summary>
 /// <remarks>
 /// <list type="bullet">
@@ -26,6 +27,9 @@ namespace AndyTours.App.ViewModels;
 /// <item>„Nach oben“/„Nach unten“ gibt es für Trainingsbereiche und Aktivitäten; Kategorien stehen
 /// alphabetisch. „Als Hauptaktivität“ gilt nur für Aktivitäten, „Standard“ nur für Kategorien,
 /// „Zusammenführen mit …“ für beide.</item>
+/// <item>Equipments haben mehrere Felder: „Hinzufügen“ und „Bearbeiten…“ öffnen dafür das Fenster
+/// „Equipment“ (<see cref="IAuswahllistenSpeicher.BearbeiteEquipment"/>); Eingabefeld und „Umbenennen“
+/// sind bei dieser Liste ausgeblendet. Equipments stehen alphabetisch, die ausgemusterten am Ende.</item>
 /// <item>Jede Änderung wird sofort über <see cref="IAuswahllistenSpeicher"/> gespeichert. Erst nach Erfolg
 /// zeigt die Liste den neuen Stand; schlägt das Speichern fehl, bleibt sie, wie sie war (die Fehlermeldung
 /// zeigt das Hauptfenster).</item>
@@ -42,6 +46,7 @@ public partial class AuswahllistenViewModel : ObservableObject
         ["Trainingsbereich"] = Auswahlliste.Trainingsbereich,
         ["Aktivität"] = Auswahlliste.Aktivitaet,
         ["Kategorie"] = Auswahlliste.Kategorie,
+        ["Equipment"] = Auswahlliste.Equipment,
     };
 
     /// <summary>Liest, prüft und speichert die Listen (umgesetzt vom Hauptfenster).</summary>
@@ -74,6 +79,8 @@ public partial class AuswahllistenViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(IstAktivitaetsliste))]
     [NotifyPropertyChangedFor(nameof(IstKategorienliste))]
     [NotifyPropertyChangedFor(nameof(KannZusammenfuehrenAnzeigen))]
+    [NotifyPropertyChangedFor(nameof(IstEquipmentliste))]
+    [NotifyPropertyChangedFor(nameof(HatEingabefeld))]
     private string _gewaehlteListe = string.Empty;
 
     /// <summary>Stelle des markierten Eintrags; -1 = keiner markiert.</summary>
@@ -85,6 +92,7 @@ public partial class AuswahllistenViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(AlsHauptaktivitaetCommand))]
     [NotifyCanExecuteChangedFor(nameof(StandardCommand))]
     [NotifyCanExecuteChangedFor(nameof(ZusammenfuehrenCommand))]
+    [NotifyCanExecuteChangedFor(nameof(BearbeitenCommand))]
     private int _gewaehlterIndex = -1;
 
     /// <summary>Inhalt des Eingabefelds „Eintrag“.</summary>
@@ -104,6 +112,15 @@ public partial class AuswahllistenViewModel : ObservableObject
     /// <summary><c>true</c> bei Aktivitäten und Kategorien (Schaltfläche „Zusammenführen mit …“ sichtbar).</summary>
     public bool KannZusammenfuehrenAnzeigen => IstAktivitaetsliste || IstKategorienliste;
 
+    /// <summary><c>true</c> bei Equipments (Schaltfläche „Bearbeiten…“ sichtbar).</summary>
+    public bool IstEquipmentliste => Liste == Auswahlliste.Equipment;
+
+    /// <summary><c>true</c>, wenn Eingabefeld und „Umbenennen“ sichtbar sind (nicht bei Equipments).</summary>
+    public bool HatEingabefeld => !IstEquipmentliste;
+
+    /// <summary><c>true</c> bei Listen, deren Reihenfolge der Benutzer festlegt (Trainingsbereiche, Aktivitäten).</summary>
+    private bool IstSortierbar => Liste is Auswahlliste.Trainingsbereich or Auswahlliste.Aktivitaet;
+
     /// <summary>Die gewählte Liste.</summary>
     private Auswahlliste Liste => Bezeichnungen.TryGetValue(GewaehlteListe, out Auswahlliste liste) ? liste : Auswahlliste.Trainingsbereich;
 
@@ -113,10 +130,23 @@ public partial class AuswahllistenViewModel : ObservableObject
     /// <summary>Die Namen aller Einträge der gewählten Liste.</summary>
     private List<string> Namen => Eintraege.Select(z => z.Name).ToList();
 
-    /// <summary>Befehl „Hinzufügen“: legt den Inhalt des Eingabefelds als neuen Eintrag an.</summary>
+    /// <summary>
+    /// Befehl „Hinzufügen“: legt den Inhalt des Eingabefelds als neuen Eintrag an; bei Equipments öffnet
+    /// er das Fenster „Equipment“ für ein neues.
+    /// </summary>
     [RelayCommand]
     private void Hinzufuegen()
     {
+        if (IstEquipmentliste)
+        {
+            if (_speicher.BearbeiteEquipment(null) is string angelegt)
+            {
+                ZeigeListe(angelegt);
+            }
+
+            return;
+        }
+
         if (PruefeAuswahleintrag.Ausfuehren(Namen, Eingabe) is string grund)
         {
             Hinweis = grund;
@@ -134,7 +164,7 @@ public partial class AuswahllistenViewModel : ObservableObject
     /// Befehl „Umbenennen“: ersetzt den markierten Eintrag durch den Inhalt des Eingabefelds; ein
     /// verwendeter Trainingsbereich erst nach Rückfrage, weil die Einheiten mit umbenannt werden.
     /// </summary>
-    [RelayCommand(CanExecute = nameof(EinerMarkiert))]
+    [RelayCommand(CanExecute = nameof(KannUmbenennen))]
     private void Umbenennen()
     {
         if (Markiert is not string alt)
@@ -196,6 +226,16 @@ public partial class AuswahllistenViewModel : ObservableObject
         if (_speicher.Loeschen(Liste, eintrag))
         {
             ZeigeListe(stelle);
+        }
+    }
+
+    /// <summary>Befehl „Bearbeiten…“: öffnet das Fenster „Equipment“ für das markierte Equipment.</summary>
+    [RelayCommand(CanExecute = nameof(EquipmentMarkiert))]
+    private void Bearbeiten()
+    {
+        if (Markiert is string name && _speicher.BearbeiteEquipment(name) is string gespeichert)
+        {
+            ZeigeListe(gespeichert);
         }
     }
 
@@ -263,14 +303,20 @@ public partial class AuswahllistenViewModel : ObservableObject
         }
     }
 
-    /// <summary>Wählbarkeit von „Umbenennen“ und „Löschen“: ein Eintrag ist markiert.</summary>
+    /// <summary>Wählbarkeit von „Löschen“: ein Eintrag ist markiert.</summary>
     private bool EinerMarkiert() => Markiert is not null;
 
+    /// <summary>Wählbarkeit von „Umbenennen“: ein Eintrag ist markiert, und die Liste hat ein Eingabefeld.</summary>
+    private bool KannUmbenennen() => Markiert is not null && HatEingabefeld;
+
+    /// <summary>Wählbarkeit von „Bearbeiten…“: ein Equipment ist markiert.</summary>
+    private bool EquipmentMarkiert() => Markiert is not null && IstEquipmentliste;
+
     /// <summary>Wählbarkeit von „Nach oben“: markiert, nicht ganz oben, und die Liste ist nicht alphabetisch.</summary>
-    private bool KannNachOben() => Markiert is not null && !IstKategorienliste && GewaehlterIndex > 0;
+    private bool KannNachOben() => Markiert is not null && IstSortierbar && GewaehlterIndex > 0;
 
     /// <summary>Wählbarkeit von „Nach unten“: markiert, nicht ganz unten, und die Liste ist nicht alphabetisch.</summary>
-    private bool KannNachUnten() => Markiert is not null && !IstKategorienliste && GewaehlterIndex < Eintraege.Count - 1;
+    private bool KannNachUnten() => Markiert is not null && IstSortierbar && GewaehlterIndex < Eintraege.Count - 1;
 
     /// <summary>Wählbarkeit von „Als Hauptaktivität“: eine Aktivität ist markiert.</summary>
     private bool AktivitaetMarkiert() => Markiert is not null && IstAktivitaetsliste;
@@ -333,6 +379,8 @@ public partial class AuswahllistenViewModel : ObservableObject
 
         // Die Wählbarkeit hängt auch von Liste und Anzahl der Einträge ab, nicht nur von der Markierung
         ZusammenfuehrenCommand.NotifyCanExecuteChanged();
+        BearbeitenCommand.NotifyCanExecuteChanged();
+        UmbenennenCommand.NotifyCanExecuteChanged();
         NachObenCommand.NotifyCanExecuteChanged();
         NachUntenCommand.NotifyCanExecuteChanged();
     }

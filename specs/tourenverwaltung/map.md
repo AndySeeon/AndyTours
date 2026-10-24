@@ -13,7 +13,7 @@
 - Karteikarten „Diagramme“, „Statistik“, „Kalender“, „Trainingsplan“, „Planung“
 - Auskünfte: Jahresprognose, Top 50, Gewichtsverlauf, Ruhe-/Erholungspuls, Leistungs-/Trainingskontrolle, Ø-Geschwindigkeits-/Trittfrequenz-Diagramm, Temperatur, virtuelle Weltumrundung
 - Wartung: Kuchendiagramm
-- Equipment: Gewicht, Radumfang, Roll- und Luftwiderstandswerte, Kettenblätter und Ritzel
+- Equipment: Gewicht, Radumfang, Roll- und Luftwiderstandswerte, Kettenblätter und Ritzel, Bild
 - Leistungsberechnung (Steig- und Gesamtleistung, Kalorien)
 - Werkzeuge: Ritzelrechner, Pulsrechner, Marathonzeitenplaner
 
@@ -52,7 +52,7 @@ In Umsetzungsreihenfolge.
   - Status: done → [010-aktivitaeten-kategorien-verwalten](010-aktivitaeten-kategorien-verwalten/spec.md)
 - `equipments-verwalten` — Der Benutzer kann Räder und Ausrüstung in den Einstellungen unter „Auswahllisten“ anlegen, bearbeiten und als ausgemustert kennzeichnen.
   - Abhängig von: `hauptfenster-auswahl`
-  - Status: open
+  - Status: done → [011-equipments-verwalten](011-equipments-verwalten/spec.md)
 - `mehrfachauswahl-zuordnen` — Für mehrere markierte Einheiten kann der Benutzer auf einmal Kategorien zuordnen, die Aktivität wechseln oder das Equipment ändern.
   - Abhängig von: `einheiten-tabelle`, `aktivitaeten-kategorien-verwalten`, `equipments-verwalten`
   - Status: open
@@ -71,7 +71,7 @@ In Umsetzungsreihenfolge.
 - `mehrjahresdiagramm` — Die Ansicht „Aktuell“ zeigt ein Diagramm von km, hm und Fahrzeit über alle Jahre.
   - Abhängig von: `hauptfenster-auswahl`
   - Status: open
-- `garmin-import` — Neue Touren vom angeschlossenen Garmin Edge 1040 werden eingelesen und als Einheiten angelegt; bereits vorhandene werden erkannt und übersprungen.
+- `garmin-import` — Neue Touren vom angeschlossenen Garmin Edge 1040 werden eingelesen und als Einheiten angelegt; bereits vorhandene werden erkannt und übersprungen; die Gerätezuordnung der Equipments wird hier gepflegt.
   - Abhängig von: `einheit-bearbeiten`
   - Status: open
 - `gpx-tcx-import` — Der Benutzer kann GPX- und TCX-Dateien als neue Einheiten importieren.

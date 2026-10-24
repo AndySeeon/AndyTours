@@ -59,6 +59,39 @@ public class NeueUndKopierteEinheitTests
     }
 
     [Fact]
+    public void Standard_Equipment_der_Aktivitaet_ist_vorbelegt_und_seine_Standardkategorie_angehakt()
+    {
+        // Bike: Rennrad ist wirksamer Standard (Altrad ist ausgemustert); Rennrad hat Standardkategorie „urlaub“
+        Datenbestand bestand = Auswahlbestand.MitEquipments();
+        bestand.Equipments.Single(e => e.Name == "Rennrad").StandardKategorie = "urlaub";
+
+        Trainingseinheit neu = ErstelleNeueEinheit.Ausfuehren(bestand, aktivitaetId: null, Heute);
+
+        Assert.Equal(5, neu.EquipmentId);
+        Assert.Equal([2L, 1L], neu.KategorieIds); // Standardkategorie „Trainieren“, dazu „Urlaub“
+    }
+
+    [Fact]
+    public void Bereits_angehakte_Standardkategorie_des_Equipments_kommt_nicht_doppelt()
+    {
+        Datenbestand bestand = Auswahlbestand.MitEquipments();
+        bestand.Equipments.Single(e => e.Name == "Rennrad").StandardKategorie = "Trainieren";
+
+        Assert.Equal([2L], ErstelleNeueEinheit.Ausfuehren(bestand, aktivitaetId: 1, Heute).KategorieIds);
+    }
+
+    [Fact]
+    public void Ohne_wirksames_Standard_Equipment_bleibt_das_Equipment_leer()
+    {
+        // Laufen hat kein Standard-Equipment; Altrad (Bike) wäre Standard, ist aber ausgemustert
+        Datenbestand bestand = Auswahlbestand.MitEquipments();
+        Assert.Null(ErstelleNeueEinheit.Ausfuehren(bestand, aktivitaetId: 2, Heute).EquipmentId);
+
+        bestand.Equipments.RemoveAll(e => e.Name == "Rennrad");
+        Assert.Null(ErstelleNeueEinheit.Ausfuehren(bestand, aktivitaetId: 1, Heute).EquipmentId);
+    }
+
+    [Fact]
     public void Kopie_uebernimmt_alles_ausser_Nummer_Datum_und_Anhaengen()
     {
         var original = new Trainingseinheit

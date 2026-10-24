@@ -6,11 +6,12 @@
     2. Hinweis, warum der Ordner in der Entwicklungsversion nicht änderbar ist (nur dort sichtbar)
     3. Gruppe „Datensicherung“: Sicherungsordner mit „Ändern…“, Intervall (Programmstarts) und
        Höchstzahl der Sicherungen, jeweils mit Hinweis bei ungültiger Eingabe (erlaubt 1 bis 99)
-    4. Gruppe „Auswahllisten“: Auswahl der Liste („Trainingsbereich“, „Aktivität“, „Kategorie“), deren
-       Einträge mit „Nach oben“, „Nach unten“ (bei Kategorien nicht wählbar, sie stehen alphabetisch) und
-       „Löschen“, dazu nur bei Aktivitäten „Als Hauptaktivität“, nur bei Kategorien „Standard“ und bei
-       beiden „Zusammenführen mit …“; darunter das Eingabefeld „Eintrag“ mit „Hinzufügen“ und
-       „Umbenennen“ und ein roter Hinweis bei abgewiesenen Eingaben oder gesperrtem Löschen
+    4. Gruppe „Auswahllisten“: Auswahl der Liste („Trainingsbereich“, „Aktivität“, „Kategorie“, „Equipment“),
+       deren Einträge mit „Nach oben“, „Nach unten“ (bei Kategorien und Equipments nicht wählbar, sie stehen
+       alphabetisch) und „Löschen“, dazu nur bei Aktivitäten „Als Hauptaktivität“, nur bei Kategorien
+       „Standard“, bei beiden „Zusammenführen mit …“ und nur bei Equipments „Bearbeiten…“ (auch Doppelklick);
+       darunter das Eingabefeld „Eintrag“ mit „Hinzufügen“ und „Umbenennen“ (bei Equipments nur „Hinzufügen“,
+       das das Fenster „Equipment“ öffnet) und ein roter Hinweis bei abgewiesenen Eingaben oder gesperrtem Löschen
     5. Schaltfläche „Schließen“
 
   Ein Ordnerwechsel gilt sofort nach Abschluss der Rückfragen; ein eigenes „OK“ ist nicht nötig.
@@ -113,8 +114,9 @@
 
                 <!-- Einträge in der Reihenfolge der Anzeige, mit Zusatz „(Hauptaktivität)“ bzw. „(Standard)“;
                      ein Klick übernimmt den Eintrag ins Eingabefeld -->
-                <ListBox Grid.Row="1" Grid.Column="1" MinHeight="150" Margin="0,8,0,0"
-                         ItemsSource="{Binding Eintraege}" DisplayMemberPath="Anzeige" SelectedIndex="{Binding GewaehlterIndex}" />
+                <ListBox Grid.Row="1" Grid.Column="1" MinHeight="150" MaxHeight="300" Margin="0,8,0,0"
+                         ItemsSource="{Binding Eintraege}" DisplayMemberPath="Anzeige" SelectedIndex="{Binding GewaehlterIndex}"
+                         MouseDoubleClick="Eintrag_MouseDoubleClick" />
                 <StackPanel Grid.Row="1" Grid.Column="2" Margin="8,8,0,0">
                     <Button Content="Nach _oben" MinWidth="90" Padding="8,3" Command="{Binding NachObenCommand}" />
                     <Button Content="Nach _unten" MinWidth="90" Padding="8,3" Margin="0,6,0,0" Command="{Binding NachUntenCommand}" />
@@ -125,17 +127,23 @@
                             Visibility="{Binding IstKategorienliste, Converter={StaticResource SichtbarWennWahr}}" />
                     <Button Content="_Zusammenführen mit…" MinWidth="90" Padding="8,3" Margin="0,6,0,0" Command="{Binding ZusammenfuehrenCommand}"
                             Visibility="{Binding KannZusammenfuehrenAnzeigen, Converter={StaticResource SichtbarWennWahr}}" />
+                    <Button Content="_Bearbeiten…" MinWidth="90" Padding="8,3" Margin="0,6,0,0" Command="{Binding BearbeitenCommand}"
+                            Visibility="{Binding IstEquipmentliste, Converter={StaticResource SichtbarWennWahr}}" />
                 </StackPanel>
 
+                <!-- Bei Equipments ohne Eingabefeld und „Umbenennen“: Name und übrige Felder stehen im Fenster „Equipment“ -->
                 <Label Grid.Row="2" Grid.Column="0" Content="_Eintrag:" Target="{Binding ElementName=EintragFeld}"
-                       VerticalAlignment="Center" Margin="0,8,0,0" />
+                       VerticalAlignment="Center" Margin="0,8,0,0"
+                       Visibility="{Binding HatEingabefeld, Converter={StaticResource SichtbarWennWahr}}" />
                 <DockPanel Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,8,0,0">
                     <Button DockPanel.Dock="Right" Content="_Umbenennen" MinWidth="90" Padding="8,3" Margin="8,0,0,0"
-                            Command="{Binding UmbenennenCommand}" />
+                            Command="{Binding UmbenennenCommand}"
+                            Visibility="{Binding HatEingabefeld, Converter={StaticResource SichtbarWennWahr}}" />
                     <Button DockPanel.Dock="Right" Content="_Hinzufügen" MinWidth="90" Padding="8,3" Margin="8,0,0,0"
                             Command="{Binding HinzufuegenCommand}" />
                     <TextBox x:Name="EintragFeld" VerticalContentAlignment="Center"
-                             Text="{Binding Eingabe, UpdateSourceTrigger=PropertyChanged}" />
+                             Text="{Binding Eingabe, UpdateSourceTrigger=PropertyChanged}"
+                             Visibility="{Binding HatEingabefeld, Converter={StaticResource SichtbarWennWahr}}" />
                 </DockPanel>
                 <TextBlock Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding Hinweis}" Foreground="Firebrick" TextWrapping="Wrap" />
             </Grid>
