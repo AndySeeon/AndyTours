@@ -33,6 +33,9 @@ public static class Einstellungsschluessel
     /// <summary>Zuletzt gewählte Karteikarte des Hauptfensters als Nummer ab 0, z. B. „1“ für „Trainingseinheiten“.</summary>
     public const string Karteikarte = "Hauptfenster.Karteikarte";
 
+    /// <summary>Reihenfolge der Aktivitäten als Ids, durch Semikolon getrennt, z. B. „2;1“.</summary>
+    public const string AktivitaetenReihenfolge = "Aktivitaeten.Reihenfolge";
+
     /// <summary>
     /// Schlüssel einer in den Einstellungen gepflegten Auswahlliste, z. B. „Auswahlliste.Trainingsbereich“;
     /// der Wert enthält die Einträge in der Reihenfolge des Benutzers, einen je Zeile.

@@ -103,4 +103,27 @@ public static class EquipmentsTabelle
             befehl.ExecuteNonQuery();
         }
     }
+
+    /// <summary>
+    /// Ersetzt die Standardkategorie aller Equipments, die den alten Namen tragen – ohne Unterschied
+    /// zwischen Groß- und Kleinschreibung und ohne Leerzeichen am Rand.
+    /// </summary>
+    /// <remarks>
+    /// Die Standardkategorie ist als Name gespeichert; beim Umbenennen und Zusammenführen von Kategorien
+    /// muss sie deshalb eigens mitgezogen werden.
+    /// </remarks>
+    /// <param name="verbindung">Geöffnete Verbindung.</param>
+    /// <param name="transaktion">Laufende Transaktion.</param>
+    /// <param name="alt">Bisheriger Name der Kategorie.</param>
+    /// <param name="neu">Neuer Name.</param>
+    /// <returns>Anzahl der geänderten Equipments.</returns>
+    public static int ErsetzeStandardKategorie(SqliteConnection verbindung, SqliteTransaction transaktion, string alt, string neu)
+    {
+        using SqliteCommand befehl = verbindung.CreateCommand();
+        befehl.Transaction = transaktion;
+        befehl.CommandText = "UPDATE Equipment SET StandardKategorie = $neu WHERE TRIM(StandardKategorie) = $alt COLLATE NOCASE;";
+        befehl.Parameters.AddWithValue("$alt", alt.Trim());
+        befehl.Parameters.AddWithValue("$neu", neu.Trim());
+        return befehl.ExecuteNonQuery();
+    }
 }

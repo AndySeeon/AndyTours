@@ -9,65 +9,71 @@ using AndyTours.Core.Modell;
 namespace AndyTours.App.ViewModels;
 
 /// <summary>
-/// ViewModel des Bereichs „Auswahllisten“ im Einstellungsfenster: Einträge einer Liste hinzufügen,
-/// umbenennen, löschen und verschieben.
+/// ViewModel des Bereichs „Auswahllisten“ im Einstellungsfenster: Trainingsbereiche, Aktivitäten und
+/// Kategorien hinzufügen, umbenennen, löschen, verschieben, kennzeichnen und zusammenführen.
 /// </summary>
 /// <remarks>
 /// <list type="bullet">
 /// <item>Ein Klick auf einen Eintrag übernimmt ihn in das Eingabefeld. „Hinzufügen“ hängt den Feldinhalt
 /// an, „Umbenennen“ ersetzt den markierten Eintrag durch den Feldinhalt. Ungültige Eingaben (leer, schon
 /// vorhanden) werden mit einem Hinweis abgewiesen.</item>
-/// <item>Wird ein Eintrag umbenannt, den Einheiten verwenden, fragt das ViewModel mit der Anzahl nach;
-/// nach „Ja“ werden auch die Einheiten umbenannt. Einen verwendeten Eintrag zu löschen ist gesperrt,
-/// ein Hinweis nennt die Anzahl; ein unbenutzter verschwindet ohne Rückfrage.</item>
-/// <item>Jede Änderung wird sofort über die Funktion des Hauptfensters gespeichert. Erst nach Erfolg zeigt
-/// die Liste den neuen Stand; schlägt das Speichern fehl, bleibt sie, wie sie war (die Fehlermeldung zeigt
-/// das Hauptfenster).</item>
+/// <item>Trainingsbereiche stehen als Text in den Einheiten: Wird ein verwendeter umbenannt, fragt das
+/// ViewModel mit der Anzahl nach. Aktivitäten und Kategorien sind über ihre Nummer zugeordnet; ihr
+/// Umbenennen braucht keine Rückfrage.</item>
+/// <item>Löschen ist gesperrt, solange der Eintrag verwendet wird (bei Aktivitäten auch für die
+/// Hauptaktivität und die letzte Aktivität); ein Hinweis nennt den Grund. Ein unbenutzter Eintrag
+/// verschwindet ohne Rückfrage.</item>
+/// <item>„Nach oben“/„Nach unten“ gibt es für Trainingsbereiche und Aktivitäten; Kategorien stehen
+/// alphabetisch. „Als Hauptaktivität“ gilt nur für Aktivitäten, „Standard“ nur für Kategorien,
+/// „Zusammenführen mit …“ für beide.</item>
+/// <item>Jede Änderung wird sofort über <see cref="IAuswahllistenSpeicher"/> gespeichert. Erst nach Erfolg
+/// zeigt die Liste den neuen Stand; schlägt das Speichern fehl, bleibt sie, wie sie war (die Fehlermeldung
+/// zeigt das Hauptfenster).</item>
 /// </list>
 /// </remarks>
 public partial class AuswahllistenViewModel : ObservableObject
 {
+    /// <summary>Zahlenformat der Rückfragen (Tausenderpunkt).</summary>
+    private static readonly CultureInfo Deutsch = CultureInfo.GetCultureInfo("de-DE");
+
     /// <summary>Bezeichnungen der Listen in der Auswahl, in Anzeigereihenfolge.</summary>
     private static readonly Dictionary<string, Auswahlliste> Bezeichnungen = new()
     {
         ["Trainingsbereich"] = Auswahlliste.Trainingsbereich,
+        ["Aktivität"] = Auswahlliste.Aktivitaet,
+        ["Kategorie"] = Auswahlliste.Kategorie,
     };
 
-    /// <summary>Liest die Einträge einer Liste.</summary>
-    private readonly Func<Auswahlliste, IReadOnlyList<string>> _lesen;
+    /// <summary>Liest, prüft und speichert die Listen (umgesetzt vom Hauptfenster).</summary>
+    private readonly IAuswahllistenSpeicher _speicher;
 
-    /// <summary>Zählt die Einheiten, die einen Eintrag verwenden.</summary>
-    private readonly Func<Auswahlliste, string, int> _zaehlen;
-
-    /// <summary>Speichert eine geänderte Liste (bei Umbenennung samt Einheiten); <c>true</c> bei Erfolg.</summary>
-    private readonly Func<Auswahlliste, IReadOnlyList<string>, (string Alt, string Neu)?, bool> _speichern;
+    /// <summary>Öffnet das Fenster „Zusammenführen mit …“: (Ursprung, übrige Einträge) → Ziel oder <c>null</c>.</summary>
+    private readonly Func<string, IReadOnlyList<string>, string?> _waehleZiel;
 
     /// <summary>
     /// Erzeugt das ViewModel und zeigt die erste Liste.
     /// </summary>
-    /// <param name="lesen">Liest die Einträge einer Liste.</param>
-    /// <param name="zaehlen">Zählt die Einheiten, die einen Eintrag verwenden.</param>
-    /// <param name="speichern">Speichert eine geänderte Liste; <c>true</c> bei Erfolg.</param>
-    public AuswahllistenViewModel(
-        Func<Auswahlliste, IReadOnlyList<string>> lesen,
-        Func<Auswahlliste, string, int> zaehlen,
-        Func<Auswahlliste, IReadOnlyList<string>, (string Alt, string Neu)?, bool> speichern)
+    /// <param name="speicher">Liest, prüft und speichert die Listen.</param>
+    /// <param name="waehleZiel">Öffnet das Fenster zur Wahl des Ziels beim Zusammenführen.</param>
+    public AuswahllistenViewModel(IAuswahllistenSpeicher speicher, Func<string, IReadOnlyList<string>, string?> waehleZiel)
     {
-        _lesen = lesen;
-        _zaehlen = zaehlen;
-        _speichern = speichern;
+        _speicher = speicher;
+        _waehleZiel = waehleZiel;
         Listen = Bezeichnungen.Keys.ToList();
         GewaehlteListe = Listen[0];
     }
 
-    /// <summary>Die Bezeichnungen der pflegbaren Listen (zunächst nur „Trainingsbereich“).</summary>
+    /// <summary>Die Bezeichnungen der pflegbaren Listen.</summary>
     public IReadOnlyList<string> Listen { get; }
 
-    /// <summary>Die Einträge der gewählten Liste in ihrer Reihenfolge.</summary>
-    public ObservableCollection<string> Eintraege { get; } = new();
+    /// <summary>Die Zeilen der gewählten Liste in der Reihenfolge der Anzeige.</summary>
+    public ObservableCollection<Auswahllistenzeile> Eintraege { get; } = new();
 
     /// <summary>Bezeichnung der gewählten Liste.</summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IstAktivitaetsliste))]
+    [NotifyPropertyChangedFor(nameof(IstKategorienliste))]
+    [NotifyPropertyChangedFor(nameof(KannZusammenfuehrenAnzeigen))]
     private string _gewaehlteListe = string.Empty;
 
     /// <summary>Stelle des markierten Eintrags; -1 = keiner markiert.</summary>
@@ -76,6 +82,9 @@ public partial class AuswahllistenViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(LoeschenCommand))]
     [NotifyCanExecuteChangedFor(nameof(NachObenCommand))]
     [NotifyCanExecuteChangedFor(nameof(NachUntenCommand))]
+    [NotifyCanExecuteChangedFor(nameof(AlsHauptaktivitaetCommand))]
+    [NotifyCanExecuteChangedFor(nameof(StandardCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ZusammenfuehrenCommand))]
     private int _gewaehlterIndex = -1;
 
     /// <summary>Inhalt des Eingabefelds „Eintrag“.</summary>
@@ -86,29 +95,44 @@ public partial class AuswahllistenViewModel : ObservableObject
     [ObservableProperty]
     private string _hinweis = string.Empty;
 
+    /// <summary><c>true</c>, wenn die Liste „Aktivität“ gewählt ist (Schaltfläche „Als Hauptaktivität“ sichtbar).</summary>
+    public bool IstAktivitaetsliste => Liste == Auswahlliste.Aktivitaet;
+
+    /// <summary><c>true</c>, wenn die Liste „Kategorie“ gewählt ist (Schaltfläche „Standard“ sichtbar).</summary>
+    public bool IstKategorienliste => Liste == Auswahlliste.Kategorie;
+
+    /// <summary><c>true</c> bei Aktivitäten und Kategorien (Schaltfläche „Zusammenführen mit …“ sichtbar).</summary>
+    public bool KannZusammenfuehrenAnzeigen => IstAktivitaetsliste || IstKategorienliste;
+
     /// <summary>Die gewählte Liste.</summary>
-    private Auswahlliste Liste => Bezeichnungen[GewaehlteListe];
+    private Auswahlliste Liste => Bezeichnungen.TryGetValue(GewaehlteListe, out Auswahlliste liste) ? liste : Auswahlliste.Trainingsbereich;
 
-    /// <summary>Der markierte Eintrag oder <c>null</c>.</summary>
-    private string? Markiert => GewaehlterIndex >= 0 && GewaehlterIndex < Eintraege.Count ? Eintraege[GewaehlterIndex] : null;
+    /// <summary>Name des markierten Eintrags oder <c>null</c>.</summary>
+    private string? Markiert => GewaehlterIndex >= 0 && GewaehlterIndex < Eintraege.Count ? Eintraege[GewaehlterIndex].Name : null;
 
-    /// <summary>Befehl „Hinzufügen“: hängt den Inhalt des Eingabefelds an die Liste an.</summary>
+    /// <summary>Die Namen aller Einträge der gewählten Liste.</summary>
+    private List<string> Namen => Eintraege.Select(z => z.Name).ToList();
+
+    /// <summary>Befehl „Hinzufügen“: legt den Inhalt des Eingabefelds als neuen Eintrag an.</summary>
     [RelayCommand]
     private void Hinzufuegen()
     {
-        if (PruefeAuswahleintrag.Ausfuehren(Eintraege, Eingabe) is string grund)
+        if (PruefeAuswahleintrag.Ausfuehren(Namen, Eingabe) is string grund)
         {
             Hinweis = grund;
             return;
         }
 
-        List<string> neu = [.. Eintraege, Eingabe.Trim()];
-        Speichere(neu, null, neu.Count - 1);
+        string neu = Eingabe.Trim();
+        if (_speicher.Hinzufuegen(Liste, neu))
+        {
+            ZeigeListe(neu);
+        }
     }
 
     /// <summary>
-    /// Befehl „Umbenennen“: ersetzt den markierten Eintrag durch den Inhalt des Eingabefelds; verwenden
-    /// Einheiten den Eintrag, erst nach Rückfrage und dann auch in diesen Einheiten.
+    /// Befehl „Umbenennen“: ersetzt den markierten Eintrag durch den Inhalt des Eingabefelds; ein
+    /// verwendeter Trainingsbereich erst nach Rückfrage, weil die Einheiten mit umbenannt werden.
     /// </summary>
     [RelayCommand(CanExecute = nameof(EinerMarkiert))]
     private void Umbenennen()
@@ -118,7 +142,7 @@ public partial class AuswahllistenViewModel : ObservableObject
             return;
         }
 
-        if (PruefeAuswahleintrag.Ausfuehren(Eintraege, Eingabe, GewaehlterIndex) is string grund)
+        if (PruefeAuswahleintrag.Ausfuehren(Namen, Eingabe, GewaehlterIndex) is string grund)
         {
             Hinweis = grund;
             return;
@@ -130,25 +154,29 @@ public partial class AuswahllistenViewModel : ObservableObject
             return; // nichts geändert
         }
 
-        int anzahl = _zaehlen(Liste, alt);
-        if (anzahl > 0)
+        if (Liste == Auswahlliste.Trainingsbereich)
         {
-            string frage = string.Format(CultureInfo.GetCultureInfo("de-DE"), "In {0:N0} {1} ‚{2}‘ durch ‚{3}‘ ersetzen?",
-                anzahl, anzahl == 1 ? "Einheit" : "Einheiten", alt, neuerName);
-            if (MessageBox.Show(frage, "Auswahllisten", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No) != MessageBoxResult.Yes)
+            int anzahl = _speicher.ZaehleVerwendung(Liste, alt).Einheiten;
+            if (anzahl > 0)
             {
-                return;
+                string frage = string.Format(Deutsch, "In {0:N0} {1} ‚{2}‘ durch ‚{3}‘ ersetzen?",
+                    anzahl, anzahl == 1 ? "Einheit" : "Einheiten", alt, neuerName);
+                if (!Frage(frage))
+                {
+                    return;
+                }
             }
         }
 
-        List<string> neu = Eintraege.ToList();
-        neu[GewaehlterIndex] = neuerName;
-        Speichere(neu, anzahl > 0 ? (alt, neuerName) : null, GewaehlterIndex);
+        if (_speicher.Umbenennen(Liste, alt, neuerName))
+        {
+            ZeigeListe(neuerName);
+        }
     }
 
     /// <summary>
-    /// Befehl „Löschen“: entfernt den markierten Eintrag ohne Rückfrage – außer Einheiten verwenden ihn,
-    /// dann ist das Löschen gesperrt und ein Hinweis nennt die Anzahl.
+    /// Befehl „Löschen“: entfernt den markierten Eintrag ohne Rückfrage – sofern nichts dagegen spricht;
+    /// sonst nennt ein Hinweis den Grund.
     /// </summary>
     [RelayCommand(CanExecute = nameof(EinerMarkiert))]
     private void Loeschen()
@@ -158,86 +186,161 @@ public partial class AuswahllistenViewModel : ObservableObject
             return;
         }
 
-        int anzahl = _zaehlen(Liste, eintrag);
-        if (anzahl > 0)
+        if (_speicher.ErmittleLoeschsperre(Liste, eintrag) is string sperre)
         {
-            Hinweis = string.Format(CultureInfo.GetCultureInfo("de-DE"), "‚{0}‘ wird in {1:N0} {2} verwendet und kann nicht gelöscht werden.",
-                eintrag, anzahl, anzahl == 1 ? "Einheit" : "Einheiten");
+            Hinweis = sperre;
             return;
         }
 
         int stelle = GewaehlterIndex;
-        List<string> neu = Eintraege.ToList();
-        neu.RemoveAt(stelle);
-        Speichere(neu, null, Math.Min(stelle, neu.Count - 1));
+        if (_speicher.Loeschen(Liste, eintrag))
+        {
+            ZeigeListe(stelle);
+        }
     }
 
-    /// <summary>Befehl „Nach oben“: verschiebt den markierten Eintrag um eine Stelle nach oben.</summary>
+    /// <summary>Befehl „Nach oben“: verschiebt den markierten Eintrag eine Stelle nach oben.</summary>
     [RelayCommand(CanExecute = nameof(KannNachOben))]
     private void NachOben() => Verschiebe(nachOben: true);
 
-    /// <summary>Befehl „Nach unten“: verschiebt den markierten Eintrag um eine Stelle nach unten.</summary>
+    /// <summary>Befehl „Nach unten“: verschiebt den markierten Eintrag eine Stelle nach unten.</summary>
     [RelayCommand(CanExecute = nameof(KannNachUnten))]
     private void NachUnten() => Verschiebe(nachOben: false);
+
+    /// <summary>Befehl „Als Hauptaktivität“: macht die markierte Aktivität zur Hauptaktivität.</summary>
+    [RelayCommand(CanExecute = nameof(AktivitaetMarkiert))]
+    private void AlsHauptaktivitaet()
+    {
+        if (Markiert is string name && _speicher.SetzeHauptaktivitaet(name))
+        {
+            ZeigeListe(name);
+        }
+    }
+
+    /// <summary>Befehl „Standard“: schaltet das Standard-Kennzeichen der markierten Kategorie um.</summary>
+    [RelayCommand(CanExecute = nameof(KategorieMarkiert))]
+    private void Standard()
+    {
+        if (Markiert is string name && _speicher.SchalteStandardUm(name))
+        {
+            ZeigeListe(name);
+        }
+    }
+
+    /// <summary>
+    /// Befehl „Zusammenführen mit …“: Ziel im kleinen Fenster wählen, mit der Anzahl nachfragen und den
+    /// markierten Eintrag im Ziel aufgehen lassen.
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(KannZusammenfuehren))]
+    private void Zusammenfuehren()
+    {
+        if (Markiert is not string ursprung)
+        {
+            return;
+        }
+
+        List<string> ziele = Namen.Where(n => n != ursprung).ToList();
+        if (_waehleZiel(ursprung, ziele) is not string ziel)
+        {
+            return;
+        }
+
+        (int einheiten, int equipments) = _speicher.ZaehleVerwendung(Liste, ursprung);
+        string anzahl = string.Format(Deutsch, "{0:N0} {1}", einheiten, einheiten == 1 ? "Einheit" : "Einheiten");
+        if (equipments > 0)
+        {
+            anzahl += string.Format(Deutsch, " und {0:N0} {1}", equipments, equipments == 1 ? "Equipment" : "Equipments");
+        }
+
+        if (!Frage($"{anzahl} von ‚{ursprung}‘ nach ‚{ziel}‘ übernehmen und ‚{ursprung}‘ entfernen?"))
+        {
+            return;
+        }
+
+        if (_speicher.Zusammenfuehren(Liste, ursprung, ziel))
+        {
+            ZeigeListe(ziel);
+        }
+    }
 
     /// <summary>Wählbarkeit von „Umbenennen“ und „Löschen“: ein Eintrag ist markiert.</summary>
     private bool EinerMarkiert() => Markiert is not null;
 
-    /// <summary>Wählbarkeit von „Nach oben“: markiert und nicht der erste Eintrag.</summary>
-    private bool KannNachOben() => Markiert is not null && GewaehlterIndex > 0;
+    /// <summary>Wählbarkeit von „Nach oben“: markiert, nicht ganz oben, und die Liste ist nicht alphabetisch.</summary>
+    private bool KannNachOben() => Markiert is not null && !IstKategorienliste && GewaehlterIndex > 0;
 
-    /// <summary>Wählbarkeit von „Nach unten“: markiert und nicht der letzte Eintrag.</summary>
-    private bool KannNachUnten() => Markiert is not null && GewaehlterIndex < Eintraege.Count - 1;
+    /// <summary>Wählbarkeit von „Nach unten“: markiert, nicht ganz unten, und die Liste ist nicht alphabetisch.</summary>
+    private bool KannNachUnten() => Markiert is not null && !IstKategorienliste && GewaehlterIndex < Eintraege.Count - 1;
+
+    /// <summary>Wählbarkeit von „Als Hauptaktivität“: eine Aktivität ist markiert.</summary>
+    private bool AktivitaetMarkiert() => Markiert is not null && IstAktivitaetsliste;
+
+    /// <summary>Wählbarkeit von „Standard“: eine Kategorie ist markiert.</summary>
+    private bool KategorieMarkiert() => Markiert is not null && IstKategorienliste;
+
+    /// <summary>Wählbarkeit von „Zusammenführen mit …“: markiert, und es gibt einen anderen Eintrag als Ziel.</summary>
+    private bool KannZusammenfuehren() => Markiert is not null && KannZusammenfuehrenAnzeigen && Eintraege.Count > 1;
+
+    /// <summary>Stellt eine Ja/Nein-Frage; vorbelegt ist „Nein“.</summary>
+    private static bool Frage(string text) =>
+        MessageBox.Show(text, "Auswahllisten", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No) == MessageBoxResult.Yes;
 
     /// <summary>Verschiebt den markierten Eintrag und speichert die neue Reihenfolge.</summary>
     private void Verschiebe(bool nachOben)
     {
         int stelle = GewaehlterIndex;
-        List<string> neu = VerschiebeEintrag.Ausfuehren(Eintraege, stelle, nachOben);
-        Speichere(neu, null, nachOben ? stelle - 1 : stelle + 1);
+        List<string> neu = VerschiebeEintrag.Ausfuehren(Namen, stelle, nachOben);
+        if (_speicher.Verschieben(Liste, neu))
+        {
+            ZeigeListe(nachOben ? stelle - 1 : stelle + 1);
+        }
     }
 
-    /// <summary>
-    /// Speichert die neue Liste; nur bei Erfolg zeigt die Liste den neuen Stand und markiert den angegebenen Eintrag.
-    /// </summary>
-    /// <param name="neu">Die neuen Einträge.</param>
-    /// <param name="umbenennung">Alter und neuer Name, wenn Einheiten mit umbenannt werden.</param>
-    /// <param name="markieren">Stelle, die danach markiert sein soll (-1 = keine).</param>
-    private void Speichere(List<string> neu, (string Alt, string Neu)? umbenennung, int markieren)
+    /// <summary>Zeigt die Liste neu und markiert den Eintrag mit diesem Namen.</summary>
+    private void ZeigeListe(string markieren)
     {
-        if (!_speichern(Liste, neu, umbenennung))
+        LadeEintraege();
+        Markiere(Eintraege.ToList().FindIndex(z => z.Name == markieren));
+    }
+
+    /// <summary>Zeigt die Liste neu und markiert die angegebene Stelle (begrenzt auf die Liste; -1 = keine).</summary>
+    private void ZeigeListe(int markieren)
+    {
+        LadeEintraege();
+        Markiere(Math.Min(markieren, Eintraege.Count - 1));
+    }
+
+    /// <summary>Liest die Zeilen der gewählten Liste neu ein.</summary>
+    private void LadeEintraege()
+    {
+        Eintraege.Clear();
+        foreach (Auswahllistenzeile zeile in _speicher.Lesen(Liste))
         {
-            return;
+            Eintraege.Add(zeile);
         }
 
-        ZeigeListe(markieren);
         Hinweis = string.Empty;
     }
 
-    /// <summary>Füllt die Einträge aus der gespeicherten Liste und markiert die angegebene Stelle.</summary>
-    private void ZeigeListe(int markieren)
+    /// <summary>Markiert eine Stelle; ohne Markierung wird das Eingabefeld geleert.</summary>
+    private void Markiere(int stelle)
     {
-        Eintraege.Clear();
-        foreach (string eintrag in _lesen(Liste))
-        {
-            Eintraege.Add(eintrag);
-        }
-
-        GewaehlterIndex = markieren < Eintraege.Count ? markieren : -1;
+        GewaehlterIndex = stelle;
         if (GewaehlterIndex < 0)
         {
             Eingabe = string.Empty;
         }
+
+        // Die Wählbarkeit hängt auch von Liste und Anzahl der Einträge ab, nicht nur von der Markierung
+        ZusammenfuehrenCommand.NotifyCanExecuteChanged();
+        NachObenCommand.NotifyCanExecuteChanged();
+        NachUntenCommand.NotifyCanExecuteChanged();
     }
 
-    /// <summary>Eine andere Liste gewählt: deren Einträge zeigen.</summary>
-    partial void OnGewaehlteListeChanged(string value)
-    {
-        Hinweis = string.Empty;
-        ZeigeListe(-1);
-    }
+    /// <summary>Wird vom CommunityToolkit aufgerufen, sobald eine andere Liste gewählt wird.</summary>
+    partial void OnGewaehlteListeChanged(string value) => ZeigeListe(-1);
 
-    /// <summary>Ein Eintrag markiert: ihn ins Eingabefeld übernehmen.</summary>
+    /// <summary>Übernimmt den markierten Eintrag in das Eingabefeld.</summary>
     partial void OnGewaehlterIndexChanged(int value)
     {
         if (Markiert is string eintrag)

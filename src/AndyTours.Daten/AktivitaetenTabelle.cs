@@ -68,4 +68,90 @@ public static class AktivitaetenTabelle
             befehl.ExecuteNonQuery();
         }
     }
+
+    /// <summary>
+    /// Fügt eine neue Aktivität ein; die Datenbank vergibt die Nummer.
+    /// </summary>
+    /// <param name="verbindung">Geöffnete Verbindung.</param>
+    /// <param name="transaktion">Laufende Transaktion.</param>
+    /// <param name="aktivitaet">Die Aktivität (ihre <see cref="Aktivitaet.Id"/> wird nicht verwendet).</param>
+    /// <returns>Die vergebene Nummer.</returns>
+    public static long Einfuegen(SqliteConnection verbindung, SqliteTransaction transaktion, Aktivitaet aktivitaet)
+    {
+        using SqliteCommand befehl = verbindung.CreateCommand();
+        befehl.Transaction = transaktion;
+        befehl.CommandText = """
+            INSERT INTO Aktivitaet (Name, IstHaupt, Geschwindigkeitseinheit, ZielKm, ZielHm, ZielAnzahl)
+            VALUES ($name, $istHaupt, $einheit, $zielKm, $zielHm, $zielAnzahl)
+            RETURNING Id;
+            """;
+        befehl.Parameters.AddWithValue("$name", aktivitaet.Name);
+        befehl.Parameters.AddWithValue("$istHaupt", aktivitaet.IstHaupt);
+        befehl.Parameters.AddWithValue("$einheit", aktivitaet.Geschwindigkeitseinheit);
+        befehl.Parameters.AddWithValue("$zielKm", aktivitaet.ZielKm);
+        befehl.Parameters.AddWithValue("$zielHm", aktivitaet.ZielHm);
+        befehl.Parameters.AddWithValue("$zielAnzahl", aktivitaet.ZielAnzahl);
+        return (long)befehl.ExecuteScalar()!;
+    }
+
+    /// <summary>
+    /// Schreibt Name und Hauptaktivitäts-Kennzeichen einer vorhandenen Aktivität.
+    /// </summary>
+    /// <remarks>
+    /// Geschwindigkeitseinheit und Saisonziele werden hier nicht gepflegt und bleiben unverändert.
+    /// </remarks>
+    /// <param name="verbindung">Geöffnete Verbindung.</param>
+    /// <param name="transaktion">Laufende Transaktion.</param>
+    /// <param name="aktivitaet">Die Aktivität mit ihrer Nummer.</param>
+    public static void Aendern(SqliteConnection verbindung, SqliteTransaction transaktion, Aktivitaet aktivitaet)
+    {
+        using SqliteCommand befehl = verbindung.CreateCommand();
+        befehl.Transaction = transaktion;
+        befehl.CommandText = "UPDATE Aktivitaet SET Name = $name, IstHaupt = $istHaupt WHERE Id = $id;";
+        befehl.Parameters.AddWithValue("$id", aktivitaet.Id);
+        befehl.Parameters.AddWithValue("$name", aktivitaet.Name);
+        befehl.Parameters.AddWithValue("$istHaupt", aktivitaet.IstHaupt);
+        befehl.ExecuteNonQuery();
+    }
+
+    /// <summary>
+    /// Löscht eine Aktivität. Wird sie noch von Einheiten oder Equipments verwendet, scheitert das an den
+    /// Fremdschlüsseln – die Oberfläche prüft das vorher mit <c>ErmittleLoeschsperre</c>.
+    /// </summary>
+    /// <param name="verbindung">Geöffnete Verbindung.</param>
+    /// <param name="transaktion">Laufende Transaktion.</param>
+    /// <param name="id">Nummer der Aktivität.</param>
+    public static void Loeschen(SqliteConnection verbindung, SqliteTransaction transaktion, long id)
+    {
+        using SqliteCommand befehl = verbindung.CreateCommand();
+        befehl.Transaction = transaktion;
+        befehl.CommandText = "DELETE FROM Aktivitaet WHERE Id = $id;";
+        befehl.Parameters.AddWithValue("$id", id);
+        befehl.ExecuteNonQuery();
+    }
+
+    /// <summary>
+    /// Führt zwei Aktivitäten zusammen: Einheiten und Equipments der Ursprungsaktivität gehören danach zur
+    /// Zielaktivität, ein Hauptaktivitäts-Kennzeichen geht auf das Ziel über, die Ursprungsaktivität wird
+    /// gelöscht.
+    /// </summary>
+    /// <param name="verbindung">Geöffnete Verbindung.</param>
+    /// <param name="transaktion">Laufende Transaktion – alle Schritte gelten nur gemeinsam.</param>
+    /// <param name="ursprungId">Nummer der Aktivität, die entfernt wird.</param>
+    /// <param name="zielId">Nummer der Aktivität, die bleibt.</param>
+    public static void FuehreZusammen(SqliteConnection verbindung, SqliteTransaction transaktion, long ursprungId, long zielId)
+    {
+        using SqliteCommand befehl = verbindung.CreateCommand();
+        befehl.Transaction = transaktion;
+        befehl.CommandText = """
+            UPDATE Trainingseinheit SET AktivitaetId = $ziel WHERE AktivitaetId = $ursprung;
+            UPDATE Equipment SET AktivitaetId = $ziel WHERE AktivitaetId = $ursprung;
+            UPDATE Aktivitaet SET IstHaupt = 1
+                WHERE Id = $ziel AND EXISTS (SELECT 1 FROM Aktivitaet WHERE Id = $ursprung AND IstHaupt <> 0);
+            DELETE FROM Aktivitaet WHERE Id = $ursprung;
+            """;
+        befehl.Parameters.AddWithValue("$ursprung", ursprungId);
+        befehl.Parameters.AddWithValue("$ziel", zielId);
+        befehl.ExecuteNonQuery();
+    }
 }

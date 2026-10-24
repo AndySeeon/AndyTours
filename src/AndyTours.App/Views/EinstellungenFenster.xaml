@@ -6,9 +6,11 @@
     2. Hinweis, warum der Ordner in der Entwicklungsversion nicht änderbar ist (nur dort sichtbar)
     3. Gruppe „Datensicherung“: Sicherungsordner mit „Ändern…“, Intervall (Programmstarts) und
        Höchstzahl der Sicherungen, jeweils mit Hinweis bei ungültiger Eingabe (erlaubt 1 bis 99)
-    4. Gruppe „Auswahllisten“: Auswahl der Liste (zunächst nur „Trainingsbereich“), deren Einträge mit
-       „Nach oben“, „Nach unten“ und „Löschen“, darunter das Eingabefeld „Eintrag“ mit „Hinzufügen“ und
-       „Umbenennen“ und ein roter Hinweis bei abgewiesenen Eingaben
+    4. Gruppe „Auswahllisten“: Auswahl der Liste („Trainingsbereich“, „Aktivität“, „Kategorie“), deren
+       Einträge mit „Nach oben“, „Nach unten“ (bei Kategorien nicht wählbar, sie stehen alphabetisch) und
+       „Löschen“, dazu nur bei Aktivitäten „Als Hauptaktivität“, nur bei Kategorien „Standard“ und bei
+       beiden „Zusammenführen mit …“; darunter das Eingabefeld „Eintrag“ mit „Hinzufügen“ und
+       „Umbenennen“ und ein roter Hinweis bei abgewiesenen Eingaben oder gesperrtem Löschen
     5. Schaltfläche „Schließen“
 
   Ein Ordnerwechsel gilt sofort nach Abschluss der Rückfragen; ein eigenes „OK“ ist nicht nötig.
@@ -109,13 +111,20 @@
                 <ComboBox x:Name="ListenAuswahl" Grid.Row="0" Grid.Column="1" Width="200" HorizontalAlignment="Left"
                           ItemsSource="{Binding Listen}" SelectedItem="{Binding GewaehlteListe}" />
 
-                <!-- Einträge in der Reihenfolge des Benutzers; ein Klick übernimmt den Eintrag ins Eingabefeld -->
-                <ListBox Grid.Row="1" Grid.Column="1" Height="150" Margin="0,8,0,0"
-                         ItemsSource="{Binding Eintraege}" SelectedIndex="{Binding GewaehlterIndex}" />
+                <!-- Einträge in der Reihenfolge der Anzeige, mit Zusatz „(Hauptaktivität)“ bzw. „(Standard)“;
+                     ein Klick übernimmt den Eintrag ins Eingabefeld -->
+                <ListBox Grid.Row="1" Grid.Column="1" MinHeight="150" Margin="0,8,0,0"
+                         ItemsSource="{Binding Eintraege}" DisplayMemberPath="Anzeige" SelectedIndex="{Binding GewaehlterIndex}" />
                 <StackPanel Grid.Row="1" Grid.Column="2" Margin="8,8,0,0">
                     <Button Content="Nach _oben" MinWidth="90" Padding="8,3" Command="{Binding NachObenCommand}" />
                     <Button Content="Nach _unten" MinWidth="90" Padding="8,3" Margin="0,6,0,0" Command="{Binding NachUntenCommand}" />
                     <Button Content="_Löschen" MinWidth="90" Padding="8,3" Margin="0,6,0,0" Command="{Binding LoeschenCommand}" />
+                    <Button Content="Als Hauptakti_vität" MinWidth="90" Padding="8,3" Margin="0,6,0,0" Command="{Binding AlsHauptaktivitaetCommand}"
+                            Visibility="{Binding IstAktivitaetsliste, Converter={StaticResource SichtbarWennWahr}}" />
+                    <Button Content="S_tandard" MinWidth="90" Padding="8,3" Margin="0,6,0,0" Command="{Binding StandardCommand}"
+                            Visibility="{Binding IstKategorienliste, Converter={StaticResource SichtbarWennWahr}}" />
+                    <Button Content="_Zusammenführen mit…" MinWidth="90" Padding="8,3" Margin="0,6,0,0" Command="{Binding ZusammenfuehrenCommand}"
+                            Visibility="{Binding KannZusammenfuehrenAnzeigen, Converter={StaticResource SichtbarWennWahr}}" />
                 </StackPanel>
 
                 <Label Grid.Row="2" Grid.Column="0" Content="_Eintrag:" Target="{Binding ElementName=EintragFeld}"

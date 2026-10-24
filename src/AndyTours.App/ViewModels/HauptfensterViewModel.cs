@@ -256,7 +256,14 @@ public partial class HauptfensterViewModel : ObservableObject
     }
 
     /// <summary>Wird vom CommunityToolkit aufgerufen, sobald sich die Aktivitätsauswahl ändert.</summary>
-    partial void OnAusgewaehlteAktivitaetChanged(string value) => AktualisiereSummen();
+    /// <remarks>Während die Aktivitätsliste neu gefüllt wird, wird nichts neu aufgebaut (siehe <see cref="FuelleAktivitaeten"/>).</remarks>
+    partial void OnAusgewaehlteAktivitaetChanged(string value)
+    {
+        if (!_aktivitaetenWerdenGefuellt)
+        {
+            AktualisiereSummen();
+        }
+    }
 
     /// <summary>
     /// Öffnet die Datenbank im angegebenen Datenordner, übernimmt ihn als aktiven Ordner und füllt die Auswahllisten.
@@ -278,6 +285,7 @@ public partial class HauptfensterViewModel : ObservableObject
         using (SqliteConnection verbindung = OeffneDatenbank.Ausfuehren(Path.Combine(ordner, DatenordnerInhalt.Datenbankdatei)))
         {
             geladen = DatenbestandTabellen.Laden(verbindung);
+            geladen.Aktivitaeten = OrdneAktivitaeten.Ausfuehren(geladen.Aktivitaeten, AktivitaetenReihenfolgeEinstellung.Laden(verbindung));
             trainingsbereiche = LadeTrainingsbereiche(verbindung, geladen);
             ausgeblendet = AusgeblendeteSpaltenEinstellung.Laden(verbindung);
             anordnung = SpaltenanordnungEinstellung.Laden(verbindung);
@@ -302,16 +310,9 @@ public partial class HauptfensterViewModel : ObservableObject
             Jahre.Add(jahr.ToString(CultureInfo.InvariantCulture));
         }
 
-        Aktivitaeten.Clear();
-        Aktivitaeten.Add(AlleAktivitaeten);
-        foreach (Aktivitaet aktivitaet in _bestand.Aktivitaeten)
-        {
-            Aktivitaeten.Add(aktivitaet.Name);
-        }
-
         // Vorauswahl: aktuelles Jahr (steht immer in der Liste) und Hauptaktivität; ohne Hauptaktivität alle Aktivitäten
         AusgewaehltesJahr = aktuellesJahr.ToString(CultureInfo.InvariantCulture);
-        AusgewaehlteAktivitaet = _bestand.Aktivitaeten.FirstOrDefault(a => a.IstHaupt)?.Name ?? AlleAktivitaeten;
+        FuelleAktivitaeten(_bestand.Aktivitaeten.FirstOrDefault(a => a.IstHaupt)?.Id);
 
         AktualisiereStatustext();
         AktualisiereSummen();

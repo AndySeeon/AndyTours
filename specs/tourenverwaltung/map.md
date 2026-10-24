@@ -49,7 +49,7 @@ In Umsetzungsreihenfolge.
   - Status: done → [009-auswahllisten-verwalten](009-auswahllisten-verwalten/spec.md)
 - `aktivitaeten-kategorien-verwalten` — Der Benutzer kann Aktivitäten und Kategorien in den Einstellungen unter „Auswahllisten“ anlegen, umbenennen und löschen.
   - Abhängig von: `hauptfenster-auswahl`
-  - Status: open
+  - Status: done → [010-aktivitaeten-kategorien-verwalten](010-aktivitaeten-kategorien-verwalten/spec.md)
 - `equipments-verwalten` — Der Benutzer kann Räder und Ausrüstung in den Einstellungen unter „Auswahllisten“ anlegen, bearbeiten und als ausgemustert kennzeichnen.
   - Abhängig von: `hauptfenster-auswahl`
   - Status: open

@@ -111,6 +111,41 @@ public partial class EinheitenfilterViewModel : ObservableObject
         Name: Name);
 
     /// <summary>
+    /// Stellt eine gewählte Kategorie auf ihren neuen Namen um (nach Umbenennen oder Zusammenführen in den
+    /// Einstellungen); ist eine andere Kategorie gewählt, ändert sich nichts.
+    /// </summary>
+    /// <remarks>
+    /// Der neue Name kommt vor dem Umstellen in die Liste, damit die Auswahlliste der Oberfläche ihn findet
+    /// und die Wahl nicht auf „nichts“ zurücksetzt. Neu berechnet wird hier nicht; der Aufrufer baut danach
+    /// Listen und Tabelle neu auf, wobei der alte Name aus der Liste verschwindet.
+    /// </remarks>
+    /// <param name="alt">Bisheriger Name der Kategorie.</param>
+    /// <param name="neu">Neuer Name bzw. Name der Zielkategorie.</param>
+    public void ErsetzeKategorie(string alt, string neu)
+    {
+        if (Kategorie != alt)
+        {
+            return;
+        }
+
+        int stelle = Kategorien.IndexOf(alt);
+        if (!Kategorien.Contains(neu))
+        {
+            Kategorien.Insert(stelle < 0 ? Kategorien.Count : stelle + 1, neu);
+        }
+
+        _unterdrueckt = true;
+        try
+        {
+            Kategorie = neu;
+        }
+        finally
+        {
+            _unterdrueckt = false;
+        }
+    }
+
+    /// <summary>
     /// Übernimmt neue Einträge für die drei Auswahllisten (nach einem Wechsel von Jahr, Aktivität oder Datenbestand).
     /// </summary>
     /// <remarks>
