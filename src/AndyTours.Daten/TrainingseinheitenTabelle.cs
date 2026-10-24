@@ -278,6 +278,29 @@ public static class TrainingseinheitenTabelle
         transaktion.Commit();
     }
 
+    /// <summary>
+    /// Ersetzt einen Trainingsbereich in allen Einheiten durch einen neuen (Umbenennen in den Auswahllisten).
+    /// </summary>
+    /// <remarks>
+    /// Verglichen wird ohne Leerzeichen am Rand und ohne Unterschied zwischen Groß- und Kleinschreibung
+    /// (SQLite <c>NOCASE</c>, d. h. für die Buchstaben A–Z – die Kürzel bestehen daraus und aus Ziffern).
+    /// Läuft in der übergebenen Transaktion, damit Liste und Einheiten gemeinsam gespeichert werden.
+    /// </remarks>
+    /// <param name="verbindung">Geöffnete Verbindung.</param>
+    /// <param name="transaktion">Laufende Transaktion.</param>
+    /// <param name="alt">Bisheriges Kürzel.</param>
+    /// <param name="neu">Neues Kürzel.</param>
+    /// <returns>Die Anzahl der geänderten Einheiten.</returns>
+    public static int ErsetzeTrainingsbereich(SqliteConnection verbindung, SqliteTransaction transaktion, string alt, string neu)
+    {
+        using SqliteCommand befehl = verbindung.CreateCommand();
+        befehl.Transaction = transaktion;
+        befehl.CommandText = "UPDATE Trainingseinheit SET Trainingsbereich = $neu WHERE TRIM(Trainingsbereich) = $alt COLLATE NOCASE;";
+        befehl.Parameters.AddWithValue("$alt", alt.Trim());
+        befehl.Parameters.AddWithValue("$neu", neu.Trim());
+        return befehl.ExecuteNonQuery();
+    }
+
     /// <summary>Schreibt die Kategorie-Zuordnungen einer Einheit.</summary>
     private static void SchreibeKategorien(SqliteConnection verbindung, SqliteTransaction transaktion, long einheitId, IEnumerable<long> kategorieIds)
     {

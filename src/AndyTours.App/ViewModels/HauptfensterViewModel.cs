@@ -274,9 +274,11 @@ public partial class HauptfensterViewModel : ObservableObject
         List<Spalteneinstellung> anordnung;
         Fensterposition? fenster;
         int? karteikarte;
+        List<string> trainingsbereiche;
         using (SqliteConnection verbindung = OeffneDatenbank.Ausfuehren(Path.Combine(ordner, DatenordnerInhalt.Datenbankdatei)))
         {
             geladen = DatenbestandTabellen.Laden(verbindung);
+            trainingsbereiche = LadeTrainingsbereiche(verbindung, geladen);
             ausgeblendet = AusgeblendeteSpaltenEinstellung.Laden(verbindung);
             anordnung = SpaltenanordnungEinstellung.Laden(verbindung);
             fenster = FensterpositionEinstellung.Laden(verbindung);
@@ -284,6 +286,7 @@ public partial class HauptfensterViewModel : ObservableObject
         }
 
         _bestand = geladen;
+        _trainingsbereiche = trainingsbereiche;
         Datenordner = ordner;
         Spaltenanordnung = anordnung;
         AusgeblendeteSpalten = ausgeblendet;
@@ -385,7 +388,8 @@ public partial class HauptfensterViewModel : ObservableObject
     [RelayCommand]
     private void EinstellungenOeffnen()
     {
-        var viewModel = new EinstellungenViewModel(Datenordner, !Programmpfade.IstEntwicklung, WechsleZuNeuemDatenordner);
+        var viewModel = new EinstellungenViewModel(Datenordner, !Programmpfade.IstEntwicklung, WechsleZuNeuemDatenordner,
+            ErstelleAuswahllistenViewModel());
         var fenster = new EinstellungenFenster(viewModel) { Owner = Application.Current.MainWindow };
         fenster.ShowDialog();
     }

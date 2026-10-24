@@ -32,4 +32,12 @@ public static class Einstellungsschluessel
 
     /// <summary>Zuletzt gewählte Karteikarte des Hauptfensters als Nummer ab 0, z. B. „1“ für „Trainingseinheiten“.</summary>
     public const string Karteikarte = "Hauptfenster.Karteikarte";
+
+    /// <summary>
+    /// Schlüssel einer in den Einstellungen gepflegten Auswahlliste, z. B. „Auswahlliste.Trainingsbereich“;
+    /// der Wert enthält die Einträge in der Reihenfolge des Benutzers, einen je Zeile.
+    /// </summary>
+    /// <param name="liste">Die Liste.</param>
+    /// <returns>Der Schlüssel.</returns>
+    public static string Auswahlliste(AndyTours.Core.Modell.Auswahlliste liste) => $"Auswahlliste.{liste}";
 }

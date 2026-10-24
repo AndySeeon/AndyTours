@@ -8,6 +8,9 @@ namespace AndyTours.Tests.Berechnungen;
 /// </summary>
 public class ErmittleEingabelistenTests
 {
+    /// <summary>Gepflegte Liste der Trainingsbereiche in der Reihenfolge des Benutzers.</summary>
+    private static readonly string[] Bereiche = ["K0", "GA1", "GA2"];
+
     /// <summary>Datenbestand mit einem ausgemusterten Equipment und mehreren Trainingsbereichen.</summary>
     private static Datenbestand Bestand() => new()
     {
@@ -28,7 +31,7 @@ public class ErmittleEingabelistenTests
     [Fact]
     public void Aktivitaeten_in_der_Reihenfolge_des_Datenbestands()
     {
-        Eingabelisten listen = ErmittleEingabelisten.Ausfuehren(Bestand(), new Trainingseinheit());
+        Eingabelisten listen = ErmittleEingabelisten.Ausfuehren(Bestand(), new Trainingseinheit(), Bereiche);
 
         Assert.Equal(["Wandern", "Bike"], listen.Aktivitaeten.Select(a => a.Name));
         Assert.Equal([2L, 1L], listen.Aktivitaeten.Select(a => a.Id!.Value));
@@ -37,7 +40,7 @@ public class ErmittleEingabelistenTests
     [Fact]
     public void Equipments_mit_kein_vorne_und_ohne_ausgemusterte()
     {
-        Eingabelisten listen = ErmittleEingabelisten.Ausfuehren(Bestand(), new Trainingseinheit { EquipmentId = 7 });
+        Eingabelisten listen = ErmittleEingabelisten.Ausfuehren(Bestand(), new Trainingseinheit { EquipmentId = 7 }, Bereiche);
 
         Assert.Equal(["(kein)", "Genius", "Rennrad"], listen.Equipments.Select(e => e.Name));
         Assert.Null(listen.Equipments[0].Id);
@@ -46,23 +49,40 @@ public class ErmittleEingabelistenTests
     [Fact]
     public void Ausgemustertes_Equipment_erscheint_wenn_es_zugeordnet_ist()
     {
-        Eingabelisten listen = ErmittleEingabelisten.Ausfuehren(Bestand(), new Trainingseinheit { EquipmentId = 9 });
+        Eingabelisten listen = ErmittleEingabelisten.Ausfuehren(Bestand(), new Trainingseinheit { EquipmentId = 9 }, Bereiche);
 
         Assert.Equal(["(kein)", "Altes Rad", "Genius", "Rennrad"], listen.Equipments.Select(e => e.Name));
     }
 
     [Fact]
-    public void Trainingsbereiche_leer_vorne_dann_vorkommende_Kuerzel_alphabetisch()
+    public void Trainingsbereiche_leer_vorne_dann_die_gepflegte_Liste_in_ihrer_Reihenfolge()
     {
-        Eingabelisten listen = ErmittleEingabelisten.Ausfuehren(Bestand(), new Trainingseinheit());
+        // „WSA“ kommt im Datenbestand vor, steht aber nicht in der Liste – es wird nicht angeboten
+        Eingabelisten listen = ErmittleEingabelisten.Ausfuehren(Bestand(), new Trainingseinheit(), Bereiche);
 
-        Assert.Equal(["", "GA1", "GA2", "WSA"], listen.Trainingsbereiche);
+        Assert.Equal(["", "K0", "GA1", "GA2"], listen.Trainingsbereiche);
+    }
+
+    [Fact]
+    public void Bereich_der_Einheit_ausserhalb_der_Liste_kommt_am_Ende_dazu()
+    {
+        Eingabelisten listen = ErmittleEingabelisten.Ausfuehren(Bestand(), new Trainingseinheit { Trainingsbereich = "WSA" }, Bereiche);
+
+        Assert.Equal(["", "K0", "GA1", "GA2", "WSA"], listen.Trainingsbereiche);
+    }
+
+    [Fact]
+    public void Bereich_der_Einheit_aus_der_Liste_erscheint_nur_einmal()
+    {
+        Eingabelisten listen = ErmittleEingabelisten.Ausfuehren(Bestand(), new Trainingseinheit { Trainingsbereich = "GA1" }, Bereiche);
+
+        Assert.Equal(["", "K0", "GA1", "GA2"], listen.Trainingsbereiche);
     }
 
     [Fact]
     public void Leerer_Datenbestand_ergibt_nur_die_Leereintraege()
     {
-        Eingabelisten listen = ErmittleEingabelisten.Ausfuehren(new Datenbestand(), new Trainingseinheit());
+        Eingabelisten listen = ErmittleEingabelisten.Ausfuehren(new Datenbestand(), new Trainingseinheit(), []);
 
         Assert.Empty(listen.Aktivitaeten);
         Assert.Equal(["(kein)"], listen.Equipments.Select(e => e.Name));

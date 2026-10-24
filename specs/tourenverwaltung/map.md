@@ -13,6 +13,8 @@
 - Karteikarten „Diagramme“, „Statistik“, „Kalender“, „Trainingsplan“, „Planung“
 - Auskünfte: Jahresprognose, Top 50, Gewichtsverlauf, Ruhe-/Erholungspuls, Leistungs-/Trainingskontrolle, Ø-Geschwindigkeits-/Trittfrequenz-Diagramm, Temperatur, virtuelle Weltumrundung
 - Wartung: Kuchendiagramm
+- Equipment: Gewicht, Radumfang, Roll- und Luftwiderstandswerte, Kettenblätter und Ritzel
+- Leistungsberechnung (Steig- und Gesamtleistung, Kalorien)
 - Werkzeuge: Ritzelrechner, Pulsrechner, Marathonzeitenplaner
 
 ## Funktionen
@@ -44,11 +46,11 @@ In Umsetzungsreihenfolge.
   - Status: done → [008-einheit-bearbeiten](008-einheit-bearbeiten/spec.md)
 - `auswahllisten-verwalten` — Der Benutzer pflegt in den Einstellungen Auswahllisten mit festen Werten (zunächst die Trainingsbereiche), die in den Eingabefeldern angeboten werden.
   - Abhängig von: `einheit-bearbeiten`
-  - Status: open
-- `aktivitaeten-kategorien-verwalten` — Der Benutzer kann Aktivitäten und Kategorien anlegen, umbenennen und löschen.
+  - Status: done → [009-auswahllisten-verwalten](009-auswahllisten-verwalten/spec.md)
+- `aktivitaeten-kategorien-verwalten` — Der Benutzer kann Aktivitäten und Kategorien in den Einstellungen unter „Auswahllisten“ anlegen, umbenennen und löschen.
   - Abhängig von: `hauptfenster-auswahl`
   - Status: open
-- `equipments-verwalten` — Der Benutzer kann Räder und Ausrüstung anlegen, bearbeiten und als ausgemustert kennzeichnen.
+- `equipments-verwalten` — Der Benutzer kann Räder und Ausrüstung in den Einstellungen unter „Auswahllisten“ anlegen, bearbeiten und als ausgemustert kennzeichnen.
   - Abhängig von: `hauptfenster-auswahl`
   - Status: open
 - `mehrfachauswahl-zuordnen` — Für mehrere markierte Einheiten kann der Benutzer auf einmal Kategorien zuordnen, die Aktivität wechseln oder das Equipment ändern.
@@ -86,9 +88,6 @@ In Umsetzungsreihenfolge.
   - Status: open
 - `werte-aus-aufzeichnung` — Der Benutzer kann Distanz, Höhenmeter, Puls und weitere Werte einer Einheit aus ihrer Aufzeichnung neu übernehmen.
   - Abhängig von: `einheit-bearbeiten`
-  - Status: open
-- `leistungsberechnung` — Zur gewählten Einheit werden Steigleistung, Gesamtleistung und Kalorien berechnet und angezeigt.
-  - Abhängig von: `persoenliche-daten`, `equipments-verwalten`, `hoehenprofil`
   - Status: open
 - `mehrtagestour` — Mehrere Einheiten lassen sich gemeinsam als Mehrtagestour auswerten (Summen, Höhenprofil, Karte).
   - Abhängig von: `hoehenprofil`, `streckenkarte`

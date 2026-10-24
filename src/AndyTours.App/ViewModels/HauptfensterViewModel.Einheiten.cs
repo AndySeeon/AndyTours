@@ -135,7 +135,7 @@ public partial class HauptfensterViewModel
     /// <param name="id">Nummer der Einheit.</param>
     /// <returns>Die Listen.</returns>
     public Eingabelisten EingabelistenFuer(long id) =>
-        ErmittleEingabelisten.Ausfuehren(_bestand, FindeEinheit(id) ?? new Trainingseinheit());
+        ErmittleEingabelisten.Ausfuehren(_bestand, FindeEinheit(id) ?? new Trainingseinheit(), _trainingsbereiche);
 
     /// <summary>
     /// Übernimmt den Wert einer bearbeiteten Tabellenzelle: prüfen und sofort dauerhaft speichern.
@@ -204,7 +204,7 @@ public partial class HauptfensterViewModel
         Statusmeldung = string.Empty;
         var viewModel = new EinheitBearbeitenViewModel(
             einheit,
-            ErmittleEingabelisten.Ausfuehren(_bestand, einheit),
+            ErmittleEingabelisten.Ausfuehren(_bestand, einheit, _trainingsbereiche),
             _bestand.Kategorien,
             titel,
             gespeichert => SpeichereAusFenster(gespeichert, istNeu));

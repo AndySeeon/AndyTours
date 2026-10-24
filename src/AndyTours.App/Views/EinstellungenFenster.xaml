@@ -6,7 +6,10 @@
     2. Hinweis, warum der Ordner in der Entwicklungsversion nicht änderbar ist (nur dort sichtbar)
     3. Gruppe „Datensicherung“: Sicherungsordner mit „Ändern…“, Intervall (Programmstarts) und
        Höchstzahl der Sicherungen, jeweils mit Hinweis bei ungültiger Eingabe (erlaubt 1 bis 99)
-    4. Schaltfläche „Schließen“
+    4. Gruppe „Auswahllisten“: Auswahl der Liste (zunächst nur „Trainingsbereich“), deren Einträge mit
+       „Nach oben“, „Nach unten“ und „Löschen“, darunter das Eingabefeld „Eintrag“ mit „Hinzufügen“ und
+       „Umbenennen“ und ein roter Hinweis bei abgewiesenen Eingaben
+    5. Schaltfläche „Schließen“
 
   Ein Ordnerwechsel gilt sofort nach Abschluss der Rückfragen; ein eigenes „OK“ ist nicht nötig.
   Ebenso werden Sicherungsordner, Intervall und Höchstzahl sofort gespeichert, sobald sie gültig sind.
@@ -87,7 +90,49 @@
             </Grid>
         </GroupBox>
 
-        <!-- 4. Schließen -->
+        <!-- 4. Auswahllisten: feste Werte der Eingabefelder; jede Änderung wird sofort gespeichert -->
+        <GroupBox Header="Auswahllisten" Padding="8" Margin="0,12,0,0" DataContext="{Binding Auswahllisten}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <Label Grid.Row="0" Grid.Column="0" Content="_Liste:" Target="{Binding ElementName=ListenAuswahl}" VerticalAlignment="Center" />
+                <ComboBox x:Name="ListenAuswahl" Grid.Row="0" Grid.Column="1" Width="200" HorizontalAlignment="Left"
+                          ItemsSource="{Binding Listen}" SelectedItem="{Binding GewaehlteListe}" />
+
+                <!-- Einträge in der Reihenfolge des Benutzers; ein Klick übernimmt den Eintrag ins Eingabefeld -->
+                <ListBox Grid.Row="1" Grid.Column="1" Height="150" Margin="0,8,0,0"
+                         ItemsSource="{Binding Eintraege}" SelectedIndex="{Binding GewaehlterIndex}" />
+                <StackPanel Grid.Row="1" Grid.Column="2" Margin="8,8,0,0">
+                    <Button Content="Nach _oben" MinWidth="90" Padding="8,3" Command="{Binding NachObenCommand}" />
+                    <Button Content="Nach _unten" MinWidth="90" Padding="8,3" Margin="0,6,0,0" Command="{Binding NachUntenCommand}" />
+                    <Button Content="_Löschen" MinWidth="90" Padding="8,3" Margin="0,6,0,0" Command="{Binding LoeschenCommand}" />
+                </StackPanel>
+
+                <Label Grid.Row="2" Grid.Column="0" Content="_Eintrag:" Target="{Binding ElementName=EintragFeld}"
+                       VerticalAlignment="Center" Margin="0,8,0,0" />
+                <DockPanel Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,8,0,0">
+                    <Button DockPanel.Dock="Right" Content="_Umbenennen" MinWidth="90" Padding="8,3" Margin="8,0,0,0"
+                            Command="{Binding UmbenennenCommand}" />
+                    <Button DockPanel.Dock="Right" Content="_Hinzufügen" MinWidth="90" Padding="8,3" Margin="8,0,0,0"
+                            Command="{Binding HinzufuegenCommand}" />
+                    <TextBox x:Name="EintragFeld" VerticalContentAlignment="Center"
+                             Text="{Binding Eingabe, UpdateSourceTrigger=PropertyChanged}" />
+                </DockPanel>
+                <TextBlock Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding Hinweis}" Foreground="Firebrick" TextWrapping="Wrap" />
+            </Grid>
+        </GroupBox>
+
+        <!-- 5. Schließen -->
         <Button Content="_Schließen" IsCancel="True" IsDefault="True" HorizontalAlignment="Right"
                 MinWidth="90" Padding="8,3" Margin="0,16,0,0" />
 

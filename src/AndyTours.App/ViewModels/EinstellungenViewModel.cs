@@ -17,7 +17,7 @@ namespace AndyTours.App.ViewModels;
 /// ViewModel des Einstellungsfensters.
 /// </summary>
 /// <remarks>
-/// Es enthält zwei Bereiche:
+/// Es enthält drei Bereiche:
 /// <list type="bullet">
 /// <item><b>Datenordner:</b> Der eigentliche Wechsel (Ordnerwahl, Rückfragen, Kopieren, Laden, Merken)
 /// wird vom Hauptfenster-ViewModel als Funktion übergeben, weil dieses den Datenbestand hält und neu
@@ -26,6 +26,8 @@ namespace AndyTours.App.ViewModels;
 /// des aktuellen Datenordners und werden sofort gespeichert, sobald ein gültiger Wert eingegeben bzw.
 /// ein Ordner gewählt ist. Nach einem Wechsel des Datenordners werden die Werte des neuen Ordners
 /// angezeigt.</item>
+/// <item><b>Auswahllisten:</b> eigenes ViewModel (<see cref="AuswahllistenViewModel"/>), das das
+/// Hauptfenster-ViewModel erzeugt, weil Änderungen den Datenbestand betreffen.</item>
 /// </list>
 /// </remarks>
 public partial class EinstellungenViewModel : ObservableObject
@@ -51,13 +53,19 @@ public partial class EinstellungenViewModel : ObservableObject
     /// <param name="datenordner">Der aktuelle Datenordner.</param>
     /// <param name="aendernMoeglich"><c>false</c> in der Entwicklungsversion.</param>
     /// <param name="ordnerWechseln">Ablauf des Ordnerwechsels (vom Hauptfenster-ViewModel).</param>
-    public EinstellungenViewModel(string datenordner, bool aendernMoeglich, Func<Task<string?>> ordnerWechseln)
+    /// <param name="auswahllisten">ViewModel des Bereichs „Auswahllisten“ (vom Hauptfenster-ViewModel).</param>
+    public EinstellungenViewModel(string datenordner, bool aendernMoeglich, Func<Task<string?>> ordnerWechseln,
+        AuswahllistenViewModel auswahllisten)
     {
         _datenordner = datenordner;
         AendernMoeglich = aendernMoeglich;
         _ordnerWechseln = ordnerWechseln;
+        Auswahllisten = auswahllisten;
         ZeigeSicherungseinstellungen();
     }
+
+    /// <summary>Bereich „Auswahllisten“: gepflegte Listen mit festen Werten (zunächst die Trainingsbereiche).</summary>
+    public AuswahllistenViewModel Auswahllisten { get; }
 
     /// <summary>Vollständiger Pfad des aktuellen Datenordners.</summary>
     [ObservableProperty]
