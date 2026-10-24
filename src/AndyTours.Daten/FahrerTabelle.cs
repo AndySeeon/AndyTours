@@ -85,4 +85,36 @@ public static class FahrerTabelle
             befehl.ExecuteNonQuery();
         }
     }
+
+    /// <summary>
+    /// Liefert die Nummer des Sportlers, dem neue Trainingseinheiten zugeordnet werden; legt bei Bedarf einen an.
+    /// </summary>
+    /// <remarks>
+    /// AndyTours kennt nur einen Sportler. Nach der Übernahme der Altdaten ist er vorhanden; in einem neuen,
+    /// leeren Datenordner fehlt er noch. Dann wird ein Sportler ohne Angaben angelegt, damit die Einheit
+    /// gespeichert werden kann (jede Einheit verweist auf einen Sportler). Seine Daten pflegt der Benutzer
+    /// später unter „Persönliche Daten“.
+    /// </remarks>
+    /// <param name="verbindung">Geöffnete Verbindung.</param>
+    /// <param name="transaktion">Laufende Transaktion.</param>
+    /// <returns>Die Nummer des ersten Sportlers.</returns>
+    public static long Standardfahrer(SqliteConnection verbindung, SqliteTransaction transaktion)
+    {
+        using SqliteCommand befehl = verbindung.CreateCommand();
+        befehl.Transaction = transaktion;
+        befehl.CommandText = "SELECT Id FROM Fahrer ORDER BY Id LIMIT 1;";
+        if (befehl.ExecuteScalar() is long vorhanden)
+        {
+            return vorhanden;
+        }
+
+        // Noch kein Sportler: einen leeren anlegen, die Nummer vergibt die Datenbank
+        befehl.CommandText = """
+            INSERT INTO Fahrer (Vorname, Nachname, GroesseCm, GewichtKg, Ruhepuls, Maxpuls,
+                                TrainingspulsVon, TrainingspulsBis, Heimatort)
+            VALUES ('', '', 0, 0, 0, 0, 0, 0, '');
+            SELECT last_insert_rowid();
+            """;
+        return (long)befehl.ExecuteScalar()!;
+    }
 }

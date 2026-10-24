@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Data;
+using System.Windows.Input;
 using System.Windows.Media;
 using AndyTours.App.ViewModels;
 using AndyTours.Core.Modell;
@@ -26,6 +27,15 @@ namespace AndyTours.App.Views;
 /// <item>Summenzeile: je Tabellenspalte eine Zelle, deren Breite und Sichtbarkeit an die Spalte gebunden
 /// sind, die der Reihenfolge der Spalten folgt und beim waagrechten Blättern mitläuft. Die Spalten mit
 /// Summe erhalten als Mindestbreite die Breite ihres Summentextes.</item>
+/// <item>Bearbeiten: Die markierten Zeilen werden dem ViewModel gemeldet (für die Wählbarkeit der Befehle);
+/// Doppelklick öffnet das Bearbeitungsfenster, Rechtsklick markiert die Zeile unter dem Mauszeiger, Entf
+/// löscht (nicht während der Bearbeitung einer Zelle). Nach dem Speichern aus dem Fenster wird die
+/// gespeicherte Zeile markiert und sichtbar gemacht.</item>
+/// <item>Bearbeiten in der Zelle: Die Spalten sind nur lesend gebunden. Beim Beginn wird der Rohtext
+/// (bzw. die Auswahlliste) eingesetzt, am Ende wird der Text über
+/// <see cref="HauptfensterViewModel.AendereZelle"/> geprüft und gespeichert. Ein ungültiger Wert färbt
+/// die Zelle rot und hält sie in Bearbeitung; nach dem Speichern wird die Tabelle erst nach dem Ende der
+/// Bearbeitung neu aufgebaut.</item>
 /// </list>
 /// </remarks>
 public partial class EinheitenTabelle : UserControl
@@ -78,6 +88,12 @@ public partial class EinheitenTabelle : UserControl
 
     /// <summary><c>true</c>, während eine gespeicherte Anordnung angewendet wird – dann nicht zurückspeichern.</summary>
     private bool _wendeAnordnungAn;
+
+    /// <summary><c>true</c>, solange eine Zelle bearbeitet wird – dann wirkt Entf im Eingabefeld statt zu löschen.</summary>
+    private bool _zelleInBearbeitung;
+
+    /// <summary>Die zuletzt bearbeitete Spalte; nach dem Neuaufbau wird die Zelle dieser Spalte wieder aktuell.</summary>
+    private DataGridColumn? _letzteSpalte;
 
     /// <summary>
     /// Erzeugt die Tabelle, ordnet die Spalten zu und baut die Summenzeile auf.
@@ -267,12 +283,14 @@ public partial class EinheitenTabelle : UserControl
         if (_viewModel is not null)
         {
             _viewModel.PropertyChanged -= ViewModel_PropertyChanged;
+            _viewModel.MarkiereEinheit -= ViewModel_MarkiereEinheit;
         }
 
         _viewModel = DataContext as HauptfensterViewModel;
         if (_viewModel is not null)
         {
             _viewModel.PropertyChanged += ViewModel_PropertyChanged;
+            _viewModel.MarkiereEinheit += ViewModel_MarkiereEinheit;
         }
 
         WendeAnordnungAn();
@@ -374,6 +392,263 @@ public partial class EinheitenTabelle : UserControl
         menue.Items.Add(uebernehmen);
 
         AktualisiereMenue(menue);
+    }
+
+    /// <summary>
+    /// Meldet dem ViewModel die markierten Einheiten, damit „Bearbeiten“, „Kopieren“ und „Löschen“ richtig
+    /// wählbar sind.
+    /// </summary>
+    /// <remarks>
+    /// Das Ereignis steigt auch aus den Auswahllisten in bearbeiteten Zellen auf; diese werden übergangen.
+    /// </remarks>
+    private void Tabelle_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!ReferenceEquals(e.OriginalSource, Tabelle) || _viewModel is null)
+        {
+            return;
+        }
+
+        _viewModel.MarkierteEinheiten = Tabelle.SelectedItems.OfType<Einheitszeile>().Select(z => z.Id).ToList();
+    }
+
+    /// <summary>
+    /// Markiert die Zeile einer Einheit (nach dem Speichern), holt sie in den sichtbaren Bereich und macht
+    /// die Zelle der zuletzt bearbeiteten (sonst der ersten sichtbaren) Spalte zur aktuellen Zelle.
+    /// </summary>
+    /// <param name="id">Nummer der Einheit.</param>
+    private void ViewModel_MarkiereEinheit(long id)
+    {
+        if (_viewModel?.Einheitszeilen.FirstOrDefault(z => z.Id == id) is not Einheitszeile zeile)
+        {
+            return;
+        }
+
+        Tabelle.SelectedItem = zeile;
+        DataGridColumn? spalte = _letzteSpalte is { Visibility: Visibility.Visible }
+            ? _letzteSpalte
+            : Tabelle.Columns.Where(s => s.Visibility == Visibility.Visible).OrderBy(s => s.DisplayIndex).FirstOrDefault();
+        if (spalte is not null)
+        {
+            Tabelle.CurrentCell = new DataGridCellInfo(zeile, spalte);
+        }
+
+        Tabelle.ScrollIntoView(zeile);
+    }
+
+    /// <summary>
+    /// Doppelklick auf eine Zeile: eine eben begonnene Zellbearbeitung verwerfen und das Bearbeitungsfenster öffnen.
+    /// </summary>
+    /// <remarks>
+    /// Der zweite Klick des Doppelklicks trifft die gerade markierte Zelle und beginnt deshalb deren
+    /// Bearbeitung; diese wird hier zurückgenommen.
+    /// </remarks>
+    private void Zeile_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        if (_viewModel is null || e.ChangedButton != MouseButton.Left)
+        {
+            return;
+        }
+
+        e.Handled = true;
+        Tabelle.CancelEdit(DataGridEditingUnit.Row);
+        if (_viewModel.EinheitBearbeitenCommand.CanExecute(null))
+        {
+            _viewModel.EinheitBearbeitenCommand.Execute(null);
+        }
+    }
+
+    /// <summary>
+    /// Rechtsklick auf eine nicht markierte Zeile markiert diese, damit sich das Rechtsklickmenü auf sie bezieht;
+    /// bei einer schon markierten Zeile bleibt eine Mehrfachmarkierung erhalten.
+    /// </summary>
+    private void Tabelle_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (SucheVorfahr<DataGridRow>(e.OriginalSource as DependencyObject) is DataGridRow zeile && !zeile.IsSelected)
+        {
+            Tabelle.SelectedItem = zeile.Item;
+        }
+    }
+
+    /// <summary>
+    /// Entf löscht die markierten Einheiten (mit Rückfrage) – außer während der Bearbeitung einer Zelle, dort
+    /// löscht Entf wie gewohnt Zeichen.
+    /// </summary>
+    private void Tabelle_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Delete || _zelleInBearbeitung || _viewModel is null)
+        {
+            return;
+        }
+
+        e.Handled = true;
+        if (_viewModel.EinheitenLoeschenCommand.CanExecute(null))
+        {
+            _viewModel.EinheitenLoeschenCommand.Execute(null);
+        }
+    }
+
+    /// <summary>
+    /// Beginn der Bearbeitung einer Zelle: Rohtext bzw. Auswahlliste einsetzen.
+    /// </summary>
+    /// <remarks>
+    /// Die Spalten sind nur lesend gebunden; das Eingabefeld zeigt deshalb zunächst den Anzeigetext
+    /// (z. B. „Mo, 03.06.2024“ oder „1.234,5“). Er wird durch den Rohtext ersetzt („03.06.2024“, „1234,5“).
+    /// Hat der Benutzer die Bearbeitung durch Lostippen begonnen, steht schon das getippte Zeichen im Feld
+    /// und bleibt stehen.
+    /// </remarks>
+    private void Tabelle_PreparingCellForEdit(object? sender, DataGridPreparingCellForEditEventArgs e)
+    {
+        _zelleInBearbeitung = true;
+        _letzteSpalte = e.Column;
+        if (_viewModel is null || e.Row.Item is not Einheitszeile zeile || SpalteZu(e.Column) is not Einheitenspalte spalte)
+        {
+            return;
+        }
+
+        string rohtext = _viewModel.RohtextFuer(zeile.Id, spalte);
+        if (e.EditingElement is TextBox feld)
+        {
+            if (e.EditingEventArgs is not TextCompositionEventArgs)
+            {
+                feld.Text = rohtext;
+                feld.SelectAll();
+            }
+        }
+        else if (FindeAuswahlliste(e.EditingElement) is ComboBox liste)
+        {
+            Eingabelisten listen = _viewModel.EingabelistenFuer(zeile.Id);
+            IEnumerable<string> eintraege = spalte switch
+            {
+                Einheitenspalte.Aktivitaet => listen.Aktivitaeten.Select(a => a.Name).ToList(),
+                Einheitenspalte.Equipment => listen.Equipments.Select(q => q.Name).ToList(),
+                _ => listen.Trainingsbereiche,
+            };
+            liste.ItemsSource = eintraege;
+            liste.SelectedItem = rohtext;
+        }
+    }
+
+    /// <summary>
+    /// Ende der Bearbeitung einer Zelle: Wert prüfen und sofort speichern.
+    /// </summary>
+    /// <remarks>
+    /// <list type="bullet">
+    /// <item>Esc (Abbrechen): nichts tun – die Zelle zeigt wieder den alten Wert.</item>
+    /// <item>Ungültiger Wert: Zelle rot färben und in Bearbeitung lassen.</item>
+    /// <item>Gespeichert: Nach dem Ende der Bearbeitung wird die Tabelle neu aufgebaut (Ø km/h, Summen,
+    /// Bestwerte, Sortierung) und die Zeile wieder markiert; während der laufenden Bearbeitung ist ein
+    /// Neuaufbau nicht erlaubt.</item>
+    /// <item>Nicht gespeichert (unverändert oder Schreibfehler, gemeldet vom ViewModel): Die Zelle zeigt
+    /// wieder den Wert aus dem Datenbestand, also den alten.</item>
+    /// </list>
+    /// </remarks>
+    private void Tabelle_CellEditEnding(object? sender, DataGridCellEditEndingEventArgs e)
+    {
+        HauptfensterViewModel? viewModel = _viewModel;
+        if (e.EditAction != DataGridEditAction.Commit || viewModel is null
+            || e.Row.Item is not Einheitszeile zeile || SpalteZu(e.Column) is not Einheitenspalte spalte)
+        {
+            _zelleInBearbeitung = false;
+            return;
+        }
+
+        string text = e.EditingElement is TextBox feld
+            ? feld.Text
+            : FindeAuswahlliste(e.EditingElement)?.SelectedItem as string ?? string.Empty;
+        switch (viewModel.AendereZelle(zeile.Id, spalte, text))
+        {
+            case Zellaenderung.Ungueltig:
+                e.Cancel = true;
+                MarkiereUngueltig(e.EditingElement);
+                return;
+            case Zellaenderung.Gespeichert:
+                long id = zeile.Id;
+                Dispatcher.InvokeAsync(() =>
+                {
+                    // Die Zeile ist noch in Bearbeitung – erst abschließen, dann neu aufbauen
+                    if (!Tabelle.CommitEdit(DataGridEditingUnit.Row, true))
+                    {
+                        Tabelle.CancelEdit(DataGridEditingUnit.Row);
+                    }
+
+                    viewModel.ZeigeAenderung(id);
+                });
+                break;
+        }
+
+        _zelleInBearbeitung = false;
+    }
+
+    /// <summary>Färbt das Eingabefeld bzw. die Auswahlliste einer Zelle rot (ungültiger Wert).</summary>
+    /// <param name="element">Das Bearbeitungselement der Zelle.</param>
+    private static void MarkiereUngueltig(FrameworkElement element)
+    {
+        Control? feld = element as TextBox ?? (Control?)FindeAuswahlliste(element);
+        if (feld is null)
+        {
+            return;
+        }
+
+        feld.BorderBrush = Brushes.Red;
+        feld.BorderThickness = new Thickness(2);
+        feld.Background = new SolidColorBrush(Color.FromRgb(0xFF, 0xE0, 0xE0));
+        feld.ToolTip = "Ungültiger Wert – bitte berichtigen oder mit Esc abbrechen.";
+    }
+
+    /// <summary>
+    /// Liefert die Auswahlliste im Bearbeitungselement einer Spalte mit Auswahlliste.
+    /// </summary>
+    /// <remarks>
+    /// Bei Vorlagenspalten ist das Bearbeitungselement ein ContentPresenter, dessen einziges Kind die
+    /// Auswahlliste aus der Vorlage „AuswahlBearbeiten“ ist; die Vorlage wird bei Bedarf zuerst angewendet.
+    /// </remarks>
+    /// <param name="element">Das Bearbeitungselement der Zelle.</param>
+    /// <returns>Die Auswahlliste oder <c>null</c>.</returns>
+    private static ComboBox? FindeAuswahlliste(FrameworkElement element)
+    {
+        if (element is ComboBox liste)
+        {
+            return liste;
+        }
+
+        element.ApplyTemplate();
+        return VisualTreeHelper.GetChildrenCount(element) > 0 ? VisualTreeHelper.GetChild(element, 0) as ComboBox : null;
+    }
+
+    /// <summary>Liefert die fachliche Spalte zu einer Spalte des DataGrid.</summary>
+    /// <param name="tabellenspalte">Spalte des DataGrid.</param>
+    /// <returns>Die fachliche Spalte oder <c>null</c>.</returns>
+    private Einheitenspalte? SpalteZu(DataGridColumn tabellenspalte)
+    {
+        foreach ((Einheitenspalte spalte, DataGridColumn kandidat) in _spalten)
+        {
+            if (ReferenceEquals(kandidat, tabellenspalte))
+            {
+                return spalte;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Sucht vom angeklickten Element aus aufwärts das nächste Element des Typs <typeparamref name="T"/>.
+    /// </summary>
+    /// <remarks>Textteile (z. B. Run) gehören nicht zum sichtbaren Baum; dort geht es über den logischen Baum weiter.</remarks>
+    /// <typeparam name="T">Gesuchter Typ, z. B. <see cref="DataGridRow"/>.</typeparam>
+    /// <param name="start">Das angeklickte Element.</param>
+    /// <returns>Das gefundene Element oder <c>null</c>.</returns>
+    private static T? SucheVorfahr<T>(DependencyObject? start) where T : DependencyObject
+    {
+        DependencyObject? aktuell = start;
+        while (aktuell is not null and not T)
+        {
+            aktuell = aktuell is Visual or System.Windows.Media.Media3D.Visual3D
+                ? VisualTreeHelper.GetParent(aktuell)
+                : LogicalTreeHelper.GetParent(aktuell);
+        }
+
+        return aktuell as T;
     }
 
     /// <summary>

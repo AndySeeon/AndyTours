@@ -2,9 +2,10 @@
   Hauptfenster von AndyTours.
 
   Aufbau von oben nach unten (DockPanel):
-    1. Menüleiste
+    1. Menüleiste (Datei, Einheit, Extras, Hilfe); „Einheit → Neue Einheit“ auch mit Strg+N
     2. Werkzeugleiste mit Jahres- und Aktivitätsauswahl, daneben die Summen der Auswahl (Anzahl, km, hm)
-    3. Statusleiste (am unteren Rand angedockt): links Gesamtzahl der Einheiten, rechts der Datenordner
+    3. Statusleiste (am unteren Rand angedockt): links Gesamtzahl der Einheiten und die Meldung zur
+       letzten Aktion (Statusmeldung), rechts der Datenordner
     4. Karteikarten mit den Arbeitsbereichen (füllt den restlichen Platz); „Trainingseinheiten“ zeigt
        die Tabelle der Einheiten der Auswahl (EinheitenTabelle), die übrigen noch Platzhalter
 
@@ -21,6 +22,11 @@
         Width="1200" Height="800"
         MinWidth="800" MinHeight="500"
         WindowStartupLocation="CenterScreen">
+
+    <!-- Tastenkürzel, die im ganzen Fenster gelten -->
+    <Window.InputBindings>
+        <KeyBinding Key="N" Modifiers="Control" Command="{Binding NeueEinheitCommand}" />
+    </Window.InputBindings>
 
     <Window.Resources>
         <!-- Einheitliches Aussehen für die Platzhaltertexte in den Karteikarten -->
@@ -40,6 +46,14 @@
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_Datei">
                 <MenuItem Header="_Beenden" Command="{Binding BeendenCommand}" InputGestureText="Alt+F4" />
+            </MenuItem>
+            <!-- Befehle für Trainingseinheiten; „Löschen“ per Entf-Taste wird in der Tabelle ausgewertet -->
+            <MenuItem Header="_Einheit">
+                <MenuItem Header="_Neue Einheit…" Command="{Binding NeueEinheitCommand}" InputGestureText="Strg+N" />
+                <MenuItem Header="_Bearbeiten…" Command="{Binding EinheitBearbeitenCommand}" />
+                <MenuItem Header="_Kopieren…" Command="{Binding EinheitKopierenCommand}" />
+                <Separator />
+                <MenuItem Header="_Löschen" Command="{Binding EinheitenLoeschenCommand}" InputGestureText="Entf" />
             </MenuItem>
             <MenuItem Header="E_xtras">
                 <MenuItem Header="_Einstellungen…" Command="{Binding EinstellungenOeffnenCommand}" />
@@ -84,8 +98,25 @@
                 <TextBlock Text="{Binding Datenordner, StringFormat='Datenordner: {0}'}" />
             </StatusBarItem>
             <Separator DockPanel.Dock="Right" />
-            <StatusBarItem>
+            <!-- Gesamtzahl links; daneben eine Meldung zur letzten Aktion (z. B. gespeichert außerhalb der Auswahl) -->
+            <StatusBarItem DockPanel.Dock="Left">
                 <TextBlock Text="{Binding Statustext}" />
+            </StatusBarItem>
+            <!-- Meldung gelb hinterlegt, damit sie auffällt; ohne Meldung unsichtbar -->
+            <StatusBarItem>
+                <Border Background="#FFFFD966" BorderBrush="#FFC09000" BorderThickness="1" CornerRadius="2"
+                        Padding="8,1" Margin="12,0,0,0" HorizontalAlignment="Left">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Statusmeldung}" Value="">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <TextBlock Text="{Binding Statusmeldung}" FontWeight="Bold" />
+                </Border>
             </StatusBarItem>
         </StatusBar>
 

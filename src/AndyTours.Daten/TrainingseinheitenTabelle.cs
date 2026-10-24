@@ -141,31 +141,7 @@ public static class TrainingseinheitenTabelle
         {
             einheitBefehl.Parameters.Clear();
             einheitBefehl.Parameters.AddWithValue("$id", e.Id);
-            einheitBefehl.Parameters.AddWithValue("$fahrerId", e.FahrerId);
-            einheitBefehl.Parameters.AddWithValue("$datum", DatumSpalte.AlsText(e.Datum));
-            // Uhrzeit als „hh:mm"; Sekunden werden im Original nicht erfasst
-            einheitBefehl.Parameters.AddWithValue("$startzeit",
-                e.Startzeit?.ToString("HH:mm", CultureInfo.InvariantCulture) ?? (object)DBNull.Value);
-            einheitBefehl.Parameters.AddWithValue("$name", e.Name);
-            // Dauer als ganze Sekunden; Bruchteile kommen in den Daten nicht vor
-            einheitBefehl.Parameters.AddWithValue("$fahrzeit", (long)e.Fahrzeit.TotalSeconds);
-            einheitBefehl.Parameters.AddWithValue("$distanz", e.DistanzKm);
-            einheitBefehl.Parameters.AddWithValue("$hm", e.Hoehenmeter);
-            einheitBefehl.Parameters.AddWithValue("$maxHoehe", e.MaxHoehe);
-            einheitBefehl.Parameters.AddWithValue("$startHoehe", e.StartHoehe);
-            einheitBefehl.Parameters.AddWithValue("$maxGeschw", e.MaxGeschwindigkeit);
-            einheitBefehl.Parameters.AddWithValue("$hfDurchschnitt", e.HfDurchschnitt);
-            einheitBefehl.Parameters.AddWithValue("$hfMax", e.HfMax);
-            einheitBefehl.Parameters.AddWithValue("$hfMin", e.HfMin);
-            einheitBefehl.Parameters.AddWithValue("$tf", e.Trittfrequenz);
-            einheitBefehl.Parameters.AddWithValue("$temperatur", e.Temperatur);
-            einheitBefehl.Parameters.AddWithValue("$leistung", e.LeistungWatt);
-            einheitBefehl.Parameters.AddWithValue("$gewicht", e.KoerpergewichtKg);
-            einheitBefehl.Parameters.AddWithValue("$erholungspuls", e.Erholungspuls);
-            einheitBefehl.Parameters.AddWithValue("$bereich", e.Trainingsbereich);
-            einheitBefehl.Parameters.AddWithValue("$kommentar", e.Kommentar);
-            einheitBefehl.Parameters.AddWithValue("$aktivitaetId", e.AktivitaetId);
-            einheitBefehl.Parameters.AddWithValue("$equipmentId", (object?)e.EquipmentId ?? DBNull.Value);
+            SetzeWerte(einheitBefehl, e);
             einheitBefehl.ExecuteNonQuery();
 
             foreach (long kategorieId in e.KategorieIds)
@@ -186,5 +162,167 @@ public static class TrainingseinheitenTabelle
                 anhangBefehl.ExecuteNonQuery();
             }
         }
+    }
+
+    /// <summary>
+    /// Speichert eine neue Einheit (Befehle „Neue Einheit“ und „Kopieren“) und liefert ihre Nummer.
+    /// </summary>
+    /// <remarks>
+    /// Die Nummer vergibt die Datenbank. Hat die Einheit noch keinen Sportler (Nummer 0, leerer Datenordner),
+    /// wird der Standardsportler verwendet bzw. angelegt (<see cref="FahrerTabelle.Standardfahrer"/>).
+    /// Einheit und Kategorien werden in einer Transaktion geschrieben: Entweder alles oder nichts.
+    /// </remarks>
+    /// <param name="verbindung">Geöffnete Verbindung.</param>
+    /// <param name="einheit">Die neue Einheit (ihre Nummer wird nicht verwendet).</param>
+    /// <returns>Die vergebene Nummer und die Nummer des Sportlers.</returns>
+    public static (long Id, long FahrerId) Einfuegen(SqliteConnection verbindung, Trainingseinheit einheit)
+    {
+        using SqliteTransaction transaktion = verbindung.BeginTransaction();
+        long fahrerId = einheit.FahrerId > 0 ? einheit.FahrerId : FahrerTabelle.Standardfahrer(verbindung, transaktion);
+
+        long id;
+        using (SqliteCommand befehl = verbindung.CreateCommand())
+        {
+            befehl.Transaction = transaktion;
+            befehl.CommandText = """
+                INSERT INTO Trainingseinheit (FahrerId, Datum, Startzeit, Name, FahrzeitSekunden, DistanzKm, Hoehenmeter,
+                                              MaxHoehe, StartHoehe, MaxGeschwindigkeit, HfDurchschnitt, HfMax, HfMin,
+                                              Trittfrequenz, Temperatur, LeistungWatt, KoerpergewichtKg, Erholungspuls,
+                                              Trainingsbereich, Kommentar, AktivitaetId, EquipmentId)
+                VALUES ($fahrerId, $datum, $startzeit, $name, $fahrzeit, $distanz, $hm,
+                        $maxHoehe, $startHoehe, $maxGeschw, $hfDurchschnitt, $hfMax, $hfMin,
+                        $tf, $temperatur, $leistung, $gewicht, $erholungspuls,
+                        $bereich, $kommentar, $aktivitaetId, $equipmentId);
+                SELECT last_insert_rowid();
+                """;
+            SetzeWerte(befehl, einheit);
+            befehl.Parameters["$fahrerId"].Value = fahrerId;
+            id = (long)befehl.ExecuteScalar()!;
+        }
+
+        SchreibeKategorien(verbindung, transaktion, id, einheit.KategorieIds);
+        transaktion.Commit();
+        return (id, fahrerId);
+    }
+
+    /// <summary>
+    /// Speichert die geänderten Werte einer vorhandenen Einheit.
+    /// </summary>
+    /// <remarks>
+    /// Die Kategorie-Zuordnungen werden ersetzt. Die Anhänge bleiben unberührt – das Bearbeiten ändert sie nicht.
+    /// </remarks>
+    /// <param name="verbindung">Geöffnete Verbindung.</param>
+    /// <param name="einheit">Die Einheit mit ihrer Nummer.</param>
+    /// <exception cref="InvalidOperationException">Die Einheit gibt es in der Datenbank nicht (mehr).</exception>
+    public static void Aendern(SqliteConnection verbindung, Trainingseinheit einheit)
+    {
+        using SqliteTransaction transaktion = verbindung.BeginTransaction();
+        using (SqliteCommand befehl = verbindung.CreateCommand())
+        {
+            befehl.Transaction = transaktion;
+            befehl.CommandText = """
+                UPDATE Trainingseinheit SET
+                    FahrerId = $fahrerId, Datum = $datum, Startzeit = $startzeit, Name = $name,
+                    FahrzeitSekunden = $fahrzeit, DistanzKm = $distanz, Hoehenmeter = $hm, MaxHoehe = $maxHoehe,
+                    StartHoehe = $startHoehe, MaxGeschwindigkeit = $maxGeschw, HfDurchschnitt = $hfDurchschnitt,
+                    HfMax = $hfMax, HfMin = $hfMin, Trittfrequenz = $tf, Temperatur = $temperatur,
+                    LeistungWatt = $leistung, KoerpergewichtKg = $gewicht, Erholungspuls = $erholungspuls,
+                    Trainingsbereich = $bereich, Kommentar = $kommentar, AktivitaetId = $aktivitaetId,
+                    EquipmentId = $equipmentId
+                WHERE Id = $id;
+                """;
+            SetzeWerte(befehl, einheit);
+            befehl.Parameters.AddWithValue("$id", einheit.Id);
+            if (befehl.ExecuteNonQuery() != 1)
+            {
+                throw new InvalidOperationException($"Die Trainingseinheit Nr. {einheit.Id} ist nicht (mehr) vorhanden.");
+            }
+        }
+
+        // Kategorien: alte Zuordnungen löschen, neue schreiben
+        using (SqliteCommand loeschen = verbindung.CreateCommand())
+        {
+            loeschen.Transaction = transaktion;
+            loeschen.CommandText = "DELETE FROM EinheitKategorie WHERE EinheitId = $id;";
+            loeschen.Parameters.AddWithValue("$id", einheit.Id);
+            loeschen.ExecuteNonQuery();
+        }
+
+        SchreibeKategorien(verbindung, transaktion, einheit.Id, einheit.KategorieIds);
+        transaktion.Commit();
+    }
+
+    /// <summary>
+    /// Löscht die Einheiten mit den angegebenen Nummern.
+    /// </summary>
+    /// <remarks>
+    /// Kategorie-Zuordnungen und Anhang-Einträge verschwinden über <c>ON DELETE CASCADE</c> mit. Die Dateien
+    /// der Anhänge im Datenordner bleiben bewusst liegen: Ein versehentliches Löschen kostet so keine
+    /// Aufzeichnung. Alle Einheiten werden in einer Transaktion gelöscht: Entweder alle oder keine.
+    /// </remarks>
+    /// <param name="verbindung">Geöffnete Verbindung.</param>
+    /// <param name="ids">Die Nummern der zu löschenden Einheiten.</param>
+    public static void Loeschen(SqliteConnection verbindung, IEnumerable<long> ids)
+    {
+        using SqliteTransaction transaktion = verbindung.BeginTransaction();
+        using SqliteCommand befehl = verbindung.CreateCommand();
+        befehl.Transaction = transaktion;
+        befehl.CommandText = "DELETE FROM Trainingseinheit WHERE Id = $id;";
+        SqliteParameter id = befehl.Parameters.Add("$id", SqliteType.Integer);
+        foreach (long nummer in ids)
+        {
+            id.Value = nummer;
+            befehl.ExecuteNonQuery();
+        }
+
+        transaktion.Commit();
+    }
+
+    /// <summary>Schreibt die Kategorie-Zuordnungen einer Einheit.</summary>
+    private static void SchreibeKategorien(SqliteConnection verbindung, SqliteTransaction transaktion, long einheitId, IEnumerable<long> kategorieIds)
+    {
+        using SqliteCommand befehl = verbindung.CreateCommand();
+        befehl.Transaction = transaktion;
+        befehl.CommandText = "INSERT INTO EinheitKategorie (EinheitId, KategorieId) VALUES ($einheitId, $kategorieId);";
+        befehl.Parameters.AddWithValue("$einheitId", einheitId);
+        SqliteParameter kategorie = befehl.Parameters.Add("$kategorieId", SqliteType.Integer);
+        foreach (long kategorieId in kategorieIds.Distinct())
+        {
+            kategorie.Value = kategorieId;
+            befehl.ExecuteNonQuery();
+        }
+    }
+
+    /// <summary>
+    /// Setzt alle Werte einer Einheit als Parameter (ohne <c>$id</c>); gemeinsam genutzt von Speichern,
+    /// Einfügen und Ändern, damit alle drei die Werte gleich schreiben.
+    /// </summary>
+    private static void SetzeWerte(SqliteCommand einheitBefehl, Trainingseinheit e)
+    {
+        einheitBefehl.Parameters.AddWithValue("$fahrerId", e.FahrerId);
+        einheitBefehl.Parameters.AddWithValue("$datum", DatumSpalte.AlsText(e.Datum));
+        // Uhrzeit als „hh:mm"; Sekunden werden im Original nicht erfasst
+        einheitBefehl.Parameters.AddWithValue("$startzeit",
+            e.Startzeit?.ToString("HH:mm", CultureInfo.InvariantCulture) ?? (object)DBNull.Value);
+        einheitBefehl.Parameters.AddWithValue("$name", e.Name);
+        // Dauer als ganze Sekunden; Bruchteile kommen in den Daten nicht vor
+        einheitBefehl.Parameters.AddWithValue("$fahrzeit", (long)e.Fahrzeit.TotalSeconds);
+        einheitBefehl.Parameters.AddWithValue("$distanz", e.DistanzKm);
+        einheitBefehl.Parameters.AddWithValue("$hm", e.Hoehenmeter);
+        einheitBefehl.Parameters.AddWithValue("$maxHoehe", e.MaxHoehe);
+        einheitBefehl.Parameters.AddWithValue("$startHoehe", e.StartHoehe);
+        einheitBefehl.Parameters.AddWithValue("$maxGeschw", e.MaxGeschwindigkeit);
+        einheitBefehl.Parameters.AddWithValue("$hfDurchschnitt", e.HfDurchschnitt);
+        einheitBefehl.Parameters.AddWithValue("$hfMax", e.HfMax);
+        einheitBefehl.Parameters.AddWithValue("$hfMin", e.HfMin);
+        einheitBefehl.Parameters.AddWithValue("$tf", e.Trittfrequenz);
+        einheitBefehl.Parameters.AddWithValue("$temperatur", e.Temperatur);
+        einheitBefehl.Parameters.AddWithValue("$leistung", e.LeistungWatt);
+        einheitBefehl.Parameters.AddWithValue("$gewicht", e.KoerpergewichtKg);
+        einheitBefehl.Parameters.AddWithValue("$erholungspuls", e.Erholungspuls);
+        einheitBefehl.Parameters.AddWithValue("$bereich", e.Trainingsbereich);
+        einheitBefehl.Parameters.AddWithValue("$kommentar", e.Kommentar);
+        einheitBefehl.Parameters.AddWithValue("$aktivitaetId", e.AktivitaetId);
+        einheitBefehl.Parameters.AddWithValue("$equipmentId", (object?)e.EquipmentId ?? DBNull.Value);
     }
 }

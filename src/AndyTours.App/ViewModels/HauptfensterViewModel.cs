@@ -246,7 +246,14 @@ public partial class HauptfensterViewModel : ObservableObject
     }
 
     /// <summary>Wird vom CommunityToolkit aufgerufen, sobald sich die Jahresauswahl ändert.</summary>
-    partial void OnAusgewaehltesJahrChanged(string value) => AktualisiereSummen();
+    /// <remarks>Während die Jahresliste neu gefüllt wird, wird nichts neu aufgebaut (siehe <see cref="AktualisiereJahre"/>).</remarks>
+    partial void OnAusgewaehltesJahrChanged(string value)
+    {
+        if (!_jahreWerdenGefuellt)
+        {
+            AktualisiereSummen();
+        }
+    }
 
     /// <summary>Wird vom CommunityToolkit aufgerufen, sobald sich die Aktivitätsauswahl ändert.</summary>
     partial void OnAusgewaehlteAktivitaetChanged(string value) => AktualisiereSummen();
@@ -303,7 +310,7 @@ public partial class HauptfensterViewModel : ObservableObject
         AusgewaehltesJahr = aktuellesJahr.ToString(CultureInfo.InvariantCulture);
         AusgewaehlteAktivitaet = _bestand.Aktivitaeten.FirstOrDefault(a => a.IstHaupt)?.Name ?? AlleAktivitaeten;
 
-        Statustext = string.Format(CultureInfo.GetCultureInfo("de-DE"), "{0:N0} Trainingseinheiten in der Datenbank", _bestand.Trainingseinheiten.Count);
+        AktualisiereStatustext();
         AktualisiereSummen();
     }
 
@@ -329,6 +336,9 @@ public partial class HauptfensterViewModel : ObservableObject
     /// </param>
     private void AktualisiereSummen(bool listenNeu = true)
     {
+        // Eine Meldung wie „Gespeichert – liegt außerhalb …“ gilt nur bis zur nächsten Änderung der Anzeige
+        Statusmeldung = string.Empty;
+
         // Auswahl aus der Werkzeugleiste in Filterwerte übersetzen
         int? jahr = int.TryParse(AusgewaehltesJahr, NumberStyles.Integer, CultureInfo.InvariantCulture, out int j) ? j : null;
         long? aktivitaetId = _bestand.Aktivitaeten.FirstOrDefault(a => a.Name == AusgewaehlteAktivitaet)?.Id;

@@ -41,6 +41,9 @@ In Umsetzungsreihenfolge.
   - Status: done → [007-einheiten-filter](007-einheiten-filter/spec.md)
 - `einheit-bearbeiten` — Der Benutzer kann eine Einheit neu anlegen, bearbeiten, kopieren und löschen.
   - Abhängig von: `einheiten-tabelle`
+  - Status: done → [008-einheit-bearbeiten](008-einheit-bearbeiten/spec.md)
+- `auswahllisten-verwalten` — Der Benutzer pflegt in den Einstellungen Auswahllisten mit festen Werten (zunächst die Trainingsbereiche), die in den Eingabefeldern angeboten werden.
+  - Abhängig von: `einheit-bearbeiten`
   - Status: open
 - `aktivitaeten-kategorien-verwalten` — Der Benutzer kann Aktivitäten und Kategorien anlegen, umbenennen und löschen.
   - Abhängig von: `hauptfenster-auswahl`

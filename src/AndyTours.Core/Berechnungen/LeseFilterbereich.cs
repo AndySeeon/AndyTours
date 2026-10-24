@@ -1,4 +1,3 @@
-using System.Globalization;
 using AndyTours.Core.Modell;
 
 namespace AndyTours.Core.Berechnungen;
@@ -15,7 +14,8 @@ public static class LeseFilterbereich
     /// <list type="bullet">
     /// <item>Ein leeres Feld (auch nur Leerzeichen) bedeutet „keine Grenze“.</item>
     /// <item>Komma und Punkt gelten beide als Dezimalzeichen: „12,5“ und „12.5“ ergeben 12,5.
-    /// Tausendertrennzeichen werden nicht unterstützt, „1.234,5“ ist daher ungültig.</item>
+    /// Tausendertrennzeichen werden nicht unterstützt, „1.234,5“ ist daher ungültig
+    /// (gelesen über <see cref="Eingabetext.LeseZahl"/>).</item>
     /// <item>Ein Text, der keine endliche Zahl ist, markiert nur sein eigenes Feld als fehlerhaft.</item>
     /// <item>Ist „von“ größer als „bis“, sind beide Felder fehlerhaft.</item>
     /// </list>
@@ -26,8 +26,8 @@ public static class LeseFilterbereich
     /// <returns>Der gelesene Bereich mit Fehlermerkern.</returns>
     public static Filterbereich Ausfuehren(string? vonText, string? bisText)
     {
-        bool vonOk = LeseZahl(vonText, out double? von);
-        bool bisOk = LeseZahl(bisText, out double? bis);
+        bool vonOk = Eingabetext.LeseZahl(vonText, out double? von);
+        bool bisOk = Eingabetext.LeseZahl(bisText, out double? bis);
 
         if (vonOk && bisOk && von > bis)
         {
@@ -36,31 +36,5 @@ public static class LeseFilterbereich
         }
 
         return new Filterbereich(von, bis, VonFehlerhaft: !vonOk, BisFehlerhaft: !bisOk);
-    }
-
-    /// <summary>
-    /// Liest eine Zahl aus einem Feld.
-    /// </summary>
-    /// <param name="text">Inhalt des Feldes.</param>
-    /// <param name="zahl">Die gelesene Zahl; <c>null</c> bei leerem oder ungültigem Feld.</param>
-    /// <returns><c>false</c>, wenn das Feld Text enthält, der keine endliche Zahl ist.</returns>
-    private static bool LeseZahl(string? text, out double? zahl)
-    {
-        zahl = null;
-        string bereinigt = (text ?? string.Empty).Trim();
-        if (bereinigt.Length == 0)
-        {
-            return true;
-        }
-
-        // Komma wie Punkt behandeln, dann unabhängig von der Spracheinstellung lesen
-        if (double.TryParse(bereinigt.Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out double wert)
-            && double.IsFinite(wert))
-        {
-            zahl = wert;
-            return true;
-        }
-
-        return false;
     }
 }
