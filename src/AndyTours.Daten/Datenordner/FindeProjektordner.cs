@@ -10,7 +10,7 @@ public static class FindeProjektordner
     /// </summary>
     /// <remarks>
     /// Während der Entwicklung liegt das Programm tief im Projekt, z. B. in
-    /// <c>src\AndyTours.App\bin\Debug\net10.0-windows</c>. Von dort führt der Weg nach oben
+    /// <c>src\AndyTours.App\bin\Debug\net10.0-windows10.0.19041.0</c>. Von dort führt der Weg nach oben
     /// zuverlässig zum Projektordner – unabhängig davon, wo das Projekt auf dem Rechner liegt.
     /// </remarks>
     /// <param name="startordner">Ordner, in dem die Suche beginnt (in der App: der Programmordner).</param>

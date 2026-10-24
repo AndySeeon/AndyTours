@@ -4,13 +4,13 @@
 - C# (Sprachversion `latest`, Nullable aktiviert)
 
 ## Frameworks & Bibliotheken
-- .NET 10 (LTS); App `net10.0-windows`, übrige Projekte `net10.0`
+- .NET 10 (LTS); App `net10.0-windows10.0.19041.0`, übrige Projekte `net10.0`
 - WPF mit MVVM über `CommunityToolkit.Mvvm`
 - SQLite über `Microsoft.Data.Sqlite`
 - `Garmin.FIT.Sdk` für FIT-Dateien
 - Diagramme: OxyPlot (`OxyPlot.Wpf`), siehe `docs/adr/0001-diagrammbibliothek.md`
 - Zugriff auf Mediengeräte (Garmin Edge 1040 per MTP): `MediaDevices`, nur im App-Projekt, siehe `docs/adr/0002-zugriff-auf-mediengeraete.md`
-- Bibliothek für die Karte wird erst bei der jeweiligen Funktion festgelegt
+- Karte: Mapsui (`Mapsui.Wpf`), nur im App-Projekt, siehe `docs/adr/0003-kartenbibliothek.md`
 
 ## Werkzeuge
 - .NET SDK 10.0.4xx, festgelegt in `global.json` (keine Vorabversionen)

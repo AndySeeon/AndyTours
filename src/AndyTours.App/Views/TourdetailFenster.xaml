@@ -3,19 +3,26 @@
 
   Aufbau von oben nach unten:
     1. Kopfzeile: Datum, Name, Distanz, Höhenmeter und höchster Punkt der Einheit
-    2. Karteikarten; bisher nur „Höhenprofil“ (die Strecke auf der Karte folgt als weitere Karteikarte):
+    2. Karteikarte „Höhenprofil“:
        a. Achsenwahl „Distanz“ / „Fahrzeit“ und Häkchen für Puls, Geschwindigkeit, Trittfrequenz und Temperatur
           (nicht wählbar, wenn die Aufzeichnung den Wert nicht enthält)
        b. Diagramm; ohne Höhendaten stattdessen ein Hinweis
+    3. Karteikarte „Karte“ (DataContext: Streckenkarte):
+       a. Umschalter „OpenStreetMap“ / „OpenTopoMap“, Schaltfläche „Ganze Strecke“ und Zeichenerklärung
+       b. Karte mit Strecke, Lizenzhinweis unten rechts und ggf. dem Hinweis, dass die Karte nicht geladen werden
+          konnte; ohne GPS-Daten stattdessen ein Hinweis
 
   Das Fenster ist nicht modal: Das Hauptfenster bleibt bedienbar, mehrere Tourdetails können offen sein.
   Maus im Diagramm: Überfahren zeigt die Werte, mit der linken Taste einen Bereich aufziehen vergrößert ihn,
   ein Doppelklick zeigt wieder die ganze Tour.
+  Maus auf der Karte: Mausrad vergrößert oder verkleinert an der Mausposition, Ziehen mit der linken Taste verschiebt.
+  Die Karte selbst (Ebenen, Zwischenspeicher, Ausschnitt) baut das Code-Behind auf.
 -->
 <Window x:Class="AndyTours.App.Views.TourdetailFenster"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:oxy="http://oxyplot.org/wpf"
+        xmlns:mapsui="clr-namespace:Mapsui.UI.Wpf;assembly=Mapsui.UI.Wpf"
         xmlns:vm="clr-namespace:AndyTours.App.ViewModels"
         Title="Tourdetail"
         Width="900"
@@ -68,6 +75,44 @@
                         <TextBlock Text="{x:Static vm:TourdetailViewModel.KeineHoehendaten}" Foreground="Gray" FontSize="14"
                                    HorizontalAlignment="Center" VerticalAlignment="Center"
                                    Visibility="{Binding OhneHoehe, Converter={StaticResource SichtbarWennWahr}}" />
+                    </Grid>
+
+                </DockPanel>
+            </TabItem>
+
+            <!-- 3. Karte -->
+            <TabItem Header="Karte" DataContext="{Binding Streckenkarte}">
+                <DockPanel Margin="8">
+
+                    <!-- 3a. Kartenart, „Ganze Strecke“ und Zeichenerklärung -->
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,8"
+                                Visibility="{Binding HatStrecke, Converter={StaticResource SichtbarWennWahr}}">
+                        <TextBlock Text="Karte:" VerticalAlignment="Center" />
+                        <RadioButton Content="_OpenStreetMap" GroupName="Kartenart" IsChecked="{Binding IstOpenStreetMap}" />
+                        <RadioButton Content="Open_TopoMap" GroupName="Kartenart" IsChecked="{Binding IstOpenTopoMap}" />
+                        <Button Content="_Ganze Strecke" Command="{Binding GanzeStreckeCommand}" Padding="10,2" Margin="24,0,0,0" />
+                        <TextBlock VerticalAlignment="Center" Margin="24,0,0,0" Foreground="Gray">
+                            <Run Text="●" Foreground="#27AE60" /> Start
+                            <Run Text="■" Foreground="#C0392B" /> Ziel
+                        </TextBlock>
+                    </StackPanel>
+
+                    <!-- 3b. Karte mit Hinweisen bzw. Hinweis ohne GPS-Daten -->
+                    <Grid>
+                        <Grid Visibility="{Binding HatStrecke, Converter={StaticResource SichtbarWennWahr}}">
+                            <mapsui:MapControl x:Name="Karte" />
+                            <Border HorizontalAlignment="Right" VerticalAlignment="Bottom" Background="#C8FFFFFF" Padding="4,1">
+                                <TextBlock Text="{Binding Lizenzhinweis}" FontSize="11" />
+                            </Border>
+                            <Border HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,8,0,0" Padding="8,4"
+                                    Background="#F0FFF4E5" BorderBrush="#E67E22" BorderThickness="1"
+                                    Visibility="{Binding Ladefehler, Converter={StaticResource SichtbarWennWahr}}">
+                                <TextBlock Text="{x:Static vm:StreckenkarteViewModel.KarteNichtGeladen}" />
+                            </Border>
+                        </Grid>
+                        <TextBlock Text="{x:Static vm:StreckenkarteViewModel.KeineGpsDaten}" Foreground="Gray" FontSize="14"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   Visibility="{Binding OhneStrecke, Converter={StaticResource SichtbarWennWahr}}" />
                     </Grid>
 
                 </DockPanel>

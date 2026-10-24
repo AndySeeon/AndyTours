@@ -35,6 +35,16 @@ public static class Programmpfade
     public static string Standardordner => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AndyTours");
 
+    /// <summary>
+    /// Zwischenspeicher der Kartenausschnitte für die Streckenkarte: <c>%LOCALAPPDATA%\AndyTours\Karten</c>.
+    /// </summary>
+    /// <remarks>
+    /// Bewusst nicht im Datenordner: Kartenausschnitte sind keine Tourdaten und sollen weder auf ein NAS noch in die
+    /// Sicherung. Je Kartenart gibt es darin einen Unterordner.
+    /// </remarks>
+    public static string Kartenspeicher => Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AndyTours", "Karten");
+
     /// <summary>Ordner, in dem das laufende Programm liegt; Ausgangspunkt für die Suche nach dem Projektordner.</summary>
     public static string Programmordner => AppContext.BaseDirectory;
 }

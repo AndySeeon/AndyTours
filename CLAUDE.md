@@ -6,14 +6,14 @@ In diesem Projekt bauen wir AndyTours, eine Touren- Verwaltung für Radltouren
 
 ## Tech Stack
 Programmiersprache: C#
-- Plattform: .NET 10 (LTS), App `net10.0-windows`, übrige Projekte `net10.0`
+- Plattform: .NET 10 (LTS), App `net10.0-windows10.0.19041.0`, übrige Projekte `net10.0`
 - Oberfläche: WPF mit MVVM (`CommunityToolkit.Mvvm`)
 - Datenhaltung: SQLite über `Microsoft.Data.Sqlite`
 - FIT-Import: `Garmin.FIT.Sdk`
 - Tests: xUnit
 - Diagramme: OxyPlot (`OxyPlot.Wpf`), siehe `docs/adr/0001-diagrammbibliothek.md`
 - Mediengeräte (Edge 1040 per MTP): `MediaDevices`, siehe `docs/adr/0002-zugriff-auf-mediengeraete.md`
-- Bibliothek für die Karte wird erst bei der jeweiligen Funktion festgelegt
+- Karte: Mapsui (`Mapsui.Wpf`), nur im App-Projekt, siehe `docs/adr/0003-kartenbibliothek.md`
 
 ## Werkzeuge (Entwicklungsumgebung)
 | Werkzeug | Zweck | Installation |

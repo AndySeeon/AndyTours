@@ -4,10 +4,13 @@ using Dynastream.Fit;
 namespace AndyTours.Import.Garmin;
 
 /// <summary>
-/// Liest den Verlauf einer Tour (alle Messpunkte) aus einer FIT-Datei – die Grundlage des Höhenprofils.
+/// Liest den Verlauf einer Tour (alle Messpunkte) aus einer FIT-Datei – die Grundlage von Höhenprofil und Streckenkarte.
 /// </summary>
 public static class LeseFitVerlauf
 {
+    /// <summary>Ungültig-Wert eines Positionsfelds in der FIT-Datei: Der Messpunkt hat keine Position.</summary>
+    private const int KeinePosition = int.MaxValue;
+
     /// <summary>
     /// Liest die Messpunkte der Datei in ihrer Reihenfolge.
     /// </summary>
@@ -19,6 +22,9 @@ public static class LeseFitVerlauf
     /// <item>Distanz in km; ein Messpunkt ohne Distanz übernimmt die letzte bekannte.</item>
     /// <item>Höhe in m (genauere Höhe, sonst einfache Höhe), Geschwindigkeit in km/h auf zwei Nachkommastellen.</item>
     /// <item>Ein Puls von 0 gilt als „nicht erfasst“ (der Brustgurt liefert noch keinen Wert).</item>
+    /// <item>Position in Grad; die FIT-Datei speichert sie in Semicircles (2³¹ entsprechen 180°). Fehlt Breite
+    /// oder Länge oder trägt sie den Ungültig-Wert der FIT-Datei (z. B. im Tunnel oder auf der Rolle), bleibt die
+    /// Position leer.</item>
     /// <item>Messpunkte ohne Zeitstempel werden übergangen.</item>
     /// </list>
     /// Prüfung und Fehlertexte entsprechen <see cref="LeseFitAufzeichnung"/>.
@@ -99,6 +105,10 @@ public static class LeseFitVerlauf
                     Geschwindigkeit = (punkt.GetEnhancedSpeed() ?? punkt.GetSpeed()) is float mps ? Math.Round(mps * 3.6, 2) : null,
                     Trittfrequenz = punkt.GetCadence() is byte trittfrequenz ? trittfrequenz : null,
                     Temperatur = punkt.GetTemperature() is sbyte temperatur ? temperatur : null,
+                    Position = punkt.GetPositionLat() is int breite && breite != KeinePosition
+                        && punkt.GetPositionLong() is int laenge && laenge != KeinePosition
+                        ? new Geoposition(InGrad(breite), InGrad(laenge))
+                        : null,
                 });
             };
 
@@ -111,4 +121,7 @@ public static class LeseFitVerlauf
 
         return (verlauf, null);
     }
+
+    /// <summary>Rechnet Semicircles der FIT-Datei in Grad um.</summary>
+    private static double InGrad(int semicircles) => semicircles * (180.0 / (1L << 31));
 }

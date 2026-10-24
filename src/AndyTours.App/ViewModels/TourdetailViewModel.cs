@@ -10,7 +10,7 @@ using AndyTours.Core.Modell;
 namespace AndyTours.App.ViewModels;
 
 /// <summary>
-/// ViewModel des Fensters „Tourdetail“ mit der Karteikarte „Höhenprofil“.
+/// ViewModel des Fensters „Tourdetail“ mit den Karteikarten „Höhenprofil“ und „Karte“.
 /// </summary>
 /// <remarks>
 /// Das Diagramm ist ein OxyPlot-Datenmodell (<see cref="Diagramm"/>, siehe <c>docs/adr/0001-diagrammbibliothek.md</c>);
@@ -24,6 +24,8 @@ namespace AndyTours.App.ViewModels;
 /// Die Maussteuerung (<see cref="Steuerung"/>): Überfahren zeigt die Werte an dieser Stelle, mit der linken Taste
 /// einen Bereich aufziehen vergrößert ihn, ein Doppelklick zeigt wieder die ganze Tour. Die Anzeige ist der Stand
 /// beim Öffnen; spätere Änderungen an der Einheit wirken sich nicht aus.
+/// Die Karteikarte „Karte“ hat ein eigenes ViewModel (<see cref="Streckenkarte"/>); es entsteht aus demselben,
+/// nur einmal gelesenen Verlauf.
 /// </remarks>
 public partial class TourdetailViewModel : ObservableObject
 {
@@ -78,6 +80,7 @@ public partial class TourdetailViewModel : ObservableObject
         Diagramm = new PlotModel { Culture = Deutsch, PlotAreaBorderColor = OxyColors.LightGray };
         Steuerung = ErstelleSteuerung();
         BaueDiagramm();
+        Streckenkarte = new StreckenkarteViewModel(ErmittleStrecke.Ausfuehren(verlauf));
     }
 
     /// <summary>Datum, Name, Distanz, Höhenmeter und höchster Punkt der Einheit.</summary>
@@ -94,6 +97,9 @@ public partial class TourdetailViewModel : ObservableObject
 
     /// <summary>Die Maussteuerung des Diagramms.</summary>
     public PlotController Steuerung { get; }
+
+    /// <summary>ViewModel der Karteikarte „Karte“.</summary>
+    public StreckenkarteViewModel Streckenkarte { get; }
 
     /// <summary>Waagrechte Achse zeigt die Distanz (Gegenstück zu <see cref="NachFahrzeit"/>).</summary>
     public bool NachDistanz

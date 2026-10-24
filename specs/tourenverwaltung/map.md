@@ -82,7 +82,7 @@ In Umsetzungsreihenfolge.
   - Status: done → [018-hoehenprofil](018-hoehenprofil/spec.md)
 - `streckenkarte` — Zur gewählten Einheit wird die Strecke auf einer OpenStreetMap-Karte angezeigt.
   - Abhängig von: `einheiten-tabelle`
-  - Status: open
+  - Status: done → [019-streckenkarte](019-streckenkarte/spec.md)
 - `werte-aus-aufzeichnung` — Der Benutzer kann Distanz, Höhenmeter, Puls und weitere Werte einer Einheit aus ihrer Aufzeichnung neu übernehmen.
   - Abhängig von: `einheit-bearbeiten`
   - Status: open

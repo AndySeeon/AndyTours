@@ -1,12 +1,12 @@
 namespace AndyTours.Core.Modell;
 
 /// <summary>
-/// Ein Messpunkt im Verlauf einer Tour, gelesen aus ihrer Aufzeichnung (Grundlage des Höhenprofils).
+/// Ein Messpunkt im Verlauf einer Tour, gelesen aus ihrer Aufzeichnung (Grundlage von Höhenprofil und Streckenkarte).
 /// </summary>
 /// <remarks>
 /// Distanz und Fahrzeit sind immer bekannt; sie bilden die waagrechte Achse. Alle übrigen Werte fehlen
 /// (<c>null</c>), wenn die Aufzeichnung sie an diesem Punkt nicht enthält, z. B. die Höhe bei einer Fahrt auf
-/// der Rolle oder der Puls ohne Brustgurt.
+/// der Rolle, der Puls ohne Brustgurt oder die Position im Tunnel.
 /// </remarks>
 public record Verlaufspunkt
 {
@@ -30,6 +30,9 @@ public record Verlaufspunkt
 
     /// <summary>Temperatur in °C.</summary>
     public int? Temperatur { get; init; }
+
+    /// <summary>Position laut GPS (Grundlage der Streckenkarte).</summary>
+    public Geoposition? Position { get; init; }
 
     /// <summary>
     /// Liefert den Zusatzwert dieses Punkts.

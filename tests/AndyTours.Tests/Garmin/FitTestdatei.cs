@@ -27,6 +27,7 @@ public static class FitTestdatei
     /// (Stopp nach 60 s, Start nach 100 s).
     /// </param>
     /// <param name="OhneHoehe"><c>true</c> = die Messpunkte enthalten keine Höhe (wie bei einer Fahrt auf der Rolle).</param>
+    /// <param name="OhneGps"><c>true</c> = kein Messpunkt enthält eine Position (wie bei einer Fahrt auf der Rolle).</param>
     public record Werte(
         System.DateTime StartUtc,
         int VerschiebungStunden = 2,
@@ -34,7 +35,14 @@ public static class FitTestdatei
         IReadOnlyList<(byte Typ, uint Nummer)>? Sensoren = null,
         bool MitPulsUndTemperaturInSitzung = true,
         bool MitPause = false,
-        bool OhneHoehe = false);
+        bool OhneHoehe = false,
+        bool OhneGps = false);
+
+    /// <summary>Position des ersten Messpunkts in Grad.</summary>
+    public static readonly (double Breite, double Laenge) ErstePosition = (47.8, 12.1);
+
+    /// <summary>Position des dritten Messpunkts in Grad; der zweite hat keine Position (wie im Tunnel).</summary>
+    public static readonly (double Breite, double Laenge) DrittePosition = (47.81, 12.12);
 
     /// <summary>
     /// Schreibt die Datei.
@@ -44,6 +52,7 @@ public static class FitTestdatei
     /// höchster Punkt 1.379,6 m; max. 14,509 m/s; Puls 130/154/75; Trittfrequenz 75; 18 °C; 180 W; Profil „MTB“.
     /// Drei Messpunkte nach 0, 60 und 120 s: 540,8 m / 0 bpm / 14 °C / 0 m / 5 m/s / 80 U/min,
     /// 900 m / 92 bpm / 15 °C / 500 m / 6 m/s / 85 U/min und 600 m / 140 bpm / 16 °C / 1.000 m / 7 m/s / 90 U/min.
+    /// Positionen: erster Punkt <see cref="ErstePosition"/>, zweiter ohne, dritter <see cref="DrittePosition"/>.
     /// </remarks>
     /// <param name="pfad">Zieldatei.</param>
     /// <param name="werte">Die veränderlichen Werte.</param>
@@ -82,6 +91,7 @@ public static class FitTestdatei
         float[] distanzen = [0f, 500f, 1000f];
         float[] geschwindigkeiten = [5f, 6f, 7f];
         byte[] trittfrequenzen = [80, 85, 90];
+        (double Breite, double Laenge)?[] positionen = [ErstePosition, null, DrittePosition];
         for (int i = 0; i < hoehen.Length; i++)
         {
             if (werte.MitPause && i == 2)
@@ -102,6 +112,12 @@ public static class FitTestdatei
             punkt.SetDistance(distanzen[i]);
             punkt.SetEnhancedSpeed(geschwindigkeiten[i]);
             punkt.SetCadence(trittfrequenzen[i]);
+            if (!werte.OhneGps && positionen[i] is (double breite, double laenge))
+            {
+                punkt.SetPositionLat(InSemicircles(breite));
+                punkt.SetPositionLong(InSemicircles(laenge));
+            }
+
             encoder.Write(punkt);
         }
 
@@ -146,6 +162,9 @@ public static class FitTestdatei
 
         encoder.Close();
     }
+
+    /// <summary>Rechnet Grad in die Einheit der FIT-Datei um (Semicircles: 2³¹ entsprechen 180°).</summary>
+    private static int InSemicircles(double grad) => (int)Math.Round(grad * (1L << 31) / 180.0);
 
     /// <summary>Schreibt ein Ereignis der Zeitmessung (Start oder Stopp) nach der angegebenen Anzahl Sekunden.</summary>
     private static void SchreibeZeitmessung(Encode encoder, Dynastream.Fit.DateTime start, uint sekunden, EventType art)

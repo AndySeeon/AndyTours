@@ -78,6 +78,32 @@ public class LeseFitVerlaufTests
     }
 
     [Fact]
+    public void Positionen_in_Grad_und_Punkt_ohne_Position()
+    {
+        using var temp = new TempOrdner();
+
+        List<Verlaufspunkt>? verlauf = SchreibeUndLies(temp, new(StartUtc)).Verlauf;
+
+        // Semicircles sind auf rund 1 cm genau; 7 Nachkommastellen reichen
+        Assert.Equal(FitTestdatei.ErstePosition.Breite, verlauf![0].Position!.Breite, 7);
+        Assert.Equal(FitTestdatei.ErstePosition.Laenge, verlauf[0].Position!.Laenge, 7);
+        Assert.Null(verlauf[1].Position);
+        Assert.Equal(FitTestdatei.DrittePosition.Breite, verlauf[2].Position!.Breite, 7);
+        Assert.Equal(FitTestdatei.DrittePosition.Laenge, verlauf[2].Position!.Laenge, 7);
+    }
+
+    [Fact]
+    public void Datei_ohne_GPS_liefert_Punkte_ohne_Position()
+    {
+        using var temp = new TempOrdner();
+
+        List<Verlaufspunkt>? verlauf = SchreibeUndLies(temp, new(StartUtc, OhneGps: true)).Verlauf;
+
+        Assert.Equal(3, verlauf!.Count);
+        Assert.All(verlauf, p => Assert.Null(p.Position));
+    }
+
+    [Fact]
     public void Beschaedigte_Datei_liefert_einen_Fehler()
     {
         using var temp = new TempOrdner();

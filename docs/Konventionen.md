@@ -43,7 +43,7 @@ Verbindliche Regeln für den Quellcode. Grundlage ist die Projektvorgabe in `CLA
 
 ## Technik
 
-- .NET 10 (`net10.0`, App: `net10.0-windows`), C# `latest`, Nullable aktiviert – gemeinsam festgelegt in `Directory.Build.props`; die SDK-Version (10.0.4xx, keine Vorabversionen) legt `global.json` fest.
+- .NET 10 (`net10.0`, App: `net10.0-windows10.0.19041.0`), C# `latest`, Nullable aktiviert – gemeinsam festgelegt in `Directory.Build.props`; die SDK-Version (10.0.4xx, keine Vorabversionen) legt `global.json` fest.
 - Formatierung nach `.editorconfig` (4 Leerzeichen, dateibezogene Namespaces, geschweifte Klammern immer).
 - Oberfläche nach MVVM mit `CommunityToolkit.Mvvm` (`[ObservableProperty]`, `[RelayCommand]`).
 - Fachfunktionen in Core bekommen Unit-Tests in `tests/AndyTours.Tests`.
