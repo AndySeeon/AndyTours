@@ -38,7 +38,7 @@ In Umsetzungsreihenfolge.
   - Status: done → [006-einheiten-tabelle](006-einheiten-tabelle/spec.md)
 - `einheiten-filter` — Die Tabelle lässt sich nach Kategorie, Equipment, Trainingsbereich, Distanz, Höhenmetern und Name filtern.
   - Abhängig von: `einheiten-tabelle`
-  - Status: open
+  - Status: done → [007-einheiten-filter](007-einheiten-filter/spec.md)
 - `einheit-bearbeiten` — Der Benutzer kann eine Einheit neu anlegen, bearbeiten, kopieren und löschen.
   - Abhängig von: `einheiten-tabelle`
   - Status: open

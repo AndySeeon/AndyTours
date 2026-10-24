@@ -55,8 +55,14 @@ public partial class HauptfensterViewModel : ObservableObject
         AusgewaehltesJahr = AlleJahre;
         AusgewaehlteAktivitaet = AlleAktivitaeten;
 
+        // Jede Änderung der Filterleiste baut nur die Tabelle neu auf; die Auswahllisten bleiben, wie sie sind
+        Filter.Geaendert += (_, _) => AktualisiereSummen(listenNeu: false);
+
         LadeDatenbank(datenordner);
     }
+
+    /// <summary>Die Filterleiste über der Tabelle „Trainingseinheiten“.</summary>
+    public EinheitenfilterViewModel Filter { get; } = new();
 
     /// <summary>Fenstertitel inklusive Programmversion.</summary>
     public string Titel => $"AndyTours {Programmversion}";
@@ -103,9 +109,19 @@ public partial class HauptfensterViewModel : ObservableObject
     /// </remarks>
     public ObservableCollection<Einheitszeile> Einheitszeilen { get; } = new();
 
-    /// <summary><c>true</c>, wenn die Auswahl Einheiten enthält; sonst zeigt die Karteikarte einen Hinweis.</summary>
+    /// <summary>
+    /// <c>true</c>, wenn die Tabelle nach Auswahl und Filter Einheiten enthält; sonst zeigt die Karteikarte
+    /// den <see cref="Hinweistext"/>.
+    /// </summary>
     [ObservableProperty]
     private bool _hatEinheiten;
+
+    /// <summary>
+    /// Hinweis bei leerer Tabelle: „Keine Einheiten in dieser Auswahl.“, wenn schon Jahr und Aktivität nichts
+    /// liefern, sonst „Keine Einheiten passen zum Filter.“.
+    /// </summary>
+    [ObservableProperty]
+    private string _hinweistext = string.Empty;
 
     /// <summary>Summenzeile: Anzahl der angezeigten Einheiten (unter der Spalte „Name“).</summary>
     [ObservableProperty]
@@ -300,30 +316,54 @@ public partial class HauptfensterViewModel : ObservableObject
     /// (Programmstart, Datenordnerwechsel, Wiederherstellen einer Sicherung). Die Einträge „alle Jahre“
     /// und „alle Aktivitäten“ werden als „keine Einschränkung“ (<c>null</c>) an
     /// <see cref="FiltereAuswahl"/> übergeben.
+    /// <para>
+    /// Danach wirken die Filter der Filterleiste (<see cref="FiltereEinheiten"/>): Tabelle, Bestwerte und
+    /// Summenzeile zeigen nur die gefilterten Einheiten. Die Summe in der Werkzeugleiste bleibt bei der
+    /// ungefilterten Auswahl, damit beide Zahlen nebeneinander sichtbar sind. Die Filter bleiben bei einem
+    /// Wechsel der Auswahl erhalten und wirken auf die neue Auswahl.
+    /// </para>
     /// </remarks>
-    private void AktualisiereSummen()
+    /// <param name="listenNeu">
+    /// <c>true</c> (Auswahl oder Datenbestand geändert): die Auswahllisten der Filterleiste neu füllen;
+    /// <c>false</c> (nur ein Filter geändert): die Listen bleiben, wie sie sind.
+    /// </param>
+    private void AktualisiereSummen(bool listenNeu = true)
     {
         // Auswahl aus der Werkzeugleiste in Filterwerte übersetzen
         int? jahr = int.TryParse(AusgewaehltesJahr, NumberStyles.Integer, CultureInfo.InvariantCulture, out int j) ? j : null;
         long? aktivitaetId = _bestand.Aktivitaeten.FirstOrDefault(a => a.Name == AusgewaehlteAktivitaet)?.Id;
         List<Trainingseinheit> auswahl = FiltereAuswahl.Ausfuehren(_bestand.Trainingseinheiten, jahr, aktivitaetId);
 
-        // Tabelle neu füllen (dieselbe Sammlung, damit die gewählte Sortierung erhalten bleibt)
+        // Auswahllisten der Filterleiste: nur Werte der Auswahl, die gewählte Eintragung bleibt erhalten
+        if (listenNeu)
+        {
+            Filter.UebernimmListen(ErmittleFilterwerte.Ausfuehren(auswahl, _bestand, Filter.ErstelleFilter()));
+        }
+
+        // Filter der Filterleiste anwenden
+        List<Trainingseinheit> angezeigt = FiltereEinheiten.Ausfuehren(auswahl, Filter.ErstelleFilter(), _bestand);
+
+        // Tabelle neu füllen (dieselbe Sammlung, damit die gewählte Sortierung erhalten bleibt);
+        // die Bestwerte werden dabei aus den angezeigten Einheiten bestimmt
         Einheitszeilen.Clear();
-        foreach (Einheitszeile zeile in ErstelleEinheitszeilen.Ausfuehren(auswahl, _bestand))
+        foreach (Einheitszeile zeile in ErstelleEinheitszeilen.Ausfuehren(angezeigt, _bestand))
         {
             Einheitszeilen.Add(zeile);
         }
 
-        HatEinheiten = auswahl.Count > 0;
+        HatEinheiten = angezeigt.Count > 0;
+        Hinweistext = auswahl.Count == 0 ? "Keine Einheiten in dieser Auswahl." : "Keine Einheiten passen zum Filter.";
 
+        // Summenzeile der Tabelle: nur die angezeigten Einheiten
         CultureInfo deutsch = CultureInfo.GetCultureInfo("de-DE");
-        Auswahlsumme summe = BerechneAuswahlsummen.Ausfuehren(auswahl);
-        SummeAnzahl = string.Format(deutsch, "{0:N0} {1}", summe.Anzahl, summe.Anzahl == 1 ? "Einheit" : "Einheiten");
-        SummeDistanz = summe.DistanzKm.ToString("N2", deutsch);
-        SummeHoehenmeter = summe.Hoehenmeter.ToString("N0", deutsch);
-        SummeFahrzeit = FormatiereDauer.Ausfuehren(summe.Fahrzeit);
+        Auswahlsumme gefiltert = BerechneAuswahlsummen.Ausfuehren(angezeigt);
+        SummeAnzahl = string.Format(deutsch, "{0:N0} {1}", gefiltert.Anzahl, gefiltert.Anzahl == 1 ? "Einheit" : "Einheiten");
+        SummeDistanz = gefiltert.DistanzKm.ToString("N2", deutsch);
+        SummeHoehenmeter = gefiltert.Hoehenmeter.ToString("N0", deutsch);
+        SummeFahrzeit = FormatiereDauer.Ausfuehren(gefiltert.Fahrzeit);
 
+        // Werkzeugleiste: die ganze Jahres- und Aktivitätsauswahl, ohne Filter
+        Auswahlsumme summe = BerechneAuswahlsummen.Ausfuehren(auswahl);
         Summentext = _bestand.Trainingseinheiten.Count == 0
             ? "Noch keine Touren vorhanden."
             : string.Format(deutsch, "{0:N0} Einheiten · {1:N2} km · {2:N0} hm", summe.Anzahl, summe.DistanzKm, summe.Hoehenmeter);
