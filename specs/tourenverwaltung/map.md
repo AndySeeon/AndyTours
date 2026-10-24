@@ -67,7 +67,7 @@ In Umsetzungsreihenfolge.
   - Status: done → [015-jahresfortschritt](015-jahresfortschritt/spec.md)
 - `bestleistungen` — Die Ansicht „Aktuell“ zeigt die Bestleistungen mit dem jeweiligen Rekordjahr.
   - Abhängig von: `hauptfenster-auswahl`
-  - Status: open
+  - Status: done → [016-bestleistungen](016-bestleistungen/spec.md)
 - `mehrjahresdiagramm` — Die Ansicht „Aktuell“ zeigt ein Diagramm von km, hm und Fahrzeit über alle Jahre.
   - Abhängig von: `hauptfenster-auswahl`
   - Status: done → [015-jahresfortschritt](015-jahresfortschritt/spec.md) (in `jahresfortschritt` enthalten)

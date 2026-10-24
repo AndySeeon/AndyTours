@@ -1,15 +1,22 @@
 <!--
-  Ansicht „Aktuell“ (Inhalt der gleichnamigen Karteikarte im Hauptfenster): Jahresfortschritt.
+  Ansicht „Aktuell“ (Inhalt der gleichnamigen Karteikarte im Hauptfenster): Bestleistungen und Jahresfortschritt.
 
   Aufbau von oben nach unten (DockPanel):
-    1. Überschrift des gezeigten Werts, z. B. „Kilometer (Summe Entfernung)“
-    2. Zwei Kennzahlzeilen des laufenden Jahres: Stand, Ziel, Prozent, Soll-Stand, Vorsprung bzw. Rückstand;
+    1. Bestleistungen in zwei Spalten: links die Jahresrekorde (Kilometer, Anzahl, Höhenmeter, Fahrzeit mit
+       Rekordjahr), rechts die Einzelrekorde (Wert, Datum und Name der Einheit). Je Zeile drei Spalten:
+       Bezeichnung, Wert (rechtsbündig), Herkunft. Rekorde des laufenden Jahres fett in der Linienfarbe des
+       Diagramms. Doppelklick auf einen Einzelrekord öffnet dessen Einheit im Bearbeitungsfenster
+       (EinheitOeffnenCommand des HauptfensterViewModels). Datenquelle: Bestleistungen (BestleistungenViewModel).
+    2. Überschrift des gezeigten Werts, z. B. „Kilometer (Summe Entfernung)“
+    3. Zwei Kennzahlzeilen des laufenden Jahres: Stand, Ziel, Prozent, Soll-Stand, Vorsprung bzw. Rückstand;
        darunter Wochenleistung, „Ziel erreicht“ oder der Hinweis auf fehlende Saisonziele
-    3. Diagramm (OxyPlot) mit den Jahressummen: Linie mit Fläche, Punkte, gestrichelte Ziellinie, Soll-Markierung.
+    4. Diagramm (OxyPlot) mit den Jahressummen: Linie mit Fläche, Punkte, gestrichelte Ziellinie, Soll-Markierung.
        Ein Klick schaltet den Wert weiter (km → Anzahl → hm → Fahrzeit); Bedienung siehe Code-Behind.
-    - Ohne Einheiten in der Auswahl: statt des Diagramms der Hinweis „Keine Einheiten in dieser Auswahl.“
+       Datenquelle von 2. bis 4.: Jahresfortschritt (JahresfortschrittViewModel).
+    - Ohne Einheiten in der Auswahl: keine Bestleistungen und statt des Diagramms der Hinweis
+      „Keine Einheiten in dieser Auswahl.“
 
-  Datenquelle ist das JahresfortschrittViewModel (DataContext wird im Hauptfenster gesetzt).
+  Die Ansicht erbt das HauptfensterViewModel; ihre beiden Teile erhalten daraus ihre eigene Datenquelle.
 -->
 <UserControl x:Class="AndyTours.App.Views.AktuellAnsicht"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -18,39 +25,99 @@
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="SichtbarWennWahr" />
+
+        <!-- Eine Zeile der Bestleistungen; Spaltenbreiten innerhalb einer Liste gleich (SharedSizeGroup) -->
+        <DataTemplate x:Key="Bestleistungszeile">
+            <Grid Margin="0,1" Background="Transparent">
+                <!-- Doppelklick öffnet die Einheit; bei Jahresrekorden ist die Nummer leer und es passiert nichts -->
+                <Grid.InputBindings>
+                    <MouseBinding Gesture="LeftDoubleClick" CommandParameter="{Binding EinheitId}"
+                                  Command="{Binding DataContext.EinheitOeffnenCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                </Grid.InputBindings>
+                <Grid.Resources>
+                    <!-- Rekord aus dem laufenden Jahr: fett in der Linienfarbe des Diagramms -->
+                    <Style TargetType="TextBlock">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IstLaufendesJahr}" Value="True">
+                                <Setter Property="FontWeight" Value="Bold" />
+                                <Setter Property="Foreground" Value="#FF2E6DB4" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Grid.Resources>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="Bezeichnung" />
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="Wert" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="{Binding Bezeichnung, StringFormat='{}{0}:'}" Margin="0,0,12,0" />
+                <TextBlock Grid.Column="1" Text="{Binding Wert}" HorizontalAlignment="Right" Margin="0,0,12,0" />
+                <TextBlock Grid.Column="2" Text="{Binding Herkunft}" />
+            </Grid>
+        </DataTemplate>
     </UserControl.Resources>
 
     <DockPanel Margin="12">
 
-        <!-- 1. Überschrift -->
-        <TextBlock DockPanel.Dock="Top" Text="{Binding Ueberschrift}" FontSize="18" FontWeight="SemiBold" />
-
-        <!-- 2. Kennzahlen des laufenden Jahres -->
-        <StackPanel DockPanel.Dock="Top" Margin="0,6,0,8">
-            <TextBlock Text="{Binding Stand}" FontSize="14" />
-            <TextBlock Text="{Binding Ausblick}" FontSize="14" Foreground="DimGray" />
-        </StackPanel>
-
-        <Grid>
-            <!-- Hinweis bei leerer Auswahl -->
-            <TextBlock Text="Keine Einheiten in dieser Auswahl." HorizontalAlignment="Center" VerticalAlignment="Center"
-                       FontSize="16" Foreground="Gray">
-                <TextBlock.Style>
-                    <Style TargetType="TextBlock">
-                        <Setter Property="Visibility" Value="Collapsed" />
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding HatEinheiten}" Value="False">
-                                <Setter Property="Visibility" Value="Visible" />
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </TextBlock.Style>
-            </TextBlock>
-
-            <!-- 3. Diagramm; ein Klick schaltet den Wert weiter -->
-            <oxy:PlotView x:Name="Diagramm" Model="{Binding Diagramm}" Cursor="Hand"
-                          PreviewMouseLeftButtonUp="Diagramm_Geklickt"
-                          Visibility="{Binding HatEinheiten, Converter={StaticResource SichtbarWennWahr}}" />
+        <!-- 1. Bestleistungen -->
+        <Grid DockPanel.Dock="Top" DataContext="{Binding Bestleistungen}" Margin="0,0,0,12"
+              Visibility="{Binding HatEinheiten, Converter={StaticResource SichtbarWennWahr}}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0" Margin="0,0,40,0">
+                <TextBlock Text="Jahresrekorde" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,4" />
+                <ItemsControl ItemsSource="{Binding Jahresrekorde}" ItemTemplate="{StaticResource Bestleistungszeile}"
+                              Grid.IsSharedSizeScope="True" Focusable="False" />
+            </StackPanel>
+            <StackPanel Grid.Column="1">
+                <TextBlock Text="Einzelrekorde" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,4" />
+                <ItemsControl ItemsSource="{Binding Einzelrekorde}" ItemTemplate="{StaticResource Bestleistungszeile}"
+                              Grid.IsSharedSizeScope="True" Focusable="False">
+                    <ItemsControl.ItemContainerStyle>
+                        <Style TargetType="ContentPresenter">
+                            <Setter Property="Cursor" Value="Hand" />
+                            <Setter Property="ToolTip" Value="Doppelklick öffnet die Einheit" />
+                        </Style>
+                    </ItemsControl.ItemContainerStyle>
+                </ItemsControl>
+            </StackPanel>
         </Grid>
+
+        <!-- 2. bis 4.: Jahresfortschritt -->
+        <DockPanel DataContext="{Binding Jahresfortschritt}">
+
+            <!-- 2. Überschrift -->
+            <TextBlock DockPanel.Dock="Top" Text="{Binding Ueberschrift}" FontSize="18" FontWeight="SemiBold" />
+
+            <!-- 3. Kennzahlen des laufenden Jahres -->
+            <StackPanel DockPanel.Dock="Top" Margin="0,6,0,8">
+                <TextBlock Text="{Binding Stand}" FontSize="14" />
+                <TextBlock Text="{Binding Ausblick}" FontSize="14" Foreground="DimGray" />
+            </StackPanel>
+
+            <Grid>
+                <!-- Hinweis bei leerer Auswahl -->
+                <TextBlock Text="Keine Einheiten in dieser Auswahl." HorizontalAlignment="Center" VerticalAlignment="Center"
+                           FontSize="16" Foreground="Gray">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HatEinheiten}" Value="False">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+
+                <!-- 4. Diagramm; ein Klick schaltet den Wert weiter -->
+                <oxy:PlotView x:Name="Diagramm" Model="{Binding Diagramm}" Cursor="Hand"
+                              PreviewMouseLeftButtonUp="Diagramm_Geklickt"
+                              Visibility="{Binding HatEinheiten, Converter={StaticResource SichtbarWennWahr}}" />
+            </Grid>
+        </DockPanel>
     </DockPanel>
 </UserControl>

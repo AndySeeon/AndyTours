@@ -83,14 +83,7 @@ public static class BeschreibeJahresfortschritt
             Fortschrittswert.Kilometer => zahl.ToString(format, Deutsch) + " km",
             Fortschrittswert.Anzahl => zahl.ToString(format, Deutsch) + " Einheiten",
             Fortschrittswert.Hoehenmeter => zahl.ToString(format, Deutsch) + " hm",
-            _ => Stunden(zahl),
+            _ => FormatiereStunden.Ausfuehren(zahl),
         };
-    }
-
-    /// <summary>Fahrzeit in Stunden als „h:mm h“, z. B. „123:45 h“.</summary>
-    private static string Stunden(double stunden)
-    {
-        long minuten = (long)Math.Round(stunden * 60);
-        return string.Format(Deutsch, "{0:N0}:{1:00} h", minuten / 60, minuten % 60);
     }
 }

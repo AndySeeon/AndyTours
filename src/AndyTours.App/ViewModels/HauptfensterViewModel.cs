@@ -67,6 +67,9 @@ public partial class HauptfensterViewModel : ObservableObject
     /// <summary>Inhalt der Karteikarte „Aktuell“: Jahresfortschritt mit Kennzahlen und Diagramm.</summary>
     public JahresfortschrittViewModel Jahresfortschritt { get; } = new();
 
+    /// <summary>Bereich „Bestleistungen“ der Karteikarte „Aktuell“: Jahres- und Einzelrekorde.</summary>
+    public BestleistungenViewModel Bestleistungen { get; } = new();
+
     /// <summary>Fenstertitel inklusive Programmversion.</summary>
     public string Titel => $"AndyTours {Programmversion}";
 
@@ -387,6 +390,7 @@ public partial class HauptfensterViewModel : ObservableObject
 
         // Karteikarte „Aktuell“: alle Jahre, nur Aktivität und Kategorie wirken
         AktualisiereJahresfortschritt();
+        Bestleistungen.Aktualisiere(_bestand, GewaehlteAktivitaetId(), Filter.ErstelleFilter().Kategorie, DateOnly.FromDateTime(DateTime.Today));
     }
 
     /// <summary>

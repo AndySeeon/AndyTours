@@ -6,8 +6,8 @@
     2. Werkzeugleiste mit Jahres- und Aktivitätsauswahl, daneben die Summen der Auswahl (Anzahl, km, hm)
     3. Statusleiste (am unteren Rand angedockt): links Gesamtzahl der Einheiten und die Meldung zur
        letzten Aktion (Statusmeldung), rechts der Datenordner
-    4. Karteikarten mit den Arbeitsbereichen (füllt den restlichen Platz); „Aktuell“ zeigt den
-       Jahresfortschritt (AktuellAnsicht), „Trainingseinheiten“ die Tabelle der Einheiten der Auswahl
+    4. Karteikarten mit den Arbeitsbereichen (füllt den restlichen Platz); „Aktuell“ zeigt
+       Bestleistungen und Jahresfortschritt (AktuellAnsicht), „Trainingseinheiten“ die Tabelle der Einheiten der Auswahl
        (EinheitenTabelle), die übrigen noch Platzhalter
 
   Alle Inhalte werden per Datenbindung aus dem HauptfensterViewModel gelesen.
@@ -130,7 +130,7 @@
         <!-- 4. Karteikarten (Reihenfolge wie im Original BikeXperience) -->
         <TabControl x:Name="Karteikarten" Margin="4">
             <TabItem Header="Aktuell">
-                <views:AktuellAnsicht DataContext="{Binding Jahresfortschritt}" />
+                <views:AktuellAnsicht />
             </TabItem>
             <TabItem Header="Trainingseinheiten">
                 <views:EinheitenTabelle x:Name="Einheiten" />

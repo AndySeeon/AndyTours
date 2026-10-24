@@ -80,6 +80,19 @@ public partial class HauptfensterViewModel
         }
     }
 
+    /// <summary>
+    /// Doppelklick auf einen Einzelrekord der Karteikarte „Aktuell“: öffnet das Bearbeitungsfenster dieser Einheit.
+    /// </summary>
+    /// <param name="id">Nummer der Einheit; <c>null</c> (Zeile eines Jahresrekords) bewirkt nichts.</param>
+    [RelayCommand]
+    private void EinheitOeffnen(long? id)
+    {
+        if (id is long nummer && FindeEinheit(nummer) is Trainingseinheit einheit)
+        {
+            OeffneBearbeitungsfenster(einheit, istNeu: false, "Einheit bearbeiten");
+        }
+    }
+
     /// <summary>Befehl „Einheit → Kopieren“: öffnet das Bearbeitungsfenster mit einer Kopie der markierten Einheit.</summary>
     [RelayCommand(CanExecute = nameof(GenauEineMarkiert))]
     private void EinheitKopieren()

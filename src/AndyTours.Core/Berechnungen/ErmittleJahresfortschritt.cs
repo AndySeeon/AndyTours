@@ -37,9 +37,8 @@ public static class ErmittleJahresfortschritt
     /// <returns>Jahrespunkte und Kennzahlen.</returns>
     public static Jahresfortschritt Ausfuehren(Datenbestand bestand, long? aktivitaetId, string? kategorie, Fortschrittswert wert, DateOnly heute)
     {
-        // 1. Auswahl: Aktivität aus der Werkzeugleiste (alle Jahre), dann nur die Kategorie aus der Filterleiste
-        List<Trainingseinheit> auswahl = FiltereAuswahl.Ausfuehren(bestand.Trainingseinheiten, null, aktivitaetId);
-        auswahl = FiltereEinheiten.Ausfuehren(auswahl, Einheitenfilter.Leer with { Kategorie = kategorie }, bestand);
+        // 1. Auswahl: Aktivität aus der Werkzeugleiste und Kategorie aus der Filterleiste, alle Jahre
+        List<Trainingseinheit> auswahl = FiltereUebersicht.Ausfuehren(bestand, aktivitaetId, kategorie);
 
         // 2. Jahressummen; das laufende Jahr fehlt dort, solange es darin noch keine Einheit gibt
         Dictionary<int, double> summen = BerechneJahressummen.Ausfuehren(auswahl).ToDictionary(s => s.Jahr, s => Summe(s, wert));
