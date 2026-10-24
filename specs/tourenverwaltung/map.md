@@ -58,7 +58,7 @@ In Umsetzungsreihenfolge.
   - Status: done → [012-mehrfachauswahl-zuordnen](012-mehrfachauswahl-zuordnen/spec.md)
 - `persoenliche-daten` — Der Benutzer pflegt seine persönlichen Daten (Gewicht, Ruhe- und Maximalpuls, Heimatort).
   - Abhängig von: `hauptfenster-auswahl`
-  - Status: open
+  - Status: done → [013-persoenliche-daten](013-persoenliche-daten/spec.md)
 - `saisonziele` — Der Benutzer legt je Aktivität und Jahr Saisonziele für Kilometer, Höhenmeter und Anzahl fest.
   - Abhängig von: `aktivitaeten-kategorien-verwalten`
   - Status: open

@@ -1,0 +1,98 @@
+<!--
+  Fenster „Persönliche Daten“ (Menü „Extras → Persönliche Daten…“).
+
+  Aufbau von oben nach unten:
+    1. Vorname, Nachname, Geburtstag (TT.MM.JJJJ), Größe (cm), Gewicht (kg), Ruhepuls und Maximalpuls
+       (Schläge/min), Heimatort; ein leeres Feld bedeutet „unbekannt“
+    2. Roter Hinweis bei ungültiger Eingabe (nennt den erlaubten Bereich)
+    3. „OK“ (nur bei gültigen Eingaben) und „Abbrechen“
+
+  Datenquelle ist das PersoenlicheDatenViewModel. „Abbrechen“ (auch Esc) schließt ohne Rückfrage; gespeichert
+  wird nur mit „OK“.
+-->
+<Window x:Class="AndyTours.App.Views.PersoenlicheDatenFenster"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Persönliche Daten"
+        Width="420"
+        SizeToContent="Height"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        Language="de-DE">
+
+    <StackPanel Margin="16">
+
+        <!-- 1. Felder -->
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Label Grid.Row="0" Content="_Vorname:" Target="{Binding ElementName=VornameFeld}" VerticalAlignment="Center" />
+            <TextBox x:Name="VornameFeld" Grid.Row="0" Grid.Column="1" Margin="0,3" VerticalContentAlignment="Center"
+                     Text="{Binding Vorname, UpdateSourceTrigger=PropertyChanged}" />
+
+            <Label Grid.Row="1" Content="_Nachname:" Target="{Binding ElementName=NachnameFeld}" VerticalAlignment="Center" />
+            <TextBox x:Name="NachnameFeld" Grid.Row="1" Grid.Column="1" Margin="0,3" VerticalContentAlignment="Center"
+                     Text="{Binding Nachname, UpdateSourceTrigger=PropertyChanged}" />
+
+            <Label Grid.Row="2" Content="_Geburtstag:" Target="{Binding ElementName=GeburtstagFeld}" VerticalAlignment="Center" />
+            <TextBox x:Name="GeburtstagFeld" Grid.Row="2" Grid.Column="1" Width="110" HorizontalAlignment="Left" Margin="0,3"
+                     VerticalContentAlignment="Center" Text="{Binding Geburtstag, UpdateSourceTrigger=PropertyChanged}" />
+
+            <Label Grid.Row="3" Content="G_röße:" Target="{Binding ElementName=GroesseFeld}" VerticalAlignment="Center" />
+            <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Margin="0,3">
+                <TextBox x:Name="GroesseFeld" Width="70" VerticalContentAlignment="Center" TextAlignment="Right"
+                         Text="{Binding Groesse, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock Text="cm" VerticalAlignment="Center" Margin="6,0,0,0" />
+            </StackPanel>
+
+            <Label Grid.Row="4" Content="Ge_wicht:" Target="{Binding ElementName=GewichtFeld}" VerticalAlignment="Center" />
+            <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal" Margin="0,3">
+                <TextBox x:Name="GewichtFeld" Width="70" VerticalContentAlignment="Center" TextAlignment="Right"
+                         Text="{Binding Gewicht, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock Text="kg" VerticalAlignment="Center" Margin="6,0,0,0" />
+            </StackPanel>
+
+            <Label Grid.Row="5" Content="_Ruhepuls:" Target="{Binding ElementName=RuhepulsFeld}" VerticalAlignment="Center" />
+            <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Horizontal" Margin="0,3">
+                <TextBox x:Name="RuhepulsFeld" Width="70" VerticalContentAlignment="Center" TextAlignment="Right"
+                         Text="{Binding Ruhepuls, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock Text="Schläge/min" VerticalAlignment="Center" Margin="6,0,0,0" />
+            </StackPanel>
+
+            <Label Grid.Row="6" Content="_Maximalpuls:" Target="{Binding ElementName=MaxpulsFeld}" VerticalAlignment="Center" />
+            <StackPanel Grid.Row="6" Grid.Column="1" Orientation="Horizontal" Margin="0,3">
+                <TextBox x:Name="MaxpulsFeld" Width="70" VerticalContentAlignment="Center" TextAlignment="Right"
+                         Text="{Binding Maxpuls, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock Text="Schläge/min" VerticalAlignment="Center" Margin="6,0,0,0" />
+            </StackPanel>
+
+            <Label Grid.Row="7" Content="_Heimatort:" Target="{Binding ElementName=HeimatortFeld}" VerticalAlignment="Center" />
+            <TextBox x:Name="HeimatortFeld" Grid.Row="7" Grid.Column="1" Margin="0,3" VerticalContentAlignment="Center"
+                     Text="{Binding Heimatort, UpdateSourceTrigger=PropertyChanged}" />
+        </Grid>
+
+        <!-- 2. Hinweis -->
+        <TextBlock Text="{Binding Hinweis}" Foreground="Firebrick" TextWrapping="Wrap" Margin="0,8,0,0" />
+
+        <!-- 3. Schaltflächen -->
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+            <Button Content="_OK" IsDefault="True" MinWidth="90" Padding="8,3" Margin="0,0,8,0" Command="{Binding OkCommand}" />
+            <Button Content="Abbrechen" IsCancel="True" MinWidth="90" Padding="8,3" />
+        </StackPanel>
+
+    </StackPanel>
+</Window>

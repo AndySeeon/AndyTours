@@ -87,6 +87,46 @@ public static class FahrerTabelle
     }
 
     /// <summary>
+    /// Speichert die persönlichen Daten in den Sportler von AndyTours; fehlt er noch, wird er angelegt.
+    /// </summary>
+    /// <remarks>
+    /// Geschrieben werden nur die Werte des Fensters „Persönliche Daten“ (Vorname, Nachname, Geburtstag,
+    /// Größe, Gewicht, Ruhe- und Maximalpuls, Heimatort). Trainingspuls und Koordinaten des Heimatorts
+    /// bleiben in der Datenbank unverändert. Alles läuft in einer Transaktion: Schlägt ein Schritt fehl,
+    /// bleibt die Datenbank wie vorher.
+    /// </remarks>
+    /// <param name="verbindung">Geöffnete Verbindung.</param>
+    /// <param name="fahrer">Die persönlichen Daten; die Nummer wird nicht ausgewertet.</param>
+    /// <returns>Die Nummer des Sportlers (bei einem neu angelegten die vergebene).</returns>
+    public static long SpeicherePersoenlicheDaten(SqliteConnection verbindung, Fahrer fahrer)
+    {
+        using SqliteTransaction transaktion = verbindung.BeginTransaction();
+        long id = Standardfahrer(verbindung, transaktion);
+
+        using SqliteCommand befehl = verbindung.CreateCommand();
+        befehl.Transaction = transaktion;
+        befehl.CommandText = """
+            UPDATE Fahrer SET
+                Vorname = $vorname, Nachname = $nachname, Geburtstag = $geburtstag, GroesseCm = $groesse,
+                GewichtKg = $gewicht, Ruhepuls = $ruhepuls, Maxpuls = $maxpuls, Heimatort = $heimatort
+            WHERE Id = $id;
+            """;
+        befehl.Parameters.AddWithValue("$id", id);
+        befehl.Parameters.AddWithValue("$vorname", fahrer.Vorname);
+        befehl.Parameters.AddWithValue("$nachname", fahrer.Nachname);
+        befehl.Parameters.AddWithValue("$geburtstag", DatumSpalte.AlsText(fahrer.Geburtstag));
+        befehl.Parameters.AddWithValue("$groesse", fahrer.GroesseCm);
+        befehl.Parameters.AddWithValue("$gewicht", fahrer.GewichtKg);
+        befehl.Parameters.AddWithValue("$ruhepuls", fahrer.Ruhepuls);
+        befehl.Parameters.AddWithValue("$maxpuls", fahrer.Maxpuls);
+        befehl.Parameters.AddWithValue("$heimatort", fahrer.Heimatort);
+        befehl.ExecuteNonQuery();
+
+        transaktion.Commit();
+        return id;
+    }
+
+    /// <summary>
     /// Liefert die Nummer des Sportlers, dem neue Trainingseinheiten zugeordnet werden; legt bei Bedarf einen an.
     /// </summary>
     /// <remarks>

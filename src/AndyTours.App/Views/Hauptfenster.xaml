@@ -60,6 +60,7 @@
                 <MenuItem Header="_Löschen" Command="{Binding EinheitenLoeschenCommand}" InputGestureText="Entf" />
             </MenuItem>
             <MenuItem Header="E_xtras">
+                <MenuItem Header="_Persönliche Daten…" Command="{Binding PersoenlicheDatenOeffnenCommand}" />
                 <MenuItem Header="_Einstellungen…" Command="{Binding EinstellungenOeffnenCommand}" />
                 <Separator />
                 <MenuItem Header="Sicherung _wiederherstellen…" Command="{Binding SicherungWiederherstellenCommand}" />
