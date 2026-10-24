@@ -6,7 +6,7 @@ using AndyTours.Tests.Datenordner;
 namespace AndyTours.Tests.Daten;
 
 /// <summary>
-/// Tests für <see cref="LadeSpaltenanordnung"/> und <see cref="SpeichereSpaltenanordnung"/>.
+/// Tests für <see cref="SpaltenanordnungEinstellung.Laden"/> und <see cref="SpaltenanordnungEinstellung.Speichern"/>.
 /// </summary>
 public class SpaltenanordnungTests
 {
@@ -15,7 +15,7 @@ public class SpaltenanordnungTests
     {
         using SqliteConnection verbindung = OeffneDatenbank.Ausfuehren(":memory:");
 
-        List<Spalteneinstellung> anordnung = LadeSpaltenanordnung.Ausfuehren(verbindung);
+        List<Spalteneinstellung> anordnung = SpaltenanordnungEinstellung.Laden(verbindung);
 
         Assert.Equal(Enum.GetValues<Einheitenspalte>(), anordnung.Select(a => a.Spalte));
         Assert.All(anordnung, a => Assert.Null(a.Breite));
@@ -30,11 +30,11 @@ public class SpaltenanordnungTests
             .Select((s, i) => new Spalteneinstellung(s, i % 2 == 0 ? 50.5 + i : null)).ToList();
         using (SqliteConnection verbindung = OeffneDatenbank.Ausfuehren(datei))
         {
-            SpeichereSpaltenanordnung.Ausfuehren(verbindung, anordnung);
+            SpaltenanordnungEinstellung.Speichern(verbindung, anordnung);
         }
 
         using SqliteConnection wieder = OeffneDatenbank.Ausfuehren(datei);
-        Assert.Equal(anordnung, LadeSpaltenanordnung.Ausfuehren(wieder));
+        Assert.Equal(anordnung, SpaltenanordnungEinstellung.Laden(wieder));
     }
 
     [Fact]
@@ -48,7 +48,7 @@ public class SpaltenanordnungTests
             befehl.ExecuteNonQuery();
         }
 
-        List<Spalteneinstellung> anordnung = LadeSpaltenanordnung.Ausfuehren(verbindung);
+        List<Spalteneinstellung> anordnung = SpaltenanordnungEinstellung.Laden(verbindung);
 
         Assert.Equal(17, anordnung.Count);
         Assert.Equal(

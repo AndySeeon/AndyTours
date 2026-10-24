@@ -6,7 +6,7 @@ using AndyTours.Tests.Datenordner;
 namespace AndyTours.Tests.Daten;
 
 /// <summary>
-/// Tests für <see cref="LadeFensterposition"/> und <see cref="SpeichereFensterposition"/>.
+/// Tests für <see cref="FensterpositionEinstellung.Laden"/> und <see cref="FensterpositionEinstellung.Speichern"/>.
 /// </summary>
 public class FensterpositionTests
 {
@@ -25,7 +25,7 @@ public class FensterpositionTests
     {
         using SqliteConnection verbindung = OeffneDatenbank.Ausfuehren(":memory:");
 
-        Assert.Null(LadeFensterposition.Ausfuehren(verbindung));
+        Assert.Null(FensterpositionEinstellung.Laden(verbindung));
     }
 
     [Fact]
@@ -36,11 +36,11 @@ public class FensterpositionTests
         var position = new Fensterposition(-1800.5, 120, 1280, 720.5, true);
         using (SqliteConnection verbindung = OeffneDatenbank.Ausfuehren(datei))
         {
-            SpeichereFensterposition.Ausfuehren(verbindung, position);
+            FensterpositionEinstellung.Speichern(verbindung, position);
         }
 
         using SqliteConnection wieder = OeffneDatenbank.Ausfuehren(datei);
-        Assert.Equal(position, LadeFensterposition.Ausfuehren(wieder));
+        Assert.Equal(position, FensterpositionEinstellung.Laden(wieder));
     }
 
     [Theory]
@@ -54,6 +54,6 @@ public class FensterpositionTests
         using SqliteConnection verbindung = OeffneDatenbank.Ausfuehren(":memory:");
         SchreibeRoh(verbindung, wert);
 
-        Assert.Null(LadeFensterposition.Ausfuehren(verbindung));
+        Assert.Null(FensterpositionEinstellung.Laden(verbindung));
     }
 }

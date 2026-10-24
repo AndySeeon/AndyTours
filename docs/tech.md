@@ -21,7 +21,7 @@
 
 ## Code-Regeln
 - Siehe `docs/Konventionen.md`
-- Jede Funktion in einer eigenen Datei; Fachfunktionen als `static class` mit einer öffentlichen Methode `Ausfuehren(...)`
+- Eine Datei je Aufgabe: eigenständige Fachfunktionen als `static class` mit einer öffentlichen Methode `Ausfuehren(...)`; zusammengehörige Funktionen (Laden/Speichern derselben Tabelle oder Einstellung, Hin- und Rückumwandlung) gemeinsam in einer `static class` (z. B. `FensterpositionEinstellung.Laden/Speichern`)
 - Ausführliche Kommentare auf Deutsch (XML-Doc)
 - Bezeichner deutsch ohne Umlaute; Oberfläche und Kommentare mit Umlauten
 - Fachfunktionen erhalten Unit-Tests

@@ -1,7 +1,7 @@
 # AndyTours – Konventionen
 
 Verbindliche Regeln für den Quellcode. Grundlage ist die Projektvorgabe in `CLAUDE.md`:
-*„Jede Funktion soll in eine eigene Datei geschrieben werden und wird ausführlich mit Kommentaren erläutert."*
+*„Jede Aufgabe bekommt eine eigene Datei: eigenständige Fachfunktionen einzeln, zusammengehörige Funktionen gemeinsam in einer Klasse. Alles wird ausführlich mit Kommentaren erläutert."*
 
 ## Projektstruktur
 
@@ -16,10 +16,15 @@ Verbindliche Regeln für den Quellcode. Grundlage ist die Projektvorgabe in `CLA
 | `Daten/` | Ihre Nutzdaten (Altdaten, FIT-Dateien, später die Datenbank) – **kein Quellcode** | – |
 | `docs/` | Plan und Dokumentation | – |
 
-## „Eine Funktion pro Datei"
+## „Eine Aufgabe pro Datei"
 
-- **Fachfunktionen** (Berechnungen, Import-Schritte, Prüfungen) werden als `static class` mit genau **einer** öffentlichen Methode `Ausfuehren(...)` geschrieben. Der Klassenname beschreibt die Funktion als Verb:
+- **Eigenständige Fachfunktionen** (Berechnungen, Import-Schritte, Prüfungen) werden als `static class` mit genau **einer** öffentlichen Methode `Ausfuehren(...)` geschrieben. Der Klassenname beschreibt die Funktion als Verb:
   `Berechnungen/BerechneDurchschnittsgeschwindigkeit.cs` → `BerechneDurchschnittsgeschwindigkeit.Ausfuehren(distanzKm, fahrzeit)`
+- **Zusammengehörige Funktionen**, die dasselbe Format oder dieselbe Tabelle teilen, stehen gemeinsam in einer `static class`, deren Name das Thema als Substantiv nennt. Die Methoden heißen nach ihrer Tätigkeit:
+  - Tabellen der Datenbank: `…Tabelle` mit `Laden`/`Speichern`, z. B. `TrainingseinheitenTabelle.Laden(verbindung)`
+  - Einstellungen (Tabelle `Einstellung`): `…Einstellung` mit `Laden`/`Speichern`, z. B. `FensterpositionEinstellung.Speichern(verbindung, position)`
+  - Hin- und Rückumwandlung eines Formats, z. B. `DatumSpalte.Lesen`/`DatumSpalte.AlsText`
+- Faustregel: Ändert sich das eine, muss fast immer auch das andere geändert werden → eine Datei. Sonst → getrennte Dateien.
 - **Modelle, ViewModels, Fenster** sind je eine Klasse pro Datei; sie enthalten nur Daten bzw. das Weiterreichen an Fachfunktionen, keine eigene Fachlogik.
 - Dateiname = Klassenname.
 

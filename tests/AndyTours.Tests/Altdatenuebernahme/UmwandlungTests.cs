@@ -28,7 +28,7 @@ public class UmwandlungTests
     private static Datenbestand LadeZiel(string ziel)
     {
         using SqliteConnection verbindung = OeffneDatenbank.Ausfuehren(Path.Combine(ziel, DatenordnerInhalt.Datenbankdatei));
-        return LadeDatenbestand.Ausfuehren(verbindung);
+        return DatenbestandTabellen.Laden(verbindung);
     }
 
     /// <summary>Alle Dateien eines Ordners mit relativem Pfad und Inhalt – zum Vergleich vorher/nachher.</summary>

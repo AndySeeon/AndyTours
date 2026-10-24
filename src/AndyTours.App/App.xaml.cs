@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Windows;
 using System.Windows.Input;
 using Microsoft.Data.Sqlite;
@@ -36,7 +36,7 @@ public partial class App : Application
         try
         {
             ordner = ErmittleStartDatenordner.Ausfuehren(Programmpfade.IstEntwicklung, Programmpfade.Programmordner,
-                LeseGemerktenDatenordner.Ausfuehren(Programmpfade.Merkdatei), Programmpfade.Standardordner);
+                DatenordnerMerkdatei.Laden(Programmpfade.Merkdatei), Programmpfade.Standardordner);
         }
         catch (InvalidOperationException fehler)
         {
@@ -108,7 +108,7 @@ public partial class App : Application
         // Ein beim Start neu gewählter Ordner gilt auch für die nächsten Starts (nicht in der Entwicklung).
         if (anderenOrdnerGewaehlt && !Programmpfade.IstEntwicklung)
         {
-            MerkeDatenordner.Ausfuehren(Programmpfade.Merkdatei, ordner);
+            DatenordnerMerkdatei.Speichern(Programmpfade.Merkdatei, ordner);
         }
 
         var hauptfenster = new Hauptfenster(viewModel);

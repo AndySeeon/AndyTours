@@ -49,7 +49,7 @@ public static class ErstelleZwischenordner
         {
             using (SqliteConnection verbindung = OeffneDatenbank.Ausfuehren(Path.Combine(zwischenordner, DatenordnerInhalt.Datenbankdatei)))
             {
-                SpeichereDatenbestand.Ausfuehren(verbindung, ergebnis.Bestand);
+                DatenbestandTabellen.Speichern(verbindung, ergebnis.Bestand);
             }
 
             // Bericht mit Byte-Order-Mark, damit auch der Windows-Editor die Umlaute richtig anzeigt

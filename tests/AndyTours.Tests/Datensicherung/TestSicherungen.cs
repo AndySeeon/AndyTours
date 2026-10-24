@@ -15,7 +15,7 @@ public static class TestSicherungen
     public static void Gueltig(string datei, int anzahlEinheiten, string name)
     {
         using SqliteConnection verbindung = OeffneDatenbank.Ausfuehren(datei);
-        SpeichereDatenbestand.Ausfuehren(verbindung, TestDatenbestand.Erzeuge(anzahlEinheiten, name));
+        DatenbestandTabellen.Speichern(verbindung, TestDatenbestand.Erzeuge(anzahlEinheiten, name));
     }
 
     /// <summary>

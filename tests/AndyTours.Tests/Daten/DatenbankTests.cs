@@ -37,9 +37,9 @@ public class DatenbankTests
     public void Gespeicherter_Bestand_wird_unveraendert_geladen()
     {
         using SqliteConnection verbindung = OeffneDatenbank.Ausfuehren(":memory:");
-        SpeichereDatenbestand.Ausfuehren(verbindung, ErzeugeBeispielbestand());
+        DatenbestandTabellen.Speichern(verbindung, ErzeugeBeispielbestand());
 
-        Datenbestand geladen = LadeDatenbestand.Ausfuehren(verbindung);
+        Datenbestand geladen = DatenbestandTabellen.Laden(verbindung);
 
         // Einheit mit allen Besonderheiten: Umlaute, Fahrzeit > 24 h, negative Temperatur
         Trainingseinheit einheit = Assert.Single(geladen.Trainingseinheiten);
@@ -69,9 +69,9 @@ public class DatenbankTests
     public void Zweites_Speichern_wird_abgelehnt()
     {
         using SqliteConnection verbindung = OeffneDatenbank.Ausfuehren(":memory:");
-        SpeichereDatenbestand.Ausfuehren(verbindung, ErzeugeBeispielbestand());
+        DatenbestandTabellen.Speichern(verbindung, ErzeugeBeispielbestand());
 
-        Assert.Throws<InvalidOperationException>(() => SpeichereDatenbestand.Ausfuehren(verbindung, ErzeugeBeispielbestand()));
+        Assert.Throws<InvalidOperationException>(() => DatenbestandTabellen.Speichern(verbindung, ErzeugeBeispielbestand()));
     }
 
     [Fact]
@@ -83,8 +83,8 @@ public class DatenbankTests
         using SqliteConnection verbindung = OeffneDatenbank.Ausfuehren(":memory:");
 
         // Fremdschlüssel sind eingeschaltet → SQLite lehnt den Verweis auf Equipment 99 ab
-        Assert.Throws<SqliteException>(() => SpeichereDatenbestand.Ausfuehren(verbindung, bestand));
+        Assert.Throws<SqliteException>(() => DatenbestandTabellen.Speichern(verbindung, bestand));
         // … und dank Transaktion ist auch sonst nichts gespeichert worden
-        Assert.Empty(LadeDatenbestand.Ausfuehren(verbindung).Fahrer);
+        Assert.Empty(DatenbestandTabellen.Laden(verbindung).Fahrer);
     }
 }

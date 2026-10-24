@@ -1,20 +1,60 @@
-using Microsoft.Data.Sqlite;
 using AndyTours.Core.Modell;
+using Microsoft.Data.Sqlite;
 
 namespace AndyTours.Daten;
 
 /// <summary>
-/// Fügt Sportler in die Tabelle <c>Fahrer</c> ein.
+/// Liest und schreibt die Tabelle <c>Fahrer</c>.
 /// </summary>
-public static class SpeichereFahrer
+public static class FahrerTabelle
 {
+    /// <summary>
+    /// Liest alle Sportler, sortiert nach Nummer.
+    /// </summary>
+    /// <param name="verbindung">Geöffnete Verbindung.</param>
+    /// <returns>Die Sportler.</returns>
+    public static List<Fahrer> Laden(SqliteConnection verbindung)
+    {
+        using SqliteCommand befehl = verbindung.CreateCommand();
+        befehl.CommandText = """
+            SELECT Id, Vorname, Nachname, Geburtstag, GroesseCm, GewichtKg, Ruhepuls, Maxpuls,
+                   TrainingspulsVon, TrainingspulsBis, Heimatort, HeimatBreitengrad, HeimatLaengengrad
+            FROM Fahrer ORDER BY Id;
+            """;
+
+        var fahrer = new List<Fahrer>();
+        using SqliteDataReader leser = befehl.ExecuteReader();
+        while (leser.Read())
+        {
+            // Die Spaltennummern entsprechen der Reihenfolge im SELECT oben.
+            fahrer.Add(new Fahrer
+            {
+                Id = leser.GetInt64(0),
+                Vorname = leser.GetString(1),
+                Nachname = leser.GetString(2),
+                Geburtstag = DatumSpalte.Lesen(leser, 3),
+                GroesseCm = leser.GetInt32(4),
+                GewichtKg = leser.GetDouble(5),
+                Ruhepuls = leser.GetInt32(6),
+                Maxpuls = leser.GetInt32(7),
+                TrainingspulsVon = leser.GetInt32(8),
+                TrainingspulsBis = leser.GetInt32(9),
+                Heimatort = leser.GetString(10),
+                HeimatBreitengrad = leser.IsDBNull(11) ? null : leser.GetDouble(11),
+                HeimatLaengengrad = leser.IsDBNull(12) ? null : leser.GetDouble(12),
+            });
+        }
+
+        return fahrer;
+    }
+
     /// <summary>
     /// Fügt alle übergebenen Sportler mit ihrer vorhandenen Nummer ein.
     /// </summary>
     /// <param name="verbindung">Geöffnete Verbindung.</param>
     /// <param name="transaktion">Laufende Transaktion.</param>
     /// <param name="fahrer">Die Sportler.</param>
-    public static void Ausfuehren(SqliteConnection verbindung, SqliteTransaction transaktion, IEnumerable<Fahrer> fahrer)
+    public static void Speichern(SqliteConnection verbindung, SqliteTransaction transaktion, IEnumerable<Fahrer> fahrer)
     {
         using SqliteCommand befehl = verbindung.CreateCommand();
         befehl.Transaction = transaktion;
@@ -32,7 +72,7 @@ public static class SpeichereFahrer
             befehl.Parameters.AddWithValue("$id", f.Id);
             befehl.Parameters.AddWithValue("$vorname", f.Vorname);
             befehl.Parameters.AddWithValue("$nachname", f.Nachname);
-            befehl.Parameters.AddWithValue("$geburtstag", DatumAlsText.Ausfuehren(f.Geburtstag));
+            befehl.Parameters.AddWithValue("$geburtstag", DatumSpalte.AlsText(f.Geburtstag));
             befehl.Parameters.AddWithValue("$groesse", f.GroesseCm);
             befehl.Parameters.AddWithValue("$gewicht", f.GewichtKg);
             befehl.Parameters.AddWithValue("$ruhepuls", f.Ruhepuls);

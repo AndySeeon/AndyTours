@@ -1,9 +1,9 @@
 namespace AndyTours.Daten.Datenordner;
 
 /// <summary>
-/// Liest den zuletzt gewählten Datenordner aus der Merkdatei.
+/// Liest und schreibt die Merkdatei mit dem zuletzt gewählten Datenordner.
 /// </summary>
-public static class LeseGemerktenDatenordner
+public static class DatenordnerMerkdatei
 {
     /// <summary>
     /// Liefert den in der Merkdatei gespeicherten Ordnerpfad.
@@ -15,7 +15,7 @@ public static class LeseGemerktenDatenordner
     /// </remarks>
     /// <param name="merkdatei">Vollständiger Pfad der Merkdatei.</param>
     /// <returns>Der gemerkte Pfad oder <c>null</c>, wenn noch keiner gemerkt wurde oder die Datei nicht lesbar ist.</returns>
-    public static string? Ausfuehren(string merkdatei)
+    public static string? Laden(string merkdatei)
     {
         if (!File.Exists(merkdatei))
         {
@@ -34,5 +34,17 @@ public static class LeseGemerktenDatenordner
         }
 
         return ordner.Length > 0 ? ordner : null;
+    }
+
+    /// <summary>
+    /// Schreibt den Ordnerpfad in die Merkdatei; ein vorhandener Eintrag wird ersetzt.
+    /// </summary>
+    /// <param name="merkdatei">Vollständiger Pfad der Merkdatei (in der App: <c>%APPDATA%\AndyTours\datenordner.txt</c>).</param>
+    /// <param name="ordner">Vollständiger Pfad des Datenordners.</param>
+    public static void Speichern(string merkdatei, string ordner)
+    {
+        // Den Ordner der Merkdatei beim ersten Mal anlegen
+        Directory.CreateDirectory(Path.GetDirectoryName(merkdatei)!);
+        File.WriteAllText(merkdatei, ordner);
     }
 }

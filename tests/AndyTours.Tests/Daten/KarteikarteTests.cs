@@ -5,7 +5,7 @@ using AndyTours.Tests.Datenordner;
 namespace AndyTours.Tests.Daten;
 
 /// <summary>
-/// Tests für <see cref="LadeKarteikarte"/> und <see cref="SpeichereKarteikarte"/>.
+/// Tests für <see cref="KarteikarteEinstellung.Laden"/> und <see cref="KarteikarteEinstellung.Speichern"/>.
 /// </summary>
 public class KarteikarteTests
 {
@@ -24,7 +24,7 @@ public class KarteikarteTests
     {
         using SqliteConnection verbindung = OeffneDatenbank.Ausfuehren(":memory:");
 
-        Assert.Null(LadeKarteikarte.Ausfuehren(verbindung));
+        Assert.Null(KarteikarteEinstellung.Laden(verbindung));
     }
 
     [Fact]
@@ -34,21 +34,21 @@ public class KarteikarteTests
         string datei = Path.Combine(temp.Pfad, "andytours.db");
         using (SqliteConnection verbindung = OeffneDatenbank.Ausfuehren(datei))
         {
-            SpeichereKarteikarte.Ausfuehren(verbindung, 1);
+            KarteikarteEinstellung.Speichern(verbindung, 1);
         }
 
         using SqliteConnection wieder = OeffneDatenbank.Ausfuehren(datei);
-        Assert.Equal(1, LadeKarteikarte.Ausfuehren(wieder));
+        Assert.Equal(1, KarteikarteEinstellung.Laden(wieder));
     }
 
     [Fact]
     public void Erneutes_Speichern_ueberschreibt_die_Karteikarte()
     {
         using SqliteConnection verbindung = OeffneDatenbank.Ausfuehren(":memory:");
-        SpeichereKarteikarte.Ausfuehren(verbindung, 1);
-        SpeichereKarteikarte.Ausfuehren(verbindung, 0);
+        KarteikarteEinstellung.Speichern(verbindung, 1);
+        KarteikarteEinstellung.Speichern(verbindung, 0);
 
-        Assert.Equal(0, LadeKarteikarte.Ausfuehren(verbindung));
+        Assert.Equal(0, KarteikarteEinstellung.Laden(verbindung));
     }
 
     [Theory]
@@ -61,7 +61,7 @@ public class KarteikarteTests
         using SqliteConnection verbindung = OeffneDatenbank.Ausfuehren(":memory:");
         SchreibeRoh(verbindung, wert);
 
-        Assert.Null(LadeKarteikarte.Ausfuehren(verbindung));
+        Assert.Null(KarteikarteEinstellung.Laden(verbindung));
     }
 
     [Fact]
@@ -69,6 +69,6 @@ public class KarteikarteTests
     {
         using SqliteConnection verbindung = OeffneDatenbank.Ausfuehren(":memory:");
 
-        Assert.Throws<ArgumentOutOfRangeException>(() => SpeichereKarteikarte.Ausfuehren(verbindung, -1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => KarteikarteEinstellung.Speichern(verbindung, -1));
     }
 }

@@ -3,7 +3,7 @@ using AndyTours.Daten.Datenordner;
 namespace AndyTours.Tests.Datenordner;
 
 /// <summary>
-/// Tests für das Zusammenspiel von <see cref="MerkeDatenordner"/> und <see cref="LeseGemerktenDatenordner"/>.
+/// Tests für das Zusammenspiel von <see cref="DatenordnerMerkdatei.Speichern"/> und <see cref="DatenordnerMerkdatei.Laden"/>.
 /// </summary>
 public class MerkdateiTests
 {
@@ -14,9 +14,9 @@ public class MerkdateiTests
         // Merkdatei in einem noch nicht vorhandenen Unterordner – wie %APPDATA%\AndyTours beim ersten Start
         string merkdatei = Path.Combine(temp.Pfad, "AndyTours", "datenordner.txt");
 
-        MerkeDatenordner.Ausfuehren(merkdatei, @"\\NAS\Daten\AndyTours");
+        DatenordnerMerkdatei.Speichern(merkdatei, @"\\NAS\Daten\AndyTours");
 
-        Assert.Equal(@"\\NAS\Daten\AndyTours", LeseGemerktenDatenordner.Ausfuehren(merkdatei));
+        Assert.Equal(@"\\NAS\Daten\AndyTours", DatenordnerMerkdatei.Laden(merkdatei));
     }
 
     [Fact]
@@ -25,10 +25,10 @@ public class MerkdateiTests
         using var temp = new TempOrdner();
         string merkdatei = Path.Combine(temp.Pfad, "datenordner.txt");
 
-        MerkeDatenordner.Ausfuehren(merkdatei, @"C:\Alt");
-        MerkeDatenordner.Ausfuehren(merkdatei, @"D:\Neu");
+        DatenordnerMerkdatei.Speichern(merkdatei, @"C:\Alt");
+        DatenordnerMerkdatei.Speichern(merkdatei, @"D:\Neu");
 
-        Assert.Equal(@"D:\Neu", LeseGemerktenDatenordner.Ausfuehren(merkdatei));
+        Assert.Equal(@"D:\Neu", DatenordnerMerkdatei.Laden(merkdatei));
     }
 
     [Fact]
@@ -36,7 +36,7 @@ public class MerkdateiTests
     {
         using var temp = new TempOrdner();
 
-        Assert.Null(LeseGemerktenDatenordner.Ausfuehren(Path.Combine(temp.Pfad, "fehlt.txt")));
+        Assert.Null(DatenordnerMerkdatei.Laden(Path.Combine(temp.Pfad, "fehlt.txt")));
     }
 
     [Fact]
@@ -46,7 +46,7 @@ public class MerkdateiTests
         string merkdatei = Path.Combine(temp.Pfad, "datenordner.txt");
         File.WriteAllText(merkdatei, "  \r\n");
 
-        Assert.Null(LeseGemerktenDatenordner.Ausfuehren(merkdatei));
+        Assert.Null(DatenordnerMerkdatei.Laden(merkdatei));
     }
 
     [Fact]
@@ -55,8 +55,8 @@ public class MerkdateiTests
         // Wichtig für „NAS ausgeschaltet“: Der Pfad muss beim Start als nicht erreichbar gemeldet werden können.
         using var temp = new TempOrdner();
         string merkdatei = Path.Combine(temp.Pfad, "datenordner.txt");
-        MerkeDatenordner.Ausfuehren(merkdatei, @"Q:\GibtEsNicht\AndyTours");
+        DatenordnerMerkdatei.Speichern(merkdatei, @"Q:\GibtEsNicht\AndyTours");
 
-        Assert.Equal(@"Q:\GibtEsNicht\AndyTours", LeseGemerktenDatenordner.Ausfuehren(merkdatei));
+        Assert.Equal(@"Q:\GibtEsNicht\AndyTours", DatenordnerMerkdatei.Laden(merkdatei));
     }
 }

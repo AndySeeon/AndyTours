@@ -45,14 +45,14 @@ public class SpieleSicherungZurueckTests
     private static void Stelle(string datenordner, Sicherungseinstellungen einstellungen)
     {
         using SqliteConnection verbindung = OeffneDatenbank.Ausfuehren(Path.Combine(datenordner, DatenordnerInhalt.Datenbankdatei));
-        SpeichereSicherungseinstellungen.Ausfuehren(verbindung, einstellungen);
+        SicherungEinstellungen.Speichern(verbindung, einstellungen);
     }
 
     /// <summary>Liest die Einstellungen aus der Datenbank des Datenordners.</summary>
     private static Sicherungseinstellungen Lies(string datenordner)
     {
         using SqliteConnection verbindung = OeffneDatenbank.Ausfuehren(Path.Combine(datenordner, DatenordnerInhalt.Datenbankdatei));
-        return LadeSicherungseinstellungen.Ausfuehren(verbindung);
+        return SicherungEinstellungen.Laden(verbindung);
     }
 
     [Fact]

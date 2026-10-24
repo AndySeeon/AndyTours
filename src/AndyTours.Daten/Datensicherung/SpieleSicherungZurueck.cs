@@ -67,7 +67,7 @@ public static class SpieleSicherungZurueck
             Sicherungseinstellungen einstellungen;
             using (SqliteConnection verbindung = OeffneDatenbank.Ausfuehren(datenbankdatei))
             {
-                einstellungen = LadeSicherungseinstellungen.Ausfuehren(verbindung);
+                einstellungen = SicherungEinstellungen.Laden(verbindung);
             }
 
             string sicherungsordner = ErmittleSicherungsordner.Ausfuehren(datenordner, einstellungen);
@@ -95,7 +95,7 @@ public static class SpieleSicherungZurueck
 
             using (SqliteConnection verbindung = OeffneDatenbank.Ausfuehren(zwischendatei))
             {
-                SpeichereSicherungseinstellungen.Ausfuehren(verbindung, einstellungen with { StartsSeitSicherung = 0 });
+                SicherungEinstellungen.Speichern(verbindung, einstellungen with { StartsSeitSicherung = 0 });
             }
 
             // 4. Austauschen

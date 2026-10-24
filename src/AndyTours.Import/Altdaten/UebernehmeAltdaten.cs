@@ -15,7 +15,7 @@ namespace AndyTours.Import.Altdaten;
 /// <item>In allen Texten beschädigte Umlaute reparieren und Anhangpfade vereinheitlichen.</item>
 /// </list>
 /// Die Altdateien werden dabei nur gelesen, nie verändert. Gespeichert wird das Ergebnis erst
-/// durch den Aufrufer (siehe <c>AndyTours.Daten.SpeichereDatenbestand</c>).
+/// durch den Aufrufer (siehe <c>AndyTours.Daten.DatenbestandTabellen.Speichern</c>).
 /// Die nicht genutzten Dateien <c>planning.dat</c> und <c>train.ini</c> sind leer und werden nicht übernommen.
 /// </remarks>
 public static class UebernehmeAltdaten

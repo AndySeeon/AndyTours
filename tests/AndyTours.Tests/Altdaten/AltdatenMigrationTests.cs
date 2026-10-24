@@ -106,8 +106,8 @@ public class AltdatenMigrationTests
             Datenbestand geladen;
             using (SqliteConnection verbindung = OeffneDatenbank.Ausfuehren(dbPfad))
             {
-                SpeichereDatenbestand.Ausfuehren(verbindung, ergebnis.Bestand);
-                geladen = LadeDatenbestand.Ausfuehren(verbindung);
+                DatenbestandTabellen.Speichern(verbindung, ergebnis.Bestand);
+                geladen = DatenbestandTabellen.Laden(verbindung);
             }
 
             var original = ZaehleDirektAusCsv(datenordner);

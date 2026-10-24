@@ -28,4 +28,4 @@ Befehle (im Projektordner):
 - Starten: `dotnet run --project src/AndyTours.App`
  
  ## Arbeitsweise
- Jede Funktion soll in eine eigene Datei geschrieben werden und wird ausführlich mit Kommentaren in deutscher Sprache erläutert.
+ Jede Aufgabe bekommt eine eigene Datei: eigenständige Fachfunktionen einzeln, zusammengehörige Funktionen (z. B. Laden und Speichern derselben Tabelle oder Einstellung) gemeinsam in einer Klasse. Alles wird ausführlich mit Kommentaren in deutscher Sprache erläutert. Details in `docs/Konventionen.md`.

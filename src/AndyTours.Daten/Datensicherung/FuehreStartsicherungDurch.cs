@@ -50,9 +50,9 @@ public static class FuehreStartsicherungDurch
             using SqliteConnection verbindung = OeffneDatenbank.Ausfuehren(datenbankdatei);
 
             // 1. Start zählen
-            Sicherungseinstellungen einstellungen = LadeSicherungseinstellungen.Ausfuehren(verbindung);
+            Sicherungseinstellungen einstellungen = SicherungEinstellungen.Laden(verbindung);
             einstellungen = einstellungen with { StartsSeitSicherung = einstellungen.StartsSeitSicherung + 1 };
-            SpeichereSicherungseinstellungen.Ausfuehren(verbindung, einstellungen);
+            SicherungEinstellungen.Speichern(verbindung, einstellungen);
             sicherungsordner = ErmittleSicherungsordner.Ausfuehren(datenordner, einstellungen);
 
             // 2. Fällig?
@@ -71,7 +71,7 @@ public static class FuehreStartsicherungDurch
             }).WaitAsync(limit);
 
             // 4. Erfolg: Zählung beginnt von vorn
-            SpeichereSicherungseinstellungen.Ausfuehren(verbindung, einstellungen with { StartsSeitSicherung = 0 });
+            SicherungEinstellungen.Speichern(verbindung, einstellungen with { StartsSeitSicherung = 0 });
             return new Startsicherungsergebnis(Startsicherungsstatus.Gesichert, sicherungsordner, sicherung);
         }
         catch (Exception fehler) when (fehler is IOException or UnauthorizedAccessException or SqliteException or TimeoutException)

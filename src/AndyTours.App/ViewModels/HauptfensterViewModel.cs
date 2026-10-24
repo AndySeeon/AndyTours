@@ -164,17 +164,17 @@ public partial class HauptfensterViewModel : ObservableObject
     /// </remarks>
     /// <param name="anordnung">Die Spalten in Anzeigereihenfolge.</param>
     public void MerkeSpaltenanordnung(IReadOnlyList<Spalteneinstellung> anordnung) =>
-        SpeichereStill(verbindung => SpeichereSpaltenanordnung.Ausfuehren(verbindung, anordnung));
+        SpeichereStill(verbindung => SpaltenanordnungEinstellung.Speichern(verbindung, anordnung));
 
     /// <summary>Speichert Größe, Position und Zustand des Hauptfensters (beim Schließen aufgerufen).</summary>
     /// <param name="position">Die zu merkende Position.</param>
     public void MerkeFensterposition(Fensterposition position) =>
-        SpeichereStill(verbindung => SpeichereFensterposition.Ausfuehren(verbindung, position));
+        SpeichereStill(verbindung => FensterpositionEinstellung.Speichern(verbindung, position));
 
     /// <summary>Speichert die gewählte Karteikarte des Hauptfensters (beim Schließen aufgerufen).</summary>
     /// <param name="nummer">Index der Karteikarte, ab 0.</param>
     public void MerkeKarteikarte(int nummer) =>
-        SpeichereStill(verbindung => SpeichereKarteikarte.Ausfuehren(verbindung, nummer));
+        SpeichereStill(verbindung => KarteikarteEinstellung.Speichern(verbindung, nummer));
 
     /// <summary>
     /// Schreibt einen Komfortwert in die Datenbank des Datenordners; Fehler werden ohne Meldung übergangen.
@@ -217,7 +217,7 @@ public partial class HauptfensterViewModel : ObservableObject
         try
         {
             using SqliteConnection verbindung = OeffneDatenbank.Ausfuehren(Path.Combine(Datenordner, DatenordnerInhalt.Datenbankdatei));
-            SpeichereAusgeblendeteSpalten.Ausfuehren(verbindung, neu);
+            AusgeblendeteSpaltenEinstellung.Speichern(verbindung, neu);
         }
         catch (Exception fehler) when (fehler is SqliteException or IOException or UnauthorizedAccessException)
         {
@@ -253,11 +253,11 @@ public partial class HauptfensterViewModel : ObservableObject
         int? karteikarte;
         using (SqliteConnection verbindung = OeffneDatenbank.Ausfuehren(Path.Combine(ordner, DatenordnerInhalt.Datenbankdatei)))
         {
-            geladen = LadeDatenbestand.Ausfuehren(verbindung);
-            ausgeblendet = LadeAusgeblendeteSpalten.Ausfuehren(verbindung);
-            anordnung = LadeSpaltenanordnung.Ausfuehren(verbindung);
-            fenster = LadeFensterposition.Ausfuehren(verbindung);
-            karteikarte = LadeKarteikarte.Ausfuehren(verbindung);
+            geladen = DatenbestandTabellen.Laden(verbindung);
+            ausgeblendet = AusgeblendeteSpaltenEinstellung.Laden(verbindung);
+            anordnung = SpaltenanordnungEinstellung.Laden(verbindung);
+            fenster = FensterpositionEinstellung.Laden(verbindung);
+            karteikarte = KarteikarteEinstellung.Laden(verbindung);
         }
 
         _bestand = geladen;
@@ -388,7 +388,7 @@ public partial class HauptfensterViewModel : ObservableObject
         }
 
         // Erst nach erfolgreichem Laden merken – sonst würde die App beim nächsten Start mit einem defekten Ordner beginnen
-        MerkeDatenordner.Ausfuehren(Programmpfade.Merkdatei, neu);
+        DatenordnerMerkdatei.Speichern(Programmpfade.Merkdatei, neu);
         return neu;
     }
 

@@ -4,9 +4,9 @@ using Microsoft.Data.Sqlite;
 namespace AndyTours.Daten;
 
 /// <summary>
-/// Lädt die zuletzt gewählte Karteikarte des Hauptfensters.
+/// Liest und schreibt die zuletzt gewählte Karteikarte des Hauptfensters.
 /// </summary>
-public static class LadeKarteikarte
+public static class KarteikarteEinstellung
 {
     /// <summary>
     /// Liest die Nummer der zuletzt gewählten Karteikarte aus der Tabelle <c>Einstellung</c>.
@@ -18,7 +18,7 @@ public static class LadeKarteikarte
     /// </remarks>
     /// <param name="verbindung">Geöffnete Verbindung.</param>
     /// <returns>Die Nummer der Karteikarte oder <c>null</c>.</returns>
-    public static int? Ausfuehren(SqliteConnection verbindung)
+    public static int? Laden(SqliteConnection verbindung)
     {
         using SqliteCommand befehl = verbindung.CreateCommand();
         befehl.CommandText = "SELECT Wert FROM Einstellung WHERE Schluessel = $schluessel;";
@@ -30,5 +30,21 @@ public static class LadeKarteikarte
         }
 
         return nummer;
+    }
+
+    /// <summary>
+    /// Schreibt die Nummer (Index ab 0) der gewählten Karteikarte in die Tabelle <c>Einstellung</c>.
+    /// </summary>
+    /// <param name="verbindung">Geöffnete Verbindung.</param>
+    /// <param name="nummer">Index der Karteikarte, ab 0.</param>
+    public static void Speichern(SqliteConnection verbindung, int nummer)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(nummer);
+
+        using SqliteCommand befehl = verbindung.CreateCommand();
+        befehl.CommandText = "INSERT OR REPLACE INTO Einstellung (Schluessel, Wert) VALUES ($schluessel, $wert);";
+        befehl.Parameters.AddWithValue("$schluessel", Einstellungsschluessel.Karteikarte);
+        befehl.Parameters.AddWithValue("$wert", nummer.ToString(CultureInfo.InvariantCulture));
+        befehl.ExecuteNonQuery();
     }
 }

@@ -6,7 +6,7 @@ using AndyTours.Tests.Datenordner;
 namespace AndyTours.Tests.Daten;
 
 /// <summary>
-/// Tests für <see cref="LadeAusgeblendeteSpalten"/> und <see cref="SpeichereAusgeblendeteSpalten"/>.
+/// Tests für <see cref="AusgeblendeteSpaltenEinstellung.Laden"/> und <see cref="AusgeblendeteSpaltenEinstellung.Speichern"/>.
 /// </summary>
 public class AusgeblendeteSpaltenTests
 {
@@ -25,7 +25,7 @@ public class AusgeblendeteSpaltenTests
     {
         using SqliteConnection verbindung = OeffneDatenbank.Ausfuehren(":memory:");
 
-        Assert.Empty(LadeAusgeblendeteSpalten.Ausfuehren(verbindung));
+        Assert.Empty(AusgeblendeteSpaltenEinstellung.Laden(verbindung));
     }
 
     [Fact]
@@ -35,24 +35,24 @@ public class AusgeblendeteSpaltenTests
         string datei = Path.Combine(temp.Pfad, "andytours.db");
         using (SqliteConnection verbindung = OeffneDatenbank.Ausfuehren(datei))
         {
-            SpeichereAusgeblendeteSpalten.Ausfuehren(verbindung,
+            AusgeblendeteSpaltenEinstellung.Speichern(verbindung,
                 new HashSet<Einheitenspalte> { Einheitenspalte.Trittfrequenz, Einheitenspalte.Temperatur });
         }
 
         using SqliteConnection wieder = OeffneDatenbank.Ausfuehren(datei);
         Assert.Equal(new HashSet<Einheitenspalte> { Einheitenspalte.Temperatur, Einheitenspalte.Trittfrequenz },
-            LadeAusgeblendeteSpalten.Ausfuehren(wieder));
+            AusgeblendeteSpaltenEinstellung.Laden(wieder));
     }
 
     [Fact]
     public void Leere_Menge_loescht_den_Eintrag()
     {
         using SqliteConnection verbindung = OeffneDatenbank.Ausfuehren(":memory:");
-        SpeichereAusgeblendeteSpalten.Ausfuehren(verbindung, new HashSet<Einheitenspalte> { Einheitenspalte.Name });
+        AusgeblendeteSpaltenEinstellung.Speichern(verbindung, new HashSet<Einheitenspalte> { Einheitenspalte.Name });
 
-        SpeichereAusgeblendeteSpalten.Ausfuehren(verbindung, new HashSet<Einheitenspalte>());
+        AusgeblendeteSpaltenEinstellung.Speichern(verbindung, new HashSet<Einheitenspalte>());
 
-        Assert.Empty(LadeAusgeblendeteSpalten.Ausfuehren(verbindung));
+        Assert.Empty(AusgeblendeteSpaltenEinstellung.Laden(verbindung));
         using SqliteCommand befehl = verbindung.CreateCommand();
         befehl.CommandText = "SELECT COUNT(*) FROM Einstellung;";
         Assert.Equal(0L, befehl.ExecuteScalar());
@@ -65,7 +65,7 @@ public class AusgeblendeteSpaltenTests
         SchreibeRoh(verbindung, "Trittfrequenz, Leistung,3,,temperatur, MaxHoehe");
 
         Assert.Equal(new HashSet<Einheitenspalte> { Einheitenspalte.Trittfrequenz, Einheitenspalte.MaxHoehe },
-            LadeAusgeblendeteSpalten.Ausfuehren(verbindung));
+            AusgeblendeteSpaltenEinstellung.Laden(verbindung));
     }
 
     [Fact]
@@ -74,18 +74,18 @@ public class AusgeblendeteSpaltenTests
         using SqliteConnection verbindung = OeffneDatenbank.Ausfuehren(":memory:");
         SchreibeRoh(verbindung, string.Join(",", Enum.GetNames<Einheitenspalte>()));
 
-        Assert.Empty(LadeAusgeblendeteSpalten.Ausfuehren(verbindung));
+        Assert.Empty(AusgeblendeteSpaltenEinstellung.Laden(verbindung));
     }
 
     [Fact]
     public void Sicherungseinstellungen_bleiben_unberuehrt()
     {
         using SqliteConnection verbindung = OeffneDatenbank.Ausfuehren(":memory:");
-        SpeichereSicherungseinstellungen.Ausfuehren(verbindung, new Sicherungseinstellungen { Intervall = 5 });
+        SicherungEinstellungen.Speichern(verbindung, new Sicherungseinstellungen { Intervall = 5 });
 
-        SpeichereAusgeblendeteSpalten.Ausfuehren(verbindung, new HashSet<Einheitenspalte> { Einheitenspalte.Name });
-        SpeichereAusgeblendeteSpalten.Ausfuehren(verbindung, new HashSet<Einheitenspalte>());
+        AusgeblendeteSpaltenEinstellung.Speichern(verbindung, new HashSet<Einheitenspalte> { Einheitenspalte.Name });
+        AusgeblendeteSpaltenEinstellung.Speichern(verbindung, new HashSet<Einheitenspalte>());
 
-        Assert.Equal(5, LadeSicherungseinstellungen.Ausfuehren(verbindung).Intervall);
+        Assert.Equal(5, SicherungEinstellungen.Laden(verbindung).Intervall);
     }
 }

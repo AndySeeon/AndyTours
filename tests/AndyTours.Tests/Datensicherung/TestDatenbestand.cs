@@ -45,7 +45,7 @@ public static class TestDatenbestand
     {
         string datei = Path.Combine(datenordner, DatenordnerInhalt.Datenbankdatei);
         using SqliteConnection verbindung = OeffneDatenbank.Ausfuehren(datei);
-        SpeichereDatenbestand.Ausfuehren(verbindung, bestand);
+        DatenbestandTabellen.Speichern(verbindung, bestand);
         return datei;
     }
 
@@ -53,6 +53,6 @@ public static class TestDatenbestand
     public static Datenbestand Lade(string datei)
     {
         using SqliteConnection verbindung = OeffneDatenbank.Ausfuehren(datei);
-        return LadeDatenbestand.Ausfuehren(verbindung);
+        return DatenbestandTabellen.Laden(verbindung);
     }
 }
