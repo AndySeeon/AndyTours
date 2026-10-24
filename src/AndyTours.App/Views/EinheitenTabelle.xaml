@@ -1,0 +1,156 @@
+<!--
+  Tabelle der Trainingseinheiten (Inhalt der Karteikarte „Trainingseinheiten“ im Hauptfenster).
+
+  Aufbau:
+    - Bei Einheiten in der Auswahl:
+        1. Tabelle (DataGrid) mit 17 Spalten, eine Zeile je Einheit; Klick auf eine Überschrift sortiert,
+           Ziehen einer Überschrift verschiebt die Spalte, Rechtsklick auf die Überschriften öffnet das
+           Menü zum Ein- und Ausblenden der Spalten (bleibt für mehrere Klicks offen)
+        2. Summenzeile fest am unteren Rand: Anzahl unter „Name“, Summen unter Distanz, Höhenmeter und
+           Fahrzeit. Ihre Zellen werden im Code-Behind erzeugt und an Breite, Sichtbarkeit und
+           Reihenfolge der Tabellenspalten sowie an das waagrechte Blättern gekoppelt; die Spalten mit
+           Summe sind nie schmaler als ihre Summe.
+
+  Reihenfolge und Breite der Spalten werden in der Datenbank gemerkt (siehe Code-Behind).
+    - Ohne Einheiten: nur der Hinweis „Keine Einheiten in dieser Auswahl.“
+
+  Datenquelle ist das HauptfensterViewModel (vom Hauptfenster geerbt). Die Werte der Zeilen sind
+  typisiert (Zahl, Datum, Dauer), damit richtig sortiert wird; das deutsche Format entsteht über
+  Language="de-DE" und StringFormat. Bestwerte der Auswahl (Distanz, Höhenmeter, Fahrzeit, Ø km/h,
+  max km/h) erscheinen rot.
+-->
+<UserControl x:Class="AndyTours.App.Views.EinheitenTabelle"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Language="de-DE">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="SichtbarWennWahr" />
+
+        <!-- Zahlen rechtsbündig -->
+        <Style x:Key="Zahl" TargetType="TextBlock">
+            <Setter Property="TextAlignment" Value="Right" />
+            <Setter Property="Padding" Value="4,0" />
+        </Style>
+
+        <!-- Bestwerte: rot, sobald der Merker der Zeile gesetzt ist -->
+        <Style x:Key="BestDistanz" TargetType="TextBlock" BasedOn="{StaticResource Zahl}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IstBestDistanz}" Value="True">
+                    <Setter Property="Foreground" Value="Red" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="BestHoehenmeter" TargetType="TextBlock" BasedOn="{StaticResource Zahl}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IstBestHoehenmeter}" Value="True">
+                    <Setter Property="Foreground" Value="Red" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="BestFahrzeit" TargetType="TextBlock" BasedOn="{StaticResource Zahl}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IstBestFahrzeit}" Value="True">
+                    <Setter Property="Foreground" Value="Red" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="BestDurchschnittKmh" TargetType="TextBlock" BasedOn="{StaticResource Zahl}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IstBestDurchschnittKmh}" Value="True">
+                    <Setter Property="Foreground" Value="Red" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="BestMaxKmh" TargetType="TextBlock" BasedOn="{StaticResource Zahl}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IstBestMaxKmh}" Value="True">
+                    <Setter Property="Foreground" Value="Red" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Kontextmenü der Spaltenüberschriften; die Einträge werden beim Öffnen im Code-Behind erzeugt -->
+        <ContextMenu x:Key="Spaltenmenue" Opened="Spaltenmenue_Opened" />
+    </UserControl.Resources>
+
+    <Grid>
+        <!-- Hinweis bei leerer Auswahl -->
+        <TextBlock Text="Keine Einheiten in dieser Auswahl." HorizontalAlignment="Center" VerticalAlignment="Center"
+                   FontSize="16" Foreground="Gray">
+            <TextBlock.Style>
+                <Style TargetType="TextBlock">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding HatEinheiten}" Value="False">
+                            <Setter Property="Visibility" Value="Visible" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TextBlock.Style>
+        </TextBlock>
+
+        <DockPanel Visibility="{Binding HatEinheiten, Converter={StaticResource SichtbarWennWahr}}">
+
+            <!-- 2. Summenzeile: Zellen siehe Code-Behind; der ScrollViewer folgt dem waagrechten Blättern der Tabelle -->
+            <Border DockPanel.Dock="Bottom" BorderBrush="Gray" BorderThickness="0,1,0,0" Background="#FFF0F0F0">
+                <ScrollViewer x:Name="SummenScroller" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
+                    <StackPanel x:Name="Summenzeile" Orientation="Horizontal" TextElement.FontWeight="Bold" Margin="0,3" />
+                </ScrollViewer>
+            </Border>
+
+            <!-- 1. Tabelle -->
+            <DataGrid x:Name="Tabelle"
+                      ItemsSource="{Binding Einheitszeilen}"
+                      AutoGenerateColumns="False"
+                      IsReadOnly="True"
+                      CanUserReorderColumns="True"
+                      ColumnReordered="Tabelle_ColumnReordered"
+                      CanUserAddRows="False"
+                      CanUserDeleteRows="False"
+                      HeadersVisibility="Column"
+                      GridLinesVisibility="Horizontal"
+                      HorizontalGridLinesBrush="#FFE0E0E0"
+                      SelectionMode="Extended"
+                      EnableRowVirtualization="True"
+                      EnableColumnVirtualization="False"
+                      ScrollViewer.ScrollChanged="Tabelle_ScrollChanged">
+                <DataGrid.ColumnHeaderStyle>
+                    <Style TargetType="DataGridColumnHeader">
+                        <Setter Property="ContextMenu" Value="{StaticResource Spaltenmenue}" />
+                        <Setter Property="Padding" Value="4,2" />
+                    </Style>
+                </DataGrid.ColumnHeaderStyle>
+                <DataGrid.Columns>
+                    <DataGridTextColumn x:Name="SpalteDatum" Header="Datum" Binding="{Binding Datum, StringFormat='ddd, dd.MM.yyyy'}" SortMemberPath="Datum" />
+                    <DataGridTextColumn x:Name="SpalteStartzeit" Header="Start" Binding="{Binding Startzeit, StringFormat='HH:mm'}" SortMemberPath="Startzeit" />
+                    <DataGridTextColumn x:Name="SpalteName" Header="Name" Binding="{Binding Name}" />
+                    <DataGridTextColumn x:Name="SpalteAktivitaet" Header="Aktivität" Binding="{Binding Aktivitaet}" />
+                    <DataGridTextColumn x:Name="SpalteKategorien" Header="Kategorien" Binding="{Binding Kategorien}" />
+                    <DataGridTextColumn x:Name="SpalteEquipment" Header="Equipment" Binding="{Binding Equipment}" />
+                    <DataGridTextColumn x:Name="SpalteDistanz" Header="km" Binding="{Binding DistanzKm, StringFormat='N2'}"
+                                        SortMemberPath="DistanzKm" ElementStyle="{StaticResource BestDistanz}" />
+                    <DataGridTextColumn x:Name="SpalteHoehenmeter" Header="hm" Binding="{Binding Hoehenmeter, StringFormat='N0'}"
+                                        SortMemberPath="Hoehenmeter" ElementStyle="{StaticResource BestHoehenmeter}" />
+                    <DataGridTextColumn x:Name="SpalteFahrzeit" Header="Fahrzeit" Binding="{Binding FahrzeitText}"
+                                        SortMemberPath="Fahrzeit" ElementStyle="{StaticResource BestFahrzeit}" />
+                    <DataGridTextColumn x:Name="SpalteDurchschnittKmh" Header="Ø km/h" Binding="{Binding DurchschnittKmh, StringFormat='N1'}"
+                                        SortMemberPath="DurchschnittKmh" ElementStyle="{StaticResource BestDurchschnittKmh}" />
+                    <DataGridTextColumn x:Name="SpalteMaxKmh" Header="max km/h" Binding="{Binding MaxKmh, StringFormat='N1'}"
+                                        SortMemberPath="MaxKmh" ElementStyle="{StaticResource BestMaxKmh}" />
+                    <DataGridTextColumn x:Name="SpaltePulsDurchschnitt" Header="Ø Puls" Binding="{Binding HfDurchschnitt}"
+                                        SortMemberPath="HfDurchschnitt" ElementStyle="{StaticResource Zahl}" />
+                    <DataGridTextColumn x:Name="SpaltePulsMax" Header="max Puls" Binding="{Binding HfMax}"
+                                        SortMemberPath="HfMax" ElementStyle="{StaticResource Zahl}" />
+                    <DataGridTextColumn x:Name="SpalteTrittfrequenz" Header="Trittfrequenz" Binding="{Binding Trittfrequenz}"
+                                        SortMemberPath="Trittfrequenz" ElementStyle="{StaticResource Zahl}" />
+                    <DataGridTextColumn x:Name="SpalteTemperatur" Header="°C" Binding="{Binding Temperatur}"
+                                        SortMemberPath="Temperatur" ElementStyle="{StaticResource Zahl}" />
+                    <DataGridTextColumn x:Name="SpalteMaxHoehe" Header="max Höhe" Binding="{Binding MaxHoehe, StringFormat='N0'}"
+                                        SortMemberPath="MaxHoehe" ElementStyle="{StaticResource Zahl}" />
+                    <DataGridTextColumn x:Name="SpalteTrainingsbereich" Header="Bereich" Binding="{Binding Trainingsbereich}" />
+                </DataGrid.Columns>
+            </DataGrid>
+        </DockPanel>
+    </Grid>
+</UserControl>

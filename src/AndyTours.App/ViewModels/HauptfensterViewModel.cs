@@ -96,6 +96,139 @@ public partial class HauptfensterViewModel : ObservableObject
     [ObservableProperty]
     private string _summentext = string.Empty;
 
+    /// <summary>Zeilen der Tabelle „Trainingseinheiten“: die Einheiten der aktuellen Auswahl.</summary>
+    /// <remarks>
+    /// Die Sammlung bleibt dieselbe und wird nur neu gefüllt – so behält die Tabelle eine per Klick
+    /// gewählte Sortierung beim Wechsel der Auswahl.
+    /// </remarks>
+    public ObservableCollection<Einheitszeile> Einheitszeilen { get; } = new();
+
+    /// <summary><c>true</c>, wenn die Auswahl Einheiten enthält; sonst zeigt die Karteikarte einen Hinweis.</summary>
+    [ObservableProperty]
+    private bool _hatEinheiten;
+
+    /// <summary>Summenzeile: Anzahl der angezeigten Einheiten (unter der Spalte „Name“).</summary>
+    [ObservableProperty]
+    private string _summeAnzahl = string.Empty;
+
+    /// <summary>Summenzeile: Summe der Distanzen in km.</summary>
+    [ObservableProperty]
+    private string _summeDistanz = string.Empty;
+
+    /// <summary>Summenzeile: Summe der Höhenmeter.</summary>
+    [ObservableProperty]
+    private string _summeHoehenmeter = string.Empty;
+
+    /// <summary>Summenzeile: Summe der Fahrzeiten („h:mm:ss“, auch über 24 Stunden).</summary>
+    [ObservableProperty]
+    private string _summeFahrzeit = string.Empty;
+
+    /// <summary>
+    /// In der Tabelle ausgeblendete Spalten; gespeichert in der Datenbank des Datenordners.
+    /// </summary>
+    /// <remarks>
+    /// Die Tabelle beobachtet diese Eigenschaft und blendet ihre Spalten entsprechend ein oder aus.
+    /// Bei jeder Änderung wird eine neue Menge zugewiesen, damit die Änderungsmeldung ausgelöst wird.
+    /// </remarks>
+    [ObservableProperty]
+    private IReadOnlySet<Einheitenspalte> _ausgeblendeteSpalten = new HashSet<Einheitenspalte>();
+
+    /// <summary>
+    /// Reihenfolge und Breiten der Tabellenspalten, wie sie beim Laden des Datenbestands gelesen wurden.
+    /// </summary>
+    /// <remarks>
+    /// Die Tabelle wendet die Anordnung an, sobald sich diese Eigenschaft ändert (Programmstart,
+    /// Datenordnerwechsel). Änderungen durch den Benutzer meldet die Tabelle über
+    /// <see cref="MerkeSpaltenanordnung"/> zurück.
+    /// </remarks>
+    [ObservableProperty]
+    private IReadOnlyList<Spalteneinstellung> _spaltenanordnung = VervollstaendigeSpaltenanordnung.Ausfuehren([]);
+
+    /// <summary>
+    /// Beim Start gelesene Größe, Position und Zustand des Hauptfensters; <c>null</c>, wenn noch nichts gemerkt ist.
+    /// </summary>
+    public Fensterposition? GemerkteFensterposition { get; private set; }
+
+    /// <summary>
+    /// Beim Start gelesene Nummer der zuletzt gewählten Karteikarte; <c>null</c>, wenn noch nichts gemerkt ist.
+    /// </summary>
+    public int? GemerkteKarteikarte { get; private set; }
+
+    /// <summary>
+    /// Speichert Reihenfolge und Breiten der Tabellenspalten in der Datenbank des Datenordners.
+    /// </summary>
+    /// <remarks>
+    /// Wird von der Tabelle nach dem Verschieben oder Verbreitern einer Spalte und beim Beenden aufgerufen.
+    /// Die Eigenschaft <see cref="Spaltenanordnung"/> bleibt dabei unverändert, damit die Tabelle ihre
+    /// gerade gezeigte Anordnung nicht erneut anwendet.
+    /// </remarks>
+    /// <param name="anordnung">Die Spalten in Anzeigereihenfolge.</param>
+    public void MerkeSpaltenanordnung(IReadOnlyList<Spalteneinstellung> anordnung) =>
+        SpeichereStill(verbindung => SpeichereSpaltenanordnung.Ausfuehren(verbindung, anordnung));
+
+    /// <summary>Speichert Größe, Position und Zustand des Hauptfensters (beim Schließen aufgerufen).</summary>
+    /// <param name="position">Die zu merkende Position.</param>
+    public void MerkeFensterposition(Fensterposition position) =>
+        SpeichereStill(verbindung => SpeichereFensterposition.Ausfuehren(verbindung, position));
+
+    /// <summary>Speichert die gewählte Karteikarte des Hauptfensters (beim Schließen aufgerufen).</summary>
+    /// <param name="nummer">Index der Karteikarte, ab 0.</param>
+    public void MerkeKarteikarte(int nummer) =>
+        SpeichereStill(verbindung => SpeichereKarteikarte.Ausfuehren(verbindung, nummer));
+
+    /// <summary>
+    /// Schreibt einen Komfortwert in die Datenbank des Datenordners; Fehler werden ohne Meldung übergangen.
+    /// </summary>
+    /// <remarks>
+    /// Spaltenanordnung und Fensterposition sind reine Bequemlichkeit. Eine Fehlermeldung, etwa beim
+    /// Beenden mit ausgeschaltetem NAS, würde nur stören – schlimmstenfalls gilt beim nächsten Start
+    /// die vorherige Anordnung.
+    /// </remarks>
+    private void SpeichereStill(Action<SqliteConnection> speichern)
+    {
+        try
+        {
+            using SqliteConnection verbindung = OeffneDatenbank.Ausfuehren(Path.Combine(Datenordner, DatenordnerInhalt.Datenbankdatei));
+            speichern(verbindung);
+        }
+        catch (Exception fehler) when (fehler is SqliteException or IOException or UnauthorizedAccessException)
+        {
+            // bewusst ohne Meldung, siehe oben
+        }
+    }
+
+    /// <summary>
+    /// Befehl aus dem Kontextmenü der Spaltenüberschriften: blendet eine Spalte ein oder aus und speichert die Wahl sofort.
+    /// </summary>
+    /// <remarks>
+    /// Die letzte sichtbare Spalte bleibt sichtbar (<see cref="SchalteSpalteUm"/>). Lässt sich die Wahl
+    /// nicht speichern, erscheint eine Meldung und die Tabelle bleibt, wie sie war.
+    /// </remarks>
+    /// <param name="spalte">Die umzuschaltende Spalte.</param>
+    [RelayCommand]
+    private void SpalteUmschalten(Einheitenspalte spalte)
+    {
+        HashSet<Einheitenspalte> neu = SchalteSpalteUm.Ausfuehren(AusgeblendeteSpalten, spalte);
+        if (neu.SetEquals(AusgeblendeteSpalten))
+        {
+            return; // letzte sichtbare Spalte – nichts zu tun
+        }
+
+        try
+        {
+            using SqliteConnection verbindung = OeffneDatenbank.Ausfuehren(Path.Combine(Datenordner, DatenordnerInhalt.Datenbankdatei));
+            SpeichereAusgeblendeteSpalten.Ausfuehren(verbindung, neu);
+        }
+        catch (Exception fehler) when (fehler is SqliteException or IOException or UnauthorizedAccessException)
+        {
+            MessageBox.Show($"Die Spaltenauswahl konnte nicht gespeichert werden:\n\n{fehler.Message}",
+                "Trainingseinheiten", MessageBoxButton.OK, MessageBoxImage.Error);
+            return;
+        }
+
+        AusgeblendeteSpalten = neu;
+    }
+
     /// <summary>Wird vom CommunityToolkit aufgerufen, sobald sich die Jahresauswahl ändert.</summary>
     partial void OnAusgewaehltesJahrChanged(string value) => AktualisiereSummen();
 
@@ -114,13 +247,25 @@ public partial class HauptfensterViewModel : ObservableObject
     private void LadeDatenbank(string ordner)
     {
         Datenbestand geladen;
+        HashSet<Einheitenspalte> ausgeblendet;
+        List<Spalteneinstellung> anordnung;
+        Fensterposition? fenster;
+        int? karteikarte;
         using (SqliteConnection verbindung = OeffneDatenbank.Ausfuehren(Path.Combine(ordner, DatenordnerInhalt.Datenbankdatei)))
         {
             geladen = LadeDatenbestand.Ausfuehren(verbindung);
+            ausgeblendet = LadeAusgeblendeteSpalten.Ausfuehren(verbindung);
+            anordnung = LadeSpaltenanordnung.Ausfuehren(verbindung);
+            fenster = LadeFensterposition.Ausfuehren(verbindung);
+            karteikarte = LadeKarteikarte.Ausfuehren(verbindung);
         }
 
         _bestand = geladen;
         Datenordner = ordner;
+        Spaltenanordnung = anordnung;
+        AusgeblendeteSpalten = ausgeblendet;
+        GemerkteFensterposition = fenster;
+        GemerkteKarteikarte = karteikarte;
 
         // Jahresliste: „alle Jahre“, dann alle Jahre mit Einheiten und immer das aktuelle Jahr, das neueste zuerst
         int aktuellesJahr = DateTime.Today.Year;
@@ -147,27 +292,41 @@ public partial class HauptfensterViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Berechnet die Summen der aktuellen Jahres- und Aktivitätsauswahl und zeigt sie neben der Auswahl an.
+    /// Berechnet die Summen der aktuellen Jahres- und Aktivitätsauswahl und zeigt sie neben der Auswahl an;
+    /// füllt außerdem die Tabelle „Trainingseinheiten“ und ihre Summenzeile.
     /// </summary>
     /// <remarks>
-    /// Wird bei jeder Änderung der Auswahl aufgerufen. Die Einträge „alle Jahre“ und „alle Aktivitäten“
-    /// werden als „keine Einschränkung“ (<c>null</c>) an <see cref="FiltereAuswahl"/> übergeben.
+    /// Wird bei jeder Änderung der Auswahl und nach jedem Laden des Datenbestands aufgerufen
+    /// (Programmstart, Datenordnerwechsel, Wiederherstellen einer Sicherung). Die Einträge „alle Jahre“
+    /// und „alle Aktivitäten“ werden als „keine Einschränkung“ (<c>null</c>) an
+    /// <see cref="FiltereAuswahl"/> übergeben.
     /// </remarks>
     private void AktualisiereSummen()
     {
-        if (_bestand.Trainingseinheiten.Count == 0)
-        {
-            Summentext = "Noch keine Touren vorhanden.";
-            return;
-        }
-
         // Auswahl aus der Werkzeugleiste in Filterwerte übersetzen
         int? jahr = int.TryParse(AusgewaehltesJahr, NumberStyles.Integer, CultureInfo.InvariantCulture, out int j) ? j : null;
         long? aktivitaetId = _bestand.Aktivitaeten.FirstOrDefault(a => a.Name == AusgewaehlteAktivitaet)?.Id;
+        List<Trainingseinheit> auswahl = FiltereAuswahl.Ausfuehren(_bestand.Trainingseinheiten, jahr, aktivitaetId);
 
-        Auswahlsumme summe = BerechneAuswahlsummen.Ausfuehren(FiltereAuswahl.Ausfuehren(_bestand.Trainingseinheiten, jahr, aktivitaetId));
-        Summentext = string.Format(CultureInfo.GetCultureInfo("de-DE"), "{0:N0} Einheiten · {1:N2} km · {2:N0} hm",
-            summe.Anzahl, summe.DistanzKm, summe.Hoehenmeter);
+        // Tabelle neu füllen (dieselbe Sammlung, damit die gewählte Sortierung erhalten bleibt)
+        Einheitszeilen.Clear();
+        foreach (Einheitszeile zeile in ErstelleEinheitszeilen.Ausfuehren(auswahl, _bestand))
+        {
+            Einheitszeilen.Add(zeile);
+        }
+
+        HatEinheiten = auswahl.Count > 0;
+
+        CultureInfo deutsch = CultureInfo.GetCultureInfo("de-DE");
+        Auswahlsumme summe = BerechneAuswahlsummen.Ausfuehren(auswahl);
+        SummeAnzahl = string.Format(deutsch, "{0:N0} {1}", summe.Anzahl, summe.Anzahl == 1 ? "Einheit" : "Einheiten");
+        SummeDistanz = summe.DistanzKm.ToString("N2", deutsch);
+        SummeHoehenmeter = summe.Hoehenmeter.ToString("N0", deutsch);
+        SummeFahrzeit = FormatiereDauer.Ausfuehren(summe.Fahrzeit);
+
+        Summentext = _bestand.Trainingseinheiten.Count == 0
+            ? "Noch keine Touren vorhanden."
+            : string.Format(deutsch, "{0:N0} Einheiten · {1:N2} km · {2:N0} hm", summe.Anzahl, summe.DistanzKm, summe.Hoehenmeter);
     }
 
     /// <summary>

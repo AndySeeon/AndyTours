@@ -13,17 +13,17 @@ public class BerechneAuswahlsummenTests
         new() { Datum = new DateOnly(jahr, 6, 1), AktivitaetId = aktivitaetId, DistanzKm = km, Hoehenmeter = hm, Fahrzeit = TimeSpan.FromHours(2) };
 
     [Fact]
-    public void Anzahl_Kilometer_und_Hoehenmeter_werden_addiert()
+    public void Anzahl_Kilometer_Hoehenmeter_und_Fahrzeit_werden_addiert()
     {
         Auswahlsumme summe = BerechneAuswahlsummen.Ausfuehren([Einheit(2026, 1, 77.83, 859), Einheit(2026, 1, 40.5, 300)]);
 
-        Assert.Equal(new Auswahlsumme(2, 118.33, 1159), summe);
+        Assert.Equal(new Auswahlsumme(2, 118.33, 1159, TimeSpan.FromHours(4)), summe);
     }
 
     [Fact]
     public void Leere_Auswahl_ergibt_null()
     {
-        Assert.Equal(new Auswahlsumme(0, 0, 0), BerechneAuswahlsummen.Ausfuehren([]));
+        Assert.Equal(new Auswahlsumme(0, 0, 0, TimeSpan.Zero), BerechneAuswahlsummen.Ausfuehren([]));
     }
 
     [Fact]

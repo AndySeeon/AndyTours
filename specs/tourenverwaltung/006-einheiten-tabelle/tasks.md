@@ -1,0 +1,29 @@
+# Aufgaben: 006 – Tabelle der Trainingseinheiten
+
+- [x] 1. `Auswahlsumme` und `BerechneAuswahlsummen` um die Fahrzeit erweitern, Tests anpassen
+- [x] 2. `FormatiereDauer` mit Tests
+- [x] 3. `BerechneDurchschnittsgeschwindigkeit` mit Tests
+- [x] 4. `Bestwerte` und `ErmittleBestwerte` mit Tests
+- [x] 5. `Einheitszeile` und `ErstelleEinheitszeilen` mit Tests
+- [x] 6. `Einheitenspalte` und `SchalteSpalteUm` mit Tests
+- [x] 7. Einstellungsschlüssel, `LadeAusgeblendeteSpalten` und `SpeichereAusgeblendeteSpalten` mit Tests
+- [x] 8. `HauptfensterViewModel`: Zeilen, Summenzeile, `HatEinheiten`, Spaltenwahl und `SpalteUmschalten`
+- [x] 9. `EinheitenTabelle.xaml`: DataGrid mit 17 Spalten, deutschem Format, Bestwert-Stil und Hinweis bei leerer Auswahl
+- [x] 10. Summenzeile unter der Tabelle mit Kopplung an Breite, Sichtbarkeit und waagrechtes Blättern
+- [x] 11. Startsortierung und Kontextmenü zum Ein- und Ausblenden der Spalten
+- [x] 12. `EinheitenTabelle` in die Karteikarte „Trainingseinheiten“ einsetzen
+- [x] 13. Bauen ohne Warnungen und alle Tests grün
+- [x] 14. `Spalteneinstellung` und `VervollstaendigeSpaltenanordnung` mit Tests
+- [x] 15. `Fensterposition`, `Bildschirmbereich` und `PruefeFensterposition` mit Tests
+- [x] 16. Einstellungsschlüssel, Laden und Speichern von Spaltenanordnung und Fensterposition mit Tests
+- [x] 17. `HauptfensterViewModel`: Spaltenanordnung und Fensterposition laden und speichern
+- [x] 18. Spaltenmenü bleibt offen
+- [x] 19. Spalten verschieben, Summenzeile folgt; Anordnung anwenden und speichern
+- [x] 20. Mindestbreite der Spalten aus der Summe
+- [x] 21. Fensterposition beim Start setzen und beim Schließen speichern
+- [x] 22. Bauen ohne Warnungen und alle Tests grün
+- [x] 23. Eintrag „Übernehmen“ im Spaltenmenü
+- [x] 24. Karteikarte laden und speichern mit Tests
+- [x] 25. Letzte Karteikarte beim Start setzen und beim Schließen merken
+- [x] 26. Bauen ohne Warnungen und alle Tests grün
+- [x] 27. Manuelle Prüfungen laut Plan

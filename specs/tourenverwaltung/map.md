@@ -35,7 +35,7 @@ In Umsetzungsreihenfolge.
   - Status: done → [005-sicherung-wiederherstellen](005-sicherung-wiederherstellen/spec.md)
 - `einheiten-tabelle` — Alle Trainingseinheiten der Auswahl erscheinen in einer sortierbaren Tabelle mit Summenzeile und rot markierten Bestwerten.
   - Abhängig von: `hauptfenster-auswahl`
-  - Status: open
+  - Status: done → [006-einheiten-tabelle](006-einheiten-tabelle/spec.md)
 - `einheiten-filter` — Die Tabelle lässt sich nach Kategorie, Equipment, Trainingsbereich, Distanz, Höhenmetern und Name filtern.
   - Abhängig von: `einheiten-tabelle`
   - Status: open

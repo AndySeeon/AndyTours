@@ -20,4 +20,16 @@ public static class Einstellungsschluessel
 
     /// <summary>Programmstarts seit der letzten erfolgreichen Sicherung.</summary>
     public const string StartsSeitSicherung = "Sicherung.StartsSeitSicherung";
+
+    /// <summary>In der Tabelle „Trainingseinheiten“ ausgeblendete Spalten, kommagetrennt; fehlt der Eintrag, sind alle sichtbar.</summary>
+    public const string AusgeblendeteSpalten = "Einheitentabelle.AusgeblendeteSpalten";
+
+    /// <summary>Reihenfolge und Breiten der Spalten der Tabelle „Trainingseinheiten“, z. B. „Datum:96,Startzeit:,Name:250“.</summary>
+    public const string Spaltenanordnung = "Einheitentabelle.Spalten";
+
+    /// <summary>Größe, Position und Zustand des Hauptfensters: „Links;Oben;Breite;Höhe;Maximiert“.</summary>
+    public const string Fensterposition = "Hauptfenster.Position";
+
+    /// <summary>Zuletzt gewählte Karteikarte des Hauptfensters als Nummer ab 0, z. B. „1“ für „Trainingseinheiten“.</summary>
+    public const string Karteikarte = "Hauptfenster.Karteikarte";
 }

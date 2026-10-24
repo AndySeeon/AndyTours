@@ -8,10 +8,10 @@ namespace AndyTours.Core.Berechnungen;
 public static class BerechneAuswahlsummen
 {
     /// <summary>
-    /// Addiert Anzahl, Kilometer und Höhenmeter der übergebenen Einheiten.
+    /// Addiert Anzahl, Kilometer, Höhenmeter und Fahrzeit der übergebenen Einheiten.
     /// </summary>
     /// <remarks>
-    /// Eine leere Auswahl ergibt 0 / 0 / 0. Die Distanz wird wie bei
+    /// Eine leere Auswahl ergibt überall 0. Die Distanz wird wie bei
     /// <see cref="BerechneJahressummen"/> auf 2 Nachkommastellen gerundet, damit die Werte genau
     /// mit den Jahressummen im Umwandlungsbericht übereinstimmen.
     /// </remarks>
@@ -22,6 +22,7 @@ public static class BerechneAuswahlsummen
         return new Auswahlsumme(
             Anzahl: einheiten.Count,
             DistanzKm: Math.Round(einheiten.Sum(einheit => einheit.DistanzKm), 2),
-            Hoehenmeter: einheiten.Sum(einheit => einheit.Hoehenmeter));
+            Hoehenmeter: einheiten.Sum(einheit => einheit.Hoehenmeter),
+            Fahrzeit: TimeSpan.FromTicks(einheiten.Sum(einheit => einheit.Fahrzeit.Ticks)));
     }
 }
