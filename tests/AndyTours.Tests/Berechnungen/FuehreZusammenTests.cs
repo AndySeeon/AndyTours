@@ -71,4 +71,19 @@ public class FuehreZusammenTests
         Assert.True(bestand.Aktivitaeten[0].IstHaupt);
         Assert.All(bestand.Trainingseinheiten, e => Assert.NotEqual(1, e.AktivitaetId));
     }
+
+    [Fact]
+    public void Aktivitaeten_Saisonziele_des_Ursprungs_entfallen()
+    {
+        Datenbestand bestand = Auswahlbestand.Erzeugen();
+        bestand.Saisonziele =
+        [
+            new() { AktivitaetId = 2, AbJahr = 2026, ZielKm = 500 },
+            new() { AktivitaetId = 3, AbJahr = 2026, ZielKm = 800 },
+        ];
+
+        FuehreAktivitaetenZusammen.Ausfuehren(bestand, 2, 3);
+
+        Assert.Equal(800, Assert.Single(bestand.Saisonziele).ZielKm);
+    }
 }

@@ -16,6 +16,9 @@ public class Datenbestand
     /// <summary>Alle Aktivitäten.</summary>
     public List<Aktivitaet> Aktivitaeten { get; set; } = new();
 
+    /// <summary>Alle eigenen Saisonziele (je Aktivität und „ab Jahr“).</summary>
+    public List<Saisonziel> Saisonziele { get; set; } = new();
+
     /// <summary>Alle Kategorien.</summary>
     public List<Kategorie> Kategorien { get; set; } = new();
 

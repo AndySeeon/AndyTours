@@ -20,6 +20,7 @@ public static class DatenbestandTabellen
         {
             Fahrer = FahrerTabelle.Laden(verbindung),
             Aktivitaeten = AktivitaetenTabelle.Laden(verbindung),
+            Saisonziele = SaisonzieleTabelle.Laden(verbindung),
             Kategorien = KategorienTabelle.Laden(verbindung),
             Equipments = EquipmentsTabelle.Laden(verbindung),
             Trainingseinheiten = TrainingseinheitenTabelle.Laden(verbindung),
@@ -56,6 +57,7 @@ public static class DatenbestandTabellen
 
         FahrerTabelle.Speichern(verbindung, transaktion, bestand.Fahrer);
         AktivitaetenTabelle.Speichern(verbindung, transaktion, bestand.Aktivitaeten);
+        SaisonzieleTabelle.Speichern(verbindung, transaktion, bestand.Saisonziele);
         KategorienTabelle.Speichern(verbindung, transaktion, bestand.Kategorien);
         EquipmentsTabelle.Speichern(verbindung, transaktion, bestand.Equipments);
         TrainingseinheitenTabelle.Speichern(verbindung, transaktion, bestand.Trainingseinheiten);

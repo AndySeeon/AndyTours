@@ -27,7 +27,7 @@ public static class TestSicherungen
         Fuehre(datei, "DROP TABLE Einstellung; PRAGMA user_version = 1;");
     }
 
-    /// <summary>Schreibt eine Sicherung mit der angegebenen Schemaversion (z. B. 3 = neuere Programmversion).</summary>
+    /// <summary>Schreibt eine Sicherung mit der angegebenen Schemaversion (z. B. eine höhere als die aktuelle = neuere Programmversion).</summary>
     public static void MitVersion(string datei, int version)
     {
         Gueltig(datei, 1, "Zukunft");

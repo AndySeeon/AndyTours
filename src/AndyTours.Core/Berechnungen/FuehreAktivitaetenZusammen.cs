@@ -7,7 +7,8 @@ namespace AndyTours.Core.Berechnungen;
 /// </summary>
 /// <remarks>
 /// Alle Einheiten und Equipments der Ursprungsaktivität gehören danach zur Zielaktivität; war die
-/// Ursprungsaktivität die Hauptaktivität, wird es die Zielaktivität. Zum Schluss wird die
+/// Ursprungsaktivität die Hauptaktivität, wird es die Zielaktivität. Die Saisonziele der
+/// Ursprungsaktivität entfallen; es gelten die der Zielaktivität. Zum Schluss wird die
 /// Ursprungsaktivität aus der Liste entfernt.
 /// </remarks>
 public static class FuehreAktivitaetenZusammen
@@ -45,6 +46,8 @@ public static class FuehreAktivitaetenZusammen
             ziel.IstHaupt = true;
         }
 
+        // In der Datenbank entfallen die Ziele mit der Aktivität (ON DELETE CASCADE), hier ebenso
+        bestand.Saisonziele.RemoveAll(z => z.AktivitaetId == ursprungId);
         bestand.Aktivitaeten.Remove(ursprung);
         return anzahl;
     }

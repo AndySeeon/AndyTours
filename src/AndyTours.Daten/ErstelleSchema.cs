@@ -20,7 +20,7 @@ namespace AndyTours.Daten;
 public static class ErstelleSchema
 {
     /// <summary>Aktuelle Version des Datenbankschemas.</summary>
-    public const int Schemaversion = 2;
+    public const int Schemaversion = 3;
 
     /// <summary>
     /// Führt die CREATE-Anweisungen aus. Vorhandene Tabellen und Daten bleiben unverändert.
@@ -55,6 +55,17 @@ public static class ErstelleSchema
                 ZielKm                   REAL    NOT NULL,
                 ZielHm                   REAL    NOT NULL,
                 ZielAnzahl               INTEGER NOT NULL
+            );
+
+            -- Eigene Saisonziele je Aktivität, gültig ab einem Jahr (seit Schemaversion 3); das Grundziel aus
+            -- BikeXperience steht weiter in Aktivitaet. Wird eine Aktivität gelöscht, verschwinden ihre Ziele mit.
+            CREATE TABLE IF NOT EXISTS Saisonziel (
+                AktivitaetId  INTEGER NOT NULL REFERENCES Aktivitaet(Id) ON DELETE CASCADE,
+                AbJahr        INTEGER NOT NULL,
+                ZielKm        INTEGER NOT NULL,
+                ZielHm        INTEGER NOT NULL,
+                ZielAnzahl    INTEGER NOT NULL,
+                PRIMARY KEY (AktivitaetId, AbJahr)
             );
 
             CREATE TABLE IF NOT EXISTS Kategorie (

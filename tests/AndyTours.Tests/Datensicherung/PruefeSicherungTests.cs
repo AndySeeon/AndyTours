@@ -1,3 +1,4 @@
+using AndyTours.Daten;
 using AndyTours.Daten.Datensicherung;
 using AndyTours.Tests.Datenordner;
 
@@ -35,7 +36,7 @@ public class PruefeSicherungTests
     {
         using var temp = new TempOrdner();
         string datei = Path.Combine(temp.Pfad, "s.db");
-        TestSicherungen.MitVersion(datei, 3);
+        TestSicherungen.MitVersion(datei, ErstelleSchema.Schemaversion + 1);
 
         Assert.Equal(Sicherungspruefung.NeuereVersion, PruefeSicherung.Ausfuehren(datei));
     }

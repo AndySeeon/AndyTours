@@ -61,7 +61,7 @@ In Umsetzungsreihenfolge.
   - Status: done → [013-persoenliche-daten](013-persoenliche-daten/spec.md)
 - `saisonziele` — Der Benutzer legt je Aktivität und Jahr Saisonziele für Kilometer, Höhenmeter und Anzahl fest.
   - Abhängig von: `aktivitaeten-kategorien-verwalten`
-  - Status: open
+  - Status: done → [014-saisonziele](014-saisonziele/spec.md)
 - `jahresfortschritt` — Die Ansicht „Aktuell“ zeigt den Jahresfortschritt bei km und hm gegenüber dem Saisonziel und die nötige Wochenleistung bis Saisonende.
   - Abhängig von: `saisonziele`
   - Status: open

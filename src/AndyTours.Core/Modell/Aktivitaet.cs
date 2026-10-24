@@ -6,7 +6,8 @@ namespace AndyTours.Core.Modell;
 /// <remarks>
 /// Entspricht im Original dem INI-Abschnitt <c>[Activity]</c>; dort steht je Aktivität eine Zeile
 /// <c>Name=Haupt;Einheit;Ziel km;Ziel hm;Ziel Anzahl</c>.
-/// Die Saisonziele werden später auf der Karteikarte „Aktuell" für den Jahresfortschritt verwendet.
+/// Die Saisonziele hier sind das <b>Grundziel</b> aus BikeXperience: Es gilt für alle Jahre vor dem ersten
+/// eigenen <see cref="Saisonziel"/> der Aktivität (siehe <see cref="Berechnungen.ErmittleSaisonziel"/>).
 /// </remarks>
 public class Aktivitaet
 {

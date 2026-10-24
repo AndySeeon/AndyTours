@@ -300,6 +300,8 @@ public partial class HauptfensterViewModel : IAuswahllistenSpeicher
                 });
                 if (gespeichert)
                 {
+                    // In der Datenbank entfallen die Saisonziele mit der Aktivität (ON DELETE CASCADE), hier ebenso
+                    _bestand.Saisonziele.RemoveAll(z => z.AktivitaetId == aktivitaet.Id);
                     _bestand.Aktivitaeten.Remove(aktivitaet);
                     FuelleAktivitaeten(gewaehlt);
                 }
