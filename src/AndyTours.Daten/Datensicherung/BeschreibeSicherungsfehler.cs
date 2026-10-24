@@ -9,13 +9,13 @@ namespace AndyTours.Daten.Datensicherung;
 public static class BeschreibeSicherungsfehler
 {
     /// <summary>HRESULT von Windows für „Auf dem Datenträger ist nicht genug Speicherplatz“ (ERROR_DISK_FULL).</summary>
-    private const int DatentraegerVoll = unchecked((int)0x80070070);
+    internal const int DatentraegerVoll = unchecked((int)0x80070070);
 
     /// <summary>HRESULT von Windows für „Der Datenträger ist voll“ (ERROR_HANDLE_DISK_FULL).</summary>
-    private const int DatentraegerVollHandle = unchecked((int)0x80070027);
+    internal const int DatentraegerVollHandle = unchecked((int)0x80070027);
 
     /// <summary>SQLite-Fehlercode SQLITE_FULL: Datenbank oder Datenträger voll.</summary>
-    private const int SqliteVoll = 13;
+    internal const int SqliteVoll = 13;
 
     /// <summary>
     /// Liefert die Beschreibung für den Benutzer.

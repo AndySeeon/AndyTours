@@ -182,6 +182,29 @@ public partial class HauptfensterViewModel : ObservableObject
     }
 
     /// <summary>
+    /// Befehl „Extras → Sicherung wiederherstellen…“: Sicherung wählen, nachfragen, zurückspielen und
+    /// danach den Datenbestand neu laden, sodass Jahre, Aktivitäten und Summen sofort den Stand der
+    /// Sicherung zeigen.
+    /// </summary>
+    [RelayCommand]
+    private async Task SicherungWiederherstellen()
+    {
+        await FuehreWiederherstellungDurch.Ausfuehren(Datenordner, () =>
+        {
+            try
+            {
+                LadeDatenbank(Datenordner);
+            }
+            catch (Exception fehler) when (fehler is SqliteException or IOException or UnauthorizedAccessException)
+            {
+                // Sehr unwahrscheinlich, weil die Sicherung vorher geprüft wurde; ein Neustart lädt den Stand ebenfalls
+                MessageBox.Show($"Die wiederhergestellten Daten konnten nicht geladen werden:\n\n{fehler.Message}\n\n" +
+                    "Bitte starten Sie AndyTours neu.", "Sicherung wiederherstellen", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        });
+    }
+
+    /// <summary>
     /// Ablauf „Datenordner ändern“ aus den Einstellungen: Ordner wählen und prüfen lassen
     /// (inkl. Rückfragen und ggf. Kopieren), dann die Daten des neuen Ordners laden und ihn merken.
     /// </summary>

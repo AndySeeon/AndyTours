@@ -41,6 +41,8 @@
             </MenuItem>
             <MenuItem Header="E_xtras">
                 <MenuItem Header="_Einstellungen…" Command="{Binding EinstellungenOeffnenCommand}" />
+                <Separator />
+                <MenuItem Header="Sicherung _wiederherstellen…" Command="{Binding SicherungWiederherstellenCommand}" />
             </MenuItem>
             <MenuItem Header="_Hilfe">
                 <MenuItem Header="_Über AndyTours" Command="{Binding UeberCommand}" />

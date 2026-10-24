@@ -32,7 +32,7 @@ In Umsetzungsreihenfolge.
   - Status: done → [004-datensicherung](004-datensicherung/spec.md)
 - `sicherung-wiederherstellen` — Der Benutzer kann eine Sicherung auswählen und den Datenbestand nach Rückfrage auf deren Stand zurücksetzen.
   - Abhängig von: `datensicherung`
-  - Status: open
+  - Status: done → [005-sicherung-wiederherstellen](005-sicherung-wiederherstellen/spec.md)
 - `einheiten-tabelle` — Alle Trainingseinheiten der Auswahl erscheinen in einer sortierbaren Tabelle mit Summenzeile und rot markierten Bestwerten.
   - Abhängig von: `hauptfenster-auswahl`
   - Status: open
