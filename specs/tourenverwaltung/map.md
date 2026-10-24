@@ -16,6 +16,9 @@
 - Equipment: Gewicht, Radumfang, Roll- und Luftwiderstandswerte, Kettenblätter und Ritzel, Bild
 - Leistungsberechnung (Steig- und Gesamtleistung, Kalorien)
 - Werkzeuge: Ritzelrechner, Pulsrechner, Marathonzeitenplaner
+- Import von GPX- und TCX-Dateien
+- Synchronisierung mit Garmin Connect (kein offizieller Zugang für Einzelnutzer)
+- Anhänge einer Einheit öffnen (Aufzeichnung, Dokumentation)
 
 ## Funktionen
 In Umsetzungsreihenfolge.
@@ -74,15 +77,9 @@ In Umsetzungsreihenfolge.
 - `garmin-import` — Neue Touren vom angeschlossenen Garmin Edge 1040 werden eingelesen und als Einheiten angelegt; bereits vorhandene werden erkannt und übersprungen; die Gerätezuordnung der Equipments wird hier gepflegt.
   - Abhängig von: `einheit-bearbeiten`
   - Status: done → [017-garmin-import](017-garmin-import/spec.md)
-- `gpx-tcx-import` — Der Benutzer kann GPX- und TCX-Dateien als neue Einheiten importieren.
-  - Abhängig von: `einheit-bearbeiten`
-  - Status: open
-- `anhaenge-oeffnen` — Die Anhänge einer Einheit (Aufzeichnung, Dokumentation) lassen sich öffnen.
-  - Abhängig von: `einheiten-tabelle`
-  - Status: open
 - `hoehenprofil` — Zur gewählten Einheit wird das Höhenprofil der Aufzeichnung angezeigt.
   - Abhängig von: `einheiten-tabelle`
-  - Status: open
+  - Status: done → [018-hoehenprofil](018-hoehenprofil/spec.md)
 - `streckenkarte` — Zur gewählten Einheit wird die Strecke auf einer OpenStreetMap-Karte angezeigt.
   - Abhängig von: `einheiten-tabelle`
   - Status: open

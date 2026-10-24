@@ -52,6 +52,7 @@ public partial class HauptfensterViewModel
     [NotifyCanExecuteChangedFor(nameof(KategorienZuordnenCommand))]
     [NotifyCanExecuteChangedFor(nameof(AktivitaetAendernCommand))]
     [NotifyCanExecuteChangedFor(nameof(EquipmentAendernCommand))]
+    [NotifyCanExecuteChangedFor(nameof(TourdetailOeffnenCommand))]
     private IReadOnlyList<long> _markierteEinheiten = [];
 
     /// <summary>

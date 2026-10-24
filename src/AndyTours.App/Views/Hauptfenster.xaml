@@ -57,6 +57,7 @@
                 <MenuItem Header="_Neue Einheit…" Command="{Binding NeueEinheitCommand}" InputGestureText="Strg+N" />
                 <MenuItem Header="_Bearbeiten…" Command="{Binding EinheitBearbeitenCommand}" />
                 <MenuItem Header="_Kopieren…" Command="{Binding EinheitKopierenCommand}" />
+                <MenuItem Header="_Tourdetail…" Command="{Binding TourdetailOeffnenCommand}" />
                 <Separator />
                 <MenuItem Header="Kategorien _zuordnen…" Command="{Binding KategorienZuordnenCommand}" />
                 <MenuItem Header="_Aktivität ändern…" Command="{Binding AktivitaetAendernCommand}" />
