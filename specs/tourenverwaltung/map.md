@@ -73,7 +73,7 @@ In Umsetzungsreihenfolge.
   - Status: done → [015-jahresfortschritt](015-jahresfortschritt/spec.md) (in `jahresfortschritt` enthalten)
 - `garmin-import` — Neue Touren vom angeschlossenen Garmin Edge 1040 werden eingelesen und als Einheiten angelegt; bereits vorhandene werden erkannt und übersprungen; die Gerätezuordnung der Equipments wird hier gepflegt.
   - Abhängig von: `einheit-bearbeiten`
-  - Status: open
+  - Status: done → [017-garmin-import](017-garmin-import/spec.md)
 - `gpx-tcx-import` — Der Benutzer kann GPX- und TCX-Dateien als neue Einheiten importieren.
   - Abhängig von: `einheit-bearbeiten`
   - Status: open

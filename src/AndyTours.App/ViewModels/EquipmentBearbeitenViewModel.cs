@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -7,7 +8,8 @@ namespace AndyTours.App.ViewModels;
 
 /// <summary>
 /// ViewModel des Fensters „Equipment“: Name, Aktivität, Standardkategorie, Anschaffungsdatum,
-/// Anfangskilometer, Standard und ausgemustert eines neuen oder vorhandenen Equipments.
+/// Anfangskilometer, Standard und ausgemustert eines neuen oder vorhandenen Equipments sowie die beim
+/// Garmin-Import gemerkten Rad-Kennungen und Sensoren (Gerätezuordnung), von denen sich einzelne entfernen lassen.
 /// </summary>
 /// <remarks>
 /// Das Fenster arbeitet nur auf Texten; der Datenbestand ändert sich erst, wenn „OK“ erfolgreich
@@ -65,6 +67,7 @@ public partial class EquipmentBearbeitenViewModel : ObservableObject
         _anfangskilometer = eingaben.Anfangskilometer;
         _ausgemustert = eingaben.Ausgemustert;
         _istStandard = eingaben.IstStandard && KannStandard;
+        Radkennungen = [.. eingaben.Radkennungen];
         Pruefen();
     }
 
@@ -110,6 +113,14 @@ public partial class EquipmentBearbeitenViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(KannStandard))]
     private bool _ausgemustert;
 
+    /// <summary>Die gemerkten Rad-Kennungen und Sensoren; „Entfernen“ nimmt die markierte heraus.</summary>
+    public ObservableCollection<Radkennung> Radkennungen { get; }
+
+    /// <summary>Die in der Liste der Gerätezuordnung markierte Kennung.</summary>
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(KennungEntfernenCommand))]
+    private Radkennung? _markierteKennung;
+
     /// <summary>Hinweis zur ersten ungültigen Eingabe; leer, wenn alles gültig ist.</summary>
     [ObservableProperty]
     private string _hinweis = string.Empty;
@@ -129,6 +140,25 @@ public partial class EquipmentBearbeitenViewModel : ObservableObject
 
     /// <summary>Wählbarkeit von „OK“: keine ungültige Eingabe.</summary>
     private bool IstGueltig() => Hinweis.Length == 0;
+
+    /// <summary>
+    /// Befehl „Entfernen“ der Gerätezuordnung: nimmt die markierte Kennung aus der Liste.
+    /// </summary>
+    /// <remarks>
+    /// Gespeichert wird erst mit „OK“. Eine entfernte Kennung lernt AndyTours beim nächsten Import wieder,
+    /// dann für das dort gewählte Equipment.
+    /// </remarks>
+    [RelayCommand(CanExecute = nameof(IstKennungMarkiert))]
+    private void KennungEntfernen()
+    {
+        if (MarkierteKennung is Radkennung kennung)
+        {
+            Radkennungen.Remove(kennung);
+        }
+    }
+
+    /// <summary>Wählbarkeit von „Entfernen“: eine Kennung ist markiert.</summary>
+    private bool IstKennungMarkiert() => MarkierteKennung is not null;
 
     /// <summary>Prüft nach jeder Änderung eines Feldes neu; ohne Möglichkeit für Standard wird er abgeschaltet.</summary>
     protected override void OnPropertyChanged(PropertyChangedEventArgs e)
@@ -164,5 +194,6 @@ public partial class EquipmentBearbeitenViewModel : ObservableObject
         Anfangskilometer = Anfangskilometer,
         IstStandard = IstStandard && KannStandard,
         Ausgemustert = Ausgemustert,
+        Radkennungen = [.. Radkennungen],
     };
 }

@@ -8,7 +8,8 @@ namespace AndyTours.Core.Berechnungen;
 /// <remarks>
 /// Beide Richtungen stehen zusammen, weil sie dieselben Regeln teilen: Anfangskilometer 0 erscheinen als
 /// leeres Feld, ein leeres Feld wird wieder als 0 gespeichert; ein fehlendes Anschaffungsdatum ist ein
-/// leeres Feld.
+/// leeres Feld. Die Gerätezuordnung wird mit <see cref="GeraetezuordnungText"/> in die Liste der gemerkten
+/// Rad-Kennungen und Sensoren umgewandelt und zurück.
 /// </remarks>
 public static class EquipmentEingaben
 {
@@ -31,6 +32,7 @@ public static class EquipmentEingaben
         Anfangskilometer = Eingabetext.AlsText(equipment.AnfangsdistanzKm > 0 ? equipment.AnfangsdistanzKm : (double?)null),
         IstStandard = ErmittleStandardEquipment.IstWirksam(equipment),
         Ausgemustert = equipment.Ausgemustert,
+        Radkennungen = GeraetezuordnungText.Lesen(equipment.Geraetezuordnung),
     };
 
     /// <summary>
@@ -45,6 +47,7 @@ public static class EquipmentEingaben
     /// <item>Die Anfangskilometer müssen leer oder eine Zahl von 0 an sein.</item>
     /// <item>Standard ist nur möglich mit Aktivität und ohne „ausgemustert“; sonst wird es abgeschaltet.</item>
     /// <item>Nummer und die Werte, die AndyTours nicht pflegt, werden aus <paramref name="basis"/> übernommen.</item>
+    /// <item>Die Gerätezuordnung entsteht aus den verbliebenen Rad-Kennungen und Sensoren der Eingaben.</item>
     /// </list>
     /// Geprüft wird in dieser Reihenfolge; der Hinweis nennt den ersten Fehler.
     /// </remarks>
@@ -84,7 +87,7 @@ public static class EquipmentEingaben
             SinCoeff = basis.SinCoeff,
             Kettenblaetter = [.. basis.Kettenblaetter],
             Ritzel = [.. basis.Ritzel],
-            Geraetezuordnung = basis.Geraetezuordnung,
+            Geraetezuordnung = GeraetezuordnungText.Schreiben(eingaben.Radkennungen),
             StandardKategorie = eingaben.StandardKategorie.Trim(),
             IstStandard = eingaben.IstStandard && eingaben.AktivitaetId is not null && !eingaben.Ausgemustert,
             Ausgemustert = eingaben.Ausgemustert,

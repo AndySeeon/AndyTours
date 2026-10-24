@@ -45,7 +45,11 @@
 
         <!-- 1. Menüleiste -->
         <Menu DockPanel.Dock="Top">
+            <!-- Import neuer Touren vom angeschlossenen Garmin-Gerät bzw. aus gewählten FIT-Dateien -->
             <MenuItem Header="_Datei">
+                <MenuItem Header="Vom _Garmin importieren…" Command="{Binding VomGarminImportierenCommand}" />
+                <MenuItem Header="_FIT-Dateien importieren…" Command="{Binding FitDateienImportierenCommand}" />
+                <Separator />
                 <MenuItem Header="_Beenden" Command="{Binding BeendenCommand}" InputGestureText="Alt+F4" />
             </MenuItem>
             <!-- Befehle für Trainingseinheiten; „Löschen“ per Entf-Taste wird in der Tabelle ausgewertet -->

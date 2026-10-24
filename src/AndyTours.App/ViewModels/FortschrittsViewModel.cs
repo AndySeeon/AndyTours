@@ -53,7 +53,9 @@ public partial class FortschrittsViewModel : ObservableObject
 
         CultureInfo de = CultureInfo.GetCultureInfo("de-DE");
         DateienText = string.Format(de, "Dateien: {0:N0} von {1:N0}", stand.KopierteDateien, stand.GesamtDateien);
-        MengeText = string.Format(de, "Datenmenge: {0:N1} von {1:N1} MB",
-            stand.KopierteBytes / BytesJeMegabyte, stand.GesamtBytes / BytesJeMegabyte);
+        // Ohne bekannte Datenmenge (z. B. beim Lesen der Aufzeichnungen eines Geräts) entfällt die Mengenzeile
+        MengeText = stand.GesamtBytes > 0
+            ? string.Format(de, "Datenmenge: {0:N1} von {1:N1} MB", stand.KopierteBytes / BytesJeMegabyte, stand.GesamtBytes / BytesJeMegabyte)
+            : string.Empty;
     }
 }

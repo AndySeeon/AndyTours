@@ -61,6 +61,30 @@ public class EinheitSchreibenTests
     }
 
     [Fact]
+    public void Neue_Einheit_speichert_ihre_Anhaenge()
+    {
+        using SqliteConnection verbindung = DatenbankMitBestand();
+        var neu = new Trainingseinheit
+        {
+            FahrerId = 3, Datum = new DateOnly(2026, 10, 24), Name = "Import", AktivitaetId = 1,
+            Anhaenge =
+            [
+                new Anhang { Typ = AnhangTyp.Hoehenprofil, RelativerPfad = "2026/neu.fit" },
+                new Anhang { Typ = AnhangTyp.GpsTrack, RelativerPfad = "2026/neu.fit" },
+            ],
+        };
+
+        (long id, _) = TrainingseinheitenTabelle.Einfuegen(verbindung, neu);
+
+        List<Anhang> geladen = Lade(verbindung, id).Anhaenge;
+        Assert.Equal(2, geladen.Count);
+        Assert.Contains(geladen, a => a.Typ == AnhangTyp.Hoehenprofil && a.RelativerPfad == "2026/neu.fit");
+        Assert.Contains(geladen, a => a.Typ == AnhangTyp.GpsTrack && a.RelativerPfad == "2026/neu.fit");
+        // die vergebenen Nummern stehen auch in den übergebenen Anhängen
+        Assert.All(neu.Anhaenge, a => Assert.True(a.Id > 5));
+    }
+
+    [Fact]
     public void Ohne_Fahrer_wird_beim_Einfuegen_einer_angelegt()
     {
         using SqliteConnection verbindung = OeffneDatenbank.Ausfuehren(":memory:");

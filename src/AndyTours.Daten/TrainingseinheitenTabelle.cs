@@ -165,12 +165,14 @@ public static class TrainingseinheitenTabelle
     }
 
     /// <summary>
-    /// Speichert eine neue Einheit (Befehle „Neue Einheit“ und „Kopieren“) und liefert ihre Nummer.
+    /// Speichert eine neue Einheit (Befehle „Neue Einheit“, „Kopieren“ und Garmin-Import) und liefert ihre Nummer.
     /// </summary>
     /// <remarks>
     /// Die Nummer vergibt die Datenbank. Hat die Einheit noch keinen Sportler (Nummer 0, leerer Datenordner),
     /// wird der Standardsportler verwendet bzw. angelegt (<see cref="FahrerTabelle.Standardfahrer"/>).
-    /// Einheit und Kategorien werden in einer Transaktion geschrieben: Entweder alles oder nichts.
+    /// Einheit, Kategorien und Anhänge (beim Import die Aufzeichnung) werden in einer Transaktion geschrieben:
+    /// Entweder alles oder nichts. Die Anhänge erhalten ihre Nummer ebenfalls von der Datenbank; sie wird in
+    /// die übergebenen Anhänge eingetragen.
     /// </remarks>
     /// <param name="verbindung">Geöffnete Verbindung.</param>
     /// <param name="einheit">Die neue Einheit (ihre Nummer wird nicht verwendet).</param>
@@ -201,6 +203,7 @@ public static class TrainingseinheitenTabelle
         }
 
         SchreibeKategorien(verbindung, transaktion, id, einheit.KategorieIds);
+        SchreibeNeueAnhaenge(verbindung, transaktion, id, einheit.Anhaenge);
         transaktion.Commit();
         return (id, fahrerId);
     }
@@ -341,6 +344,26 @@ public static class TrainingseinheitenTabelle
         {
             kategorie.Value = kategorieId;
             befehl.ExecuteNonQuery();
+        }
+    }
+
+    /// <summary>Schreibt die Anhänge einer neuen Einheit und trägt die vergebenen Nummern ein.</summary>
+    private static void SchreibeNeueAnhaenge(SqliteConnection verbindung, SqliteTransaction transaktion, long einheitId, IEnumerable<Anhang> anhaenge)
+    {
+        using SqliteCommand befehl = verbindung.CreateCommand();
+        befehl.Transaction = transaktion;
+        befehl.CommandText = """
+            INSERT INTO Anhang (EinheitId, Typ, RelativerPfad) VALUES ($einheitId, $typ, $pfad);
+            SELECT last_insert_rowid();
+            """;
+        befehl.Parameters.AddWithValue("$einheitId", einheitId);
+        SqliteParameter typ = befehl.Parameters.Add("$typ", SqliteType.Text);
+        SqliteParameter pfad = befehl.Parameters.Add("$pfad", SqliteType.Text);
+        foreach (Anhang anhang in anhaenge)
+        {
+            typ.Value = anhang.Typ.ToString();
+            pfad.Value = anhang.RelativerPfad;
+            anhang.Id = (long)befehl.ExecuteScalar()!;
         }
     }
 

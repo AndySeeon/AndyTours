@@ -72,7 +72,9 @@ public static class UebernimmEquipment
     }
 
     /// <summary>Erzeugt eine unabhängige Kopie mit eigenen Listen.</summary>
-    private static Equipment Kopie(Equipment e) => new()
+    /// <param name="e">Das zu kopierende Equipment.</param>
+    /// <returns>Die Kopie.</returns>
+    public static Equipment Kopie(Equipment e) => new()
     {
         Id = e.Id,
         Name = e.Name,

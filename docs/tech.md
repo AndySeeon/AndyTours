@@ -9,6 +9,7 @@
 - SQLite über `Microsoft.Data.Sqlite`
 - `Garmin.FIT.Sdk` für FIT-Dateien
 - Diagramme: OxyPlot (`OxyPlot.Wpf`), siehe `docs/adr/0001-diagrammbibliothek.md`
+- Zugriff auf Mediengeräte (Garmin Edge 1040 per MTP): `MediaDevices`, nur im App-Projekt, siehe `docs/adr/0002-zugriff-auf-mediengeraete.md`
 - Bibliothek für die Karte wird erst bei der jeweiligen Funktion festgelegt
 
 ## Werkzeuge

@@ -112,8 +112,35 @@ public class EquipmentEingabenTests
         Assert.Equal(0.004, equipment.CrCoeff);
         Assert.Equal([36, 52], equipment.Kettenblaetter);
         Assert.Equal([11, 28], equipment.Ritzel);
-        Assert.Equal("Bike1", equipment.Geraetezuordnung);
         Assert.Equal("rad.jpg", equipment.Bildpfad);
+    }
+
+    [Fact]
+    public void Gemerkte_Kennungen_werden_zur_Liste_und_zurueck()
+    {
+        var equipment = new Equipment { Name = "JAM2", Geraetezuordnung = "Rad:7af22db6; Sensor:3452708077; Bike1" };
+
+        Equipmenteingaben eingaben = EquipmentEingaben.AlsEingaben(equipment);
+
+        Assert.Equal(
+            [new Radkennung(Radkennungsart.Rad, "7af22db6"), new Radkennung(Radkennungsart.Sensor, "3452708077"), new Radkennung(Radkennungsart.Altwert, "Bike1")],
+            eingaben.Radkennungen);
+        Equipment zurueck = EquipmentEingaben.AlsEquipment(eingaben, equipment, Auswahlbestand.MitEquipments()).Equipment!;
+        Assert.Equal("Rad:7af22db6; Sensor:3452708077; Bike1", zurueck.Geraetezuordnung);
+    }
+
+    [Fact]
+    public void Entfernte_Kennung_fehlt_in_der_Geraetezuordnung()
+    {
+        var equipment = new Equipment { Name = "JAM2", Geraetezuordnung = "Rad:7af22db6; Sensor:3452708077" };
+        Equipmenteingaben eingaben = EquipmentEingaben.AlsEingaben(equipment) with
+        {
+            Radkennungen = [new Radkennung(Radkennungsart.Sensor, "3452708077")],
+        };
+
+        Equipment geaendert = EquipmentEingaben.AlsEquipment(eingaben, equipment, Auswahlbestand.MitEquipments()).Equipment!;
+
+        Assert.Equal("Sensor:3452708077", geaendert.Geraetezuordnung);
     }
 
     [Fact]
