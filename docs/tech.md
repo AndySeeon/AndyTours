@@ -8,7 +8,8 @@
 - WPF mit MVVM über `CommunityToolkit.Mvvm`
 - SQLite über `Microsoft.Data.Sqlite`
 - `Garmin.FIT.Sdk` für FIT-Dateien
-- Bibliotheken für Diagramme und Karte werden erst bei der jeweiligen Funktion festgelegt
+- Diagramme: OxyPlot (`OxyPlot.Wpf`), siehe `docs/adr/0001-diagrammbibliothek.md`
+- Bibliothek für die Karte wird erst bei der jeweiligen Funktion festgelegt
 
 ## Werkzeuge
 - .NET SDK 10.0.4xx, festgelegt in `global.json` (keine Vorabversionen)

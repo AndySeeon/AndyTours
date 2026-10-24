@@ -64,6 +64,9 @@ public partial class HauptfensterViewModel : ObservableObject
     /// <summary>Die Filterleiste über der Tabelle „Trainingseinheiten“.</summary>
     public EinheitenfilterViewModel Filter { get; } = new();
 
+    /// <summary>Inhalt der Karteikarte „Aktuell“: Jahresfortschritt mit Kennzahlen und Diagramm.</summary>
+    public JahresfortschrittViewModel Jahresfortschritt { get; } = new();
+
     /// <summary>Fenstertitel inklusive Programmversion.</summary>
     public string Titel => $"AndyTours {Programmversion}";
 
@@ -381,7 +384,20 @@ public partial class HauptfensterViewModel : ObservableObject
         Summentext = _bestand.Trainingseinheiten.Count == 0
             ? "Noch keine Touren vorhanden."
             : string.Format(deutsch, "{0:N0} Einheiten · {1:N2} km · {2:N0} hm", summe.Anzahl, summe.DistanzKm, summe.Hoehenmeter);
+
+        // Karteikarte „Aktuell“: alle Jahre, nur Aktivität und Kategorie wirken
+        AktualisiereJahresfortschritt();
     }
+
+    /// <summary>
+    /// Berechnet die Karteikarte „Aktuell“ neu: Aktivität aus der Werkzeugleiste, Kategorie aus der Filterleiste.
+    /// </summary>
+    /// <remarks>
+    /// Läuft am Ende von <see cref="AktualisiereSummen"/> (Änderungen an Einheiten, Werkzeugleiste und Filter)
+    /// und nach dem Speichern der Saisonziele.
+    /// </remarks>
+    private void AktualisiereJahresfortschritt() =>
+        Jahresfortschritt.Aktualisiere(_bestand, GewaehlteAktivitaetId(), Filter.ErstelleFilter().Kategorie, DateOnly.FromDateTime(DateTime.Today));
 
     /// <summary>
     /// Befehl „Extras → Einstellungen…“: öffnet das Einstellungsfenster.

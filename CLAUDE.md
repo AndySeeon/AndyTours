@@ -11,7 +11,8 @@ Programmiersprache: C#
 - Datenhaltung: SQLite über `Microsoft.Data.Sqlite`
 - FIT-Import: `Garmin.FIT.Sdk`
 - Tests: xUnit
-- Bibliotheken für Diagramme und Karte werden erst bei der jeweiligen Funktion festgelegt
+- Diagramme: OxyPlot (`OxyPlot.Wpf`), siehe `docs/adr/0001-diagrammbibliothek.md`
+- Bibliothek für die Karte wird erst bei der jeweiligen Funktion festgelegt
 
 ## Werkzeuge (Entwicklungsumgebung)
 | Werkzeug | Zweck | Installation |

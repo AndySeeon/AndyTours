@@ -38,6 +38,9 @@ public partial class HauptfensterViewModel
 
         _bestand.Saisonziele.RemoveAll(z => jahre.Contains(z.AbJahr));
         _bestand.Saisonziele.AddRange(ziele);
+
+        // Die Karteikarte „Aktuell“ zeigt die neuen Ziele sofort
+        AktualisiereJahresfortschritt();
         return true;
     }
 }

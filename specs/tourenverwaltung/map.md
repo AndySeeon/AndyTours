@@ -64,13 +64,13 @@ In Umsetzungsreihenfolge.
   - Status: done → [014-saisonziele](014-saisonziele/spec.md)
 - `jahresfortschritt` — Die Ansicht „Aktuell“ zeigt den Jahresfortschritt bei km und hm gegenüber dem Saisonziel und die nötige Wochenleistung bis Saisonende.
   - Abhängig von: `saisonziele`
-  - Status: open
+  - Status: done → [015-jahresfortschritt](015-jahresfortschritt/spec.md)
 - `bestleistungen` — Die Ansicht „Aktuell“ zeigt die Bestleistungen mit dem jeweiligen Rekordjahr.
   - Abhängig von: `hauptfenster-auswahl`
   - Status: open
 - `mehrjahresdiagramm` — Die Ansicht „Aktuell“ zeigt ein Diagramm von km, hm und Fahrzeit über alle Jahre.
   - Abhängig von: `hauptfenster-auswahl`
-  - Status: open
+  - Status: done → [015-jahresfortschritt](015-jahresfortschritt/spec.md) (in `jahresfortschritt` enthalten)
 - `garmin-import` — Neue Touren vom angeschlossenen Garmin Edge 1040 werden eingelesen und als Einheiten angelegt; bereits vorhandene werden erkannt und übersprungen; die Gerätezuordnung der Equipments wird hier gepflegt.
   - Abhängig von: `einheit-bearbeiten`
   - Status: open

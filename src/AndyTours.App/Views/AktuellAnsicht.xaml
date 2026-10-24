@@ -1,0 +1,56 @@
+<!--
+  Ansicht „Aktuell“ (Inhalt der gleichnamigen Karteikarte im Hauptfenster): Jahresfortschritt.
+
+  Aufbau von oben nach unten (DockPanel):
+    1. Überschrift des gezeigten Werts, z. B. „Kilometer (Summe Entfernung)“
+    2. Zwei Kennzahlzeilen des laufenden Jahres: Stand, Ziel, Prozent, Soll-Stand, Vorsprung bzw. Rückstand;
+       darunter Wochenleistung, „Ziel erreicht“ oder der Hinweis auf fehlende Saisonziele
+    3. Diagramm (OxyPlot) mit den Jahressummen: Linie mit Fläche, Punkte, gestrichelte Ziellinie, Soll-Markierung.
+       Ein Klick schaltet den Wert weiter (km → Anzahl → hm → Fahrzeit); Bedienung siehe Code-Behind.
+    - Ohne Einheiten in der Auswahl: statt des Diagramms der Hinweis „Keine Einheiten in dieser Auswahl.“
+
+  Datenquelle ist das JahresfortschrittViewModel (DataContext wird im Hauptfenster gesetzt).
+-->
+<UserControl x:Class="AndyTours.App.Views.AktuellAnsicht"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:oxy="http://oxyplot.org/wpf">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="SichtbarWennWahr" />
+    </UserControl.Resources>
+
+    <DockPanel Margin="12">
+
+        <!-- 1. Überschrift -->
+        <TextBlock DockPanel.Dock="Top" Text="{Binding Ueberschrift}" FontSize="18" FontWeight="SemiBold" />
+
+        <!-- 2. Kennzahlen des laufenden Jahres -->
+        <StackPanel DockPanel.Dock="Top" Margin="0,6,0,8">
+            <TextBlock Text="{Binding Stand}" FontSize="14" />
+            <TextBlock Text="{Binding Ausblick}" FontSize="14" Foreground="DimGray" />
+        </StackPanel>
+
+        <Grid>
+            <!-- Hinweis bei leerer Auswahl -->
+            <TextBlock Text="Keine Einheiten in dieser Auswahl." HorizontalAlignment="Center" VerticalAlignment="Center"
+                       FontSize="16" Foreground="Gray">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding HatEinheiten}" Value="False">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+
+            <!-- 3. Diagramm; ein Klick schaltet den Wert weiter -->
+            <oxy:PlotView x:Name="Diagramm" Model="{Binding Diagramm}" Cursor="Hand"
+                          PreviewMouseLeftButtonUp="Diagramm_Geklickt"
+                          Visibility="{Binding HatEinheiten, Converter={StaticResource SichtbarWennWahr}}" />
+        </Grid>
+    </DockPanel>
+</UserControl>
