@@ -70,6 +70,20 @@ public class EquipmentauswahlTests
     }
 
     [Fact]
+    public void Auswahl_fuer_mehrere_Aktivitaeten_ohne_Ausgemusterte()
+    {
+        Assert.Equal(["(kein)", "Cube", "Genius", "Neu", "Rennrad", "Schuhe"],
+            ErmittleEquipmentauswahl.Ausfuehren(Auswahlbestand.MitEquipments(), [1L, 2L]).Select(e => e.Name));
+    }
+
+    [Fact]
+    public void Auswahl_fuer_eine_Aktivitaet_der_Mehrfachauswahl()
+    {
+        Assert.Equal(["(kein)", "Cube", "Neu", "Schuhe"],
+            ErmittleEquipmentauswahl.Ausfuehren(Auswahlbestand.MitEquipments(), [2L]).Select(e => e.Name));
+    }
+
+    [Fact]
     public void Standardkategorie_wird_ohne_Unterschied_der_Schreibweise_gefunden()
     {
         // Genius hat „trainieren “ eingetragen, die Kategorie heißt „Trainieren“ (Id 2)

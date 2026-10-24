@@ -38,12 +38,20 @@ public partial class HauptfensterViewModel
     public event Action<long>? MarkiereEinheit;
 
     /// <summary>
+    /// Wird ausgelöst, wenn die Tabelle mehrere Einheiten markieren soll (nach dem Zuordnen).
+    /// </summary>
+    public event Action<IReadOnlyCollection<long>>? MarkiereEinheiten;
+
+    /// <summary>
     /// Nummern der in der Tabelle markierten Einheiten; die Tabelle setzt sie bei jeder Änderung der Markierung.
     /// </summary>
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(EinheitBearbeitenCommand))]
     [NotifyCanExecuteChangedFor(nameof(EinheitKopierenCommand))]
     [NotifyCanExecuteChangedFor(nameof(EinheitenLoeschenCommand))]
+    [NotifyCanExecuteChangedFor(nameof(KategorienZuordnenCommand))]
+    [NotifyCanExecuteChangedFor(nameof(AktivitaetAendernCommand))]
+    [NotifyCanExecuteChangedFor(nameof(EquipmentAendernCommand))]
     private IReadOnlyList<long> _markierteEinheiten = [];
 
     /// <summary>
@@ -117,7 +125,7 @@ public partial class HauptfensterViewModel
     /// <summary>Wählbarkeit von „Bearbeiten“ und „Kopieren“: genau eine Zeile markiert.</summary>
     private bool GenauEineMarkiert() => MarkierteEinheiten.Count == 1;
 
-    /// <summary>Wählbarkeit von „Löschen“: mindestens eine Zeile markiert.</summary>
+    /// <summary>Wählbarkeit von „Löschen“ und der Zuordnungsbefehle: mindestens eine Zeile markiert.</summary>
     private bool MindestensEineMarkiert() => MarkierteEinheiten.Count > 0;
 
     /// <summary>

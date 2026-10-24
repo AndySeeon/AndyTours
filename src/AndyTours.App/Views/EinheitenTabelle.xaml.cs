@@ -284,6 +284,7 @@ public partial class EinheitenTabelle : UserControl
         {
             _viewModel.PropertyChanged -= ViewModel_PropertyChanged;
             _viewModel.MarkiereEinheit -= ViewModel_MarkiereEinheit;
+            _viewModel.MarkiereEinheiten -= ViewModel_MarkiereEinheiten;
         }
 
         _viewModel = DataContext as HauptfensterViewModel;
@@ -291,6 +292,7 @@ public partial class EinheitenTabelle : UserControl
         {
             _viewModel.PropertyChanged += ViewModel_PropertyChanged;
             _viewModel.MarkiereEinheit += ViewModel_MarkiereEinheit;
+            _viewModel.MarkiereEinheiten += ViewModel_MarkiereEinheiten;
         }
 
         WendeAnordnungAn();
@@ -433,6 +435,36 @@ public partial class EinheitenTabelle : UserControl
         }
 
         Tabelle.ScrollIntoView(zeile);
+    }
+
+    /// <summary>
+    /// Markiert nach dem Zuordnen die Zeilen mehrerer Einheiten und holt die erste in den sichtbaren Bereich.
+    /// </summary>
+    /// <remarks>
+    /// Wird erst nach dem Neuaufbau der Tabelle ausgelöst; die dabei geleerte Markierung wird so ersetzt.
+    /// Das Ändern von <c>SelectedItems</c> meldet die neue Markierung über
+    /// <see cref="Tabelle_SelectionChanged"/> an das ViewModel.
+    /// </remarks>
+    /// <param name="ids">Nummern der Einheiten, die noch angezeigt werden.</param>
+    private void ViewModel_MarkiereEinheiten(IReadOnlyCollection<long> ids)
+    {
+        if (_viewModel is null)
+        {
+            return;
+        }
+
+        List<Einheitszeile> zeilen = _viewModel.Einheitszeilen.Where(z => ids.Contains(z.Id)).ToList();
+        Tabelle.SelectedItems.Clear();
+        foreach (Einheitszeile zeile in zeilen)
+        {
+            Tabelle.SelectedItems.Add(zeile);
+        }
+
+        // Die oberste markierte Zeile in der aktuellen Sortierung sichtbar machen
+        if (Tabelle.Items.OfType<Einheitszeile>().FirstOrDefault(z => ids.Contains(z.Id)) is Einheitszeile erste)
+        {
+            Tabelle.ScrollIntoView(erste);
+        }
     }
 
     /// <summary>

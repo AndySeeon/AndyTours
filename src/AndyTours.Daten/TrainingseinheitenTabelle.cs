@@ -214,9 +214,38 @@ public static class TrainingseinheitenTabelle
     /// <param name="verbindung">Geöffnete Verbindung.</param>
     /// <param name="einheit">Die Einheit mit ihrer Nummer.</param>
     /// <exception cref="InvalidOperationException">Die Einheit gibt es in der Datenbank nicht (mehr).</exception>
-    public static void Aendern(SqliteConnection verbindung, Trainingseinheit einheit)
+    public static void Aendern(SqliteConnection verbindung, Trainingseinheit einheit) => AendereMehrere(verbindung, [einheit]);
+
+    /// <summary>
+    /// Speichert die geänderten Werte mehrerer vorhandener Einheiten in einer Transaktion: entweder alle
+    /// oder keine (z. B. nach „Kategorien zuordnen…“ für eine Mehrfachauswahl).
+    /// </summary>
+    /// <remarks>
+    /// Je Einheit wie <see cref="Aendern"/>: Kategorie-Zuordnungen werden ersetzt, Anhänge bleiben unberührt.
+    /// </remarks>
+    /// <param name="verbindung">Geöffnete Verbindung.</param>
+    /// <param name="einheiten">Die Einheiten mit ihren Nummern.</param>
+    /// <exception cref="InvalidOperationException">
+    /// Eine der Einheiten gibt es in der Datenbank nicht (mehr); dann bleibt keine geändert.
+    /// </exception>
+    public static void AendereMehrere(SqliteConnection verbindung, IEnumerable<Trainingseinheit> einheiten)
     {
         using SqliteTransaction transaktion = verbindung.BeginTransaction();
+        foreach (Trainingseinheit einheit in einheiten)
+        {
+            AendereInTransaktion(verbindung, transaktion, einheit);
+        }
+
+        transaktion.Commit();
+    }
+
+    /// <summary>Ändert eine Einheit samt Kategorien innerhalb einer laufenden Transaktion.</summary>
+    /// <param name="verbindung">Geöffnete Verbindung.</param>
+    /// <param name="transaktion">Laufende Transaktion.</param>
+    /// <param name="einheit">Die Einheit mit ihrer Nummer.</param>
+    /// <exception cref="InvalidOperationException">Die Einheit gibt es in der Datenbank nicht (mehr).</exception>
+    private static void AendereInTransaktion(SqliteConnection verbindung, SqliteTransaction transaktion, Trainingseinheit einheit)
+    {
         using (SqliteCommand befehl = verbindung.CreateCommand())
         {
             befehl.Transaction = transaktion;
@@ -249,7 +278,6 @@ public static class TrainingseinheitenTabelle
         }
 
         SchreibeKategorien(verbindung, transaktion, einheit.Id, einheit.KategorieIds);
-        transaktion.Commit();
     }
 
     /// <summary>

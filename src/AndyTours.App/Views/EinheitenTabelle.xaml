@@ -269,6 +269,10 @@
                             <MenuItem Header="_Bearbeiten…" Command="{Binding EinheitBearbeitenCommand}" />
                             <MenuItem Header="_Kopieren…" Command="{Binding EinheitKopierenCommand}" />
                             <Separator />
+                            <MenuItem Header="Kategorien _zuordnen…" Command="{Binding KategorienZuordnenCommand}" />
+                            <MenuItem Header="_Aktivität ändern…" Command="{Binding AktivitaetAendernCommand}" />
+                            <MenuItem Header="_Equipment ändern…" Command="{Binding EquipmentAendernCommand}" />
+                            <Separator />
                             <MenuItem Header="_Löschen" Command="{Binding EinheitenLoeschenCommand}" InputGestureText="Entf" />
                         </ContextMenu>
                     </DataGrid.ContextMenu>

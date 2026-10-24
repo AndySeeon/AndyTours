@@ -32,4 +32,23 @@ public static class ErmittleEquipmentauswahl
             .Select(e => new Auswahleintrag(e.Id, e.Name))
             .Prepend(new Auswahleintrag(null, Eingabelisten.KeinEquipment))
             .ToList();
+
+    /// <summary>
+    /// Liefert die Einträge der Equipment-Auswahl für mehrere Einheiten mit verschiedenen Aktivitäten
+    /// („Equipment ändern…“ bei einer Mehrfachauswahl).
+    /// </summary>
+    /// <remarks>
+    /// Zuerst „(kein)“, dann alphabetisch die nicht ausgemusterten Equipments, die zu einer der Aktivitäten
+    /// passen, und die ohne Aktivität. Ausgemusterte werden nicht angeboten, auch wenn Einheiten sie haben.
+    /// </remarks>
+    /// <param name="bestand">Der Datenbestand.</param>
+    /// <param name="aktivitaetIds">Die Aktivitäten der markierten Einheiten.</param>
+    /// <returns>Die Einträge mit „(kein)“ an erster Stelle.</returns>
+    public static List<Auswahleintrag> Ausfuehren(Datenbestand bestand, IReadOnlyCollection<long> aktivitaetIds) =>
+        bestand.Equipments
+            .Where(e => !e.Ausgemustert && (e.AktivitaetId is null || aktivitaetIds.Contains(e.AktivitaetId.Value)))
+            .OrderBy(e => e.Name, StringComparer.CurrentCultureIgnoreCase)
+            .Select(e => new Auswahleintrag(e.Id, e.Name))
+            .Prepend(new Auswahleintrag(null, Eingabelisten.KeinEquipment))
+            .ToList();
 }

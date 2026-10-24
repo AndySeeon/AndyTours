@@ -7,7 +7,7 @@ namespace AndyTours.Tests.Daten;
 
 /// <summary>
 /// Tests für <see cref="TrainingseinheitenTabelle.Einfuegen"/>, <see cref="TrainingseinheitenTabelle.Aendern"/>,
-/// <see cref="TrainingseinheitenTabelle.Loeschen"/> und <see cref="FahrerTabelle.Standardfahrer"/>.
+/// <see cref="TrainingseinheitenTabelle.AendereMehrere"/>, <see cref="TrainingseinheitenTabelle.Loeschen"/> und <see cref="FahrerTabelle.Standardfahrer"/>.
 /// </summary>
 public class EinheitSchreibenTests
 {
@@ -112,6 +112,43 @@ public class EinheitSchreibenTests
         var fehlt = new Trainingseinheit { Id = 999, FahrerId = 3, Datum = new DateOnly(2026, 1, 1), AktivitaetId = 1 };
 
         Assert.Throws<InvalidOperationException>(() => TrainingseinheitenTabelle.Aendern(verbindung, fehlt));
+    }
+
+    [Fact]
+    public void Mehrere_Einheiten_werden_zusammen_geaendert()
+    {
+        using SqliteConnection verbindung = DatenbankMitBestand();
+        List<Trainingseinheit> einheiten = TrainingseinheitenTabelle.Laden(verbindung);
+        foreach (Trainingseinheit einheit in einheiten)
+        {
+            einheit.KategorieIds = [2];
+            einheit.EquipmentId = 7;
+        }
+
+        TrainingseinheitenTabelle.AendereMehrere(verbindung, einheiten);
+
+        Assert.All(TrainingseinheitenTabelle.Laden(verbindung), e =>
+        {
+            Assert.Equal([2L], e.KategorieIds);
+            Assert.Equal(7, e.EquipmentId);
+        });
+        Assert.Single(Lade(verbindung, 10).Anhaenge);
+    }
+
+    [Fact]
+    public void Scheitert_eine_Einheit_bleiben_alle_unveraendert()
+    {
+        using SqliteConnection verbindung = DatenbankMitBestand();
+        Trainingseinheit vorhanden = Lade(verbindung, 11);
+        vorhanden.Name = "Geändert";
+        vorhanden.KategorieIds = [1];
+        var fehlt = new Trainingseinheit { Id = 999, FahrerId = 3, Datum = new DateOnly(2026, 1, 1), AktivitaetId = 1 };
+
+        Assert.Throws<InvalidOperationException>(() => TrainingseinheitenTabelle.AendereMehrere(verbindung, [vorhanden, fehlt]));
+
+        Trainingseinheit geladen = Lade(verbindung, 11);
+        Assert.Equal("See", geladen.Name);
+        Assert.Empty(geladen.KategorieIds);
     }
 
     [Fact]

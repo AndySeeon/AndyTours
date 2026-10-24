@@ -55,7 +55,7 @@ In Umsetzungsreihenfolge.
   - Status: done → [011-equipments-verwalten](011-equipments-verwalten/spec.md)
 - `mehrfachauswahl-zuordnen` — Für mehrere markierte Einheiten kann der Benutzer auf einmal Kategorien zuordnen, die Aktivität wechseln oder das Equipment ändern.
   - Abhängig von: `einheiten-tabelle`, `aktivitaeten-kategorien-verwalten`, `equipments-verwalten`
-  - Status: open
+  - Status: done → [012-mehrfachauswahl-zuordnen](012-mehrfachauswahl-zuordnen/spec.md)
 - `persoenliche-daten` — Der Benutzer pflegt seine persönlichen Daten (Gewicht, Ruhe- und Maximalpuls, Heimatort).
   - Abhängig von: `hauptfenster-auswahl`
   - Status: open
