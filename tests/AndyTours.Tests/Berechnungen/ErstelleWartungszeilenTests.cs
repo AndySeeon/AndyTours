@@ -38,10 +38,24 @@ public class ErstelleWartungszeilenTests
         // gleiches Datum: die zuletzt erfasste (Nr. 3) oben; die Wartung des ausgemusterten Rads erscheint
         Assert.Equal([3, 2, 1], zeilen.Select(z => z.Id));
         Assert.Equal(new Wartungszeile(1, new DateOnly(2026, 5, 1), "Genius", 140, 140, 0, "Kettenwechsel", "0,5 %"), zeilen[2]);
-        Assert.Equal("Stevens", zeilen[1].Rad);
+        Assert.Equal("Stevens (ausgemustert)", zeilen[1].Rad);
         Assert.Equal(70, zeilen[1].KmStand);
         // erste Wartung ihrer Art: km-Stand und Tage seit der ersten Einheit (ohne Anschaffungsdatum)
         Assert.Equal((140.0, 31), (zeilen[0].KmSeitLetzter, zeilen[0].TageSeitLetzter));
+    }
+
+    [Fact]
+    public void Bei_allen_Equipments_nur_die_Wartungen_der_Aktivitaet_auch_ausgemusterter()
+    {
+        Datenbestand bestand = Bestand();
+        bestand.Equipments[0].AktivitaetId = 1;
+        bestand.Equipments[1].AktivitaetId = 1; // ausgemustert, bleibt sichtbar
+        bestand.Equipments.Add(new Equipment { Id = 9, Name = "Brooks", AktivitaetId = 2 });
+        bestand.Wartungen.Add(new Wartung { Id = 6, Datum = new DateOnly(2026, 6, 2), EquipmentId = 9, Taetigkeit = "Sohle" });
+
+        Assert.Equal([3, 2, 1], ErstelleWartungszeilen.Ausfuehren(bestand, null, 1).Select(z => z.Id));
+        Assert.Equal([6], ErstelleWartungszeilen.Ausfuehren(bestand, null, 2).Select(z => z.Id));
+        Assert.Equal([6, 3, 2, 1], ErstelleWartungszeilen.Ausfuehren(bestand, null).Select(z => z.Id));
     }
 
     [Fact]

@@ -2,8 +2,9 @@
   Ansicht der Karteikarte „Wartung“ im Hauptfenster.
 
   Aufbau:
-    1. Oben: Radauswahl („Alle Räder“, die Räder im Einsatz alphabetisch, am Ende die ausgemusterten); sie
-       gilt für beide Bereiche
+    1. Oben: Equipment-Auswahl („Alle Equipments“, dann die Equipments im Einsatz der oben im Hauptfenster
+       gewählten Aktivität alphabetisch, bei „alle Aktivitäten“ die der Hauptaktivität); sie gilt für beide
+       Bereiche. „Alle Equipments“ zeigt die Einträge aller Equipments dieser Aktivität, auch der ausgemusterten
     2. Bereich „Alarme“ (begrenzte Höhe, damit die Wartungen sichtbar bleiben): Schaltflächen „Neuer Alarm…“,
        „Bearbeiten…“ und „Löschen“, darunter die Alarmliste mit Rad, Tätigkeit, Intervall, gefahrenen und
        verbleibenden km. Fällige Alarme sind rot, bald fällige orange, ausgeschaltete grau. Rechtsklick öffnet
@@ -74,9 +75,9 @@
     </UserControl.Resources>
 
     <DockPanel>
-        <!-- 1. Radauswahl für beide Bereiche -->
+        <!-- 1. Equipment-Auswahl für beide Bereiche -->
         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="6">
-            <TextBlock Text="Rad:" VerticalAlignment="Center" Margin="0,0,6,0" />
+            <TextBlock Text="Equipment:" VerticalAlignment="Center" Margin="0,0,6,0" />
             <ComboBox Width="220" ItemsSource="{Binding Wartungsraeder}" SelectedItem="{Binding GewaehltesWartungsrad}"
                       DisplayMemberPath="Name" />
         </StackPanel>

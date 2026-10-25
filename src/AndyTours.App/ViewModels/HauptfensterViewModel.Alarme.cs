@@ -37,7 +37,7 @@ public partial class HauptfensterViewModel
     /// </summary>
     public event Action<IReadOnlyCollection<long>>? MarkiereAlarme;
 
-    /// <summary>Die Zeilen der Alarmliste (gefiltert nach dem gewählten Rad, fällige zuerst).</summary>
+    /// <summary>Die Zeilen der Alarmliste (gefiltert nach dem gewählten Rad bzw. der Aktivität, fällige zuerst).</summary>
     public ObservableCollection<Alarmzeile> Alarmzeilen { get; } = new();
 
     /// <summary><c>true</c>, wenn die Alarmliste Zeilen hat; sonst steht dort <see cref="Alarmhinweis"/>.</summary>
@@ -176,18 +176,18 @@ public partial class HauptfensterViewModel
     private bool MindestensEinAlarmMarkiert() => MarkierteAlarme.Count > 0;
 
     /// <summary>
-    /// Öffnet das Alarmfenster für einen neuen oder vorhandenen Alarm; Räder und Liste „Tätigkeit“ werden jedes
+    /// Öffnet das Alarmfenster für einen neuen oder vorhandenen Alarm; Equipments (nur die der gültigen Aktivität) und Liste „Tätigkeit“ werden jedes
     /// Mal neu ermittelt, damit das Fenster den aktuellen Stand anbietet.
     /// </summary>
     /// <param name="alarm">Der zu bearbeitende Alarm (bei „Neu“ mit der Nummer 0).</param>
     /// <param name="titel">Fenstertitel.</param>
     private void OeffneAlarmfenster(Wartung alarm, string titel)
     {
-        // Bei „Neu“ nur Räder im Einsatz; beim Bearbeiten bleibt das bisherige (ggf. ausgemusterte) Rad wählbar
+        // Bei „Neu“ nur Equipments im Einsatz; beim Bearbeiten bleibt das bisherige (ggf. ausgemusterte) wählbar
         long? bisheriges = alarm.Id == 0 ? null : alarm.EquipmentId;
         var viewModel = new AlarmBearbeitenViewModel(
             alarm,
-            ErmittleWartungsraeder.Ausfuehren(_bestand, bisheriges),
+            ErmittleWartungsraeder.Ausfuehren(_bestand, WartungsaktivitaetId(), bisheriges),
             [.. _taetigkeiten],
             titel,
             SpeichereAlarm,
@@ -200,7 +200,7 @@ public partial class HauptfensterViewModel
     /// Speichert einen Alarm aus dem Alarmfenster (neu oder geändert) und zeigt ihn in der Liste.
     /// </summary>
     /// <remarks>
-    /// Ist oben ein anderes Rad gewählt als das des Alarms, wechselt die Auswahl auf „Alle Räder“, damit der
+    /// Ist oben ein anderes Rad gewählt als das des Alarms, wechselt die Auswahl auf „Alle Equipments“, damit der
     /// Alarm sofort sichtbar ist. Danach wird er markiert.
     /// </remarks>
     /// <param name="alarm">Der fertige Alarm; bei einem neuen ist die Nummer 0.</param>
@@ -243,7 +243,7 @@ public partial class HauptfensterViewModel
 
         if (GewaehltesWartungsrad?.Id is long radId && radId != alarm.EquipmentId)
         {
-            GewaehltesWartungsrad = AlleRaeder; // füllt beide Listen neu
+            GewaehltesWartungsrad = AlleEquipments; // füllt beide Listen neu
         }
         else
         {
@@ -258,10 +258,10 @@ public partial class HauptfensterViewModel
     /// Füllt die Alarmliste mit den Alarmen des gewählten Rads (dieselbe Sammlung, damit die gewählte Sortierung
     /// erhalten bleibt), setzt den Hinweis für eine leere Liste und den Titel der Karteikarte.
     /// </summary>
-    /// <remarks>Der Titel zählt die fälligen Alarme aller Räder, unabhängig von der Radauswahl.</remarks>
+    /// <remarks>Der Titel zählt die fälligen Alarme aller Equipments, unabhängig von Auswahl und Aktivität.</remarks>
     private void FuelleAlarmzeilen()
     {
-        List<Alarmzeile> zeilen = ErstelleAlarmzeilen.Ausfuehren(_bestand, GewaehltesWartungsrad?.Id);
+        List<Alarmzeile> zeilen = ErstelleAlarmzeilen.Ausfuehren(_bestand, GewaehltesWartungsrad?.Id, WartungsaktivitaetId());
         Alarmzeilen.Clear();
         foreach (Alarmzeile zeile in zeilen)
         {
@@ -273,9 +273,8 @@ public partial class HauptfensterViewModel
             ? "Keine Alarme für dieses Rad."
             : "Keine Alarme eingerichtet.";
 
-        int faellig = GewaehltesWartungsrad?.Id is null
-            ? zeilen.Count(z => z.Zustand == Alarmzustand.Faellig)
-            : ErstelleAlarmzeilen.Ausfuehren(_bestand, null).Count(z => z.Zustand == Alarmzustand.Faellig);
+        // ohne Rad und ohne Aktivität: alle Alarme
+        int faellig = ErstelleAlarmzeilen.Ausfuehren(_bestand, null).Count(z => z.Zustand == Alarmzustand.Faellig);
         WartungTitel = faellig > 0 ? $"Wartung ({faellig})" : "Wartung";
     }
 }

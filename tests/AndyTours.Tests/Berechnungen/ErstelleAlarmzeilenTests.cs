@@ -49,6 +49,22 @@ public class ErstelleAlarmzeilenTests
     }
 
     [Fact]
+    public void Bei_allen_Equipments_nur_die_Alarme_der_Aktivitaet_auch_ausgemusterter()
+    {
+        Datenbestand bestand = Bestand();
+        bestand.Equipments[0].AktivitaetId = 1;
+        bestand.Equipments[1].AktivitaetId = 2;
+        bestand.Equipments[1].Ausgemustert = true;
+
+        Assert.Equal([2, 1], ErstelleAlarmzeilen.Ausfuehren(bestand, null, 1).Select(z => z.Id));
+        // ausgemustert: alle ausgeschaltet, nach verbleibenden km
+        Assert.Equal([4, 5, 3], ErstelleAlarmzeilen.Ausfuehren(bestand, null, 2).Select(z => z.Id));
+        Assert.All(ErstelleAlarmzeilen.Ausfuehren(bestand, null, 2), z => Assert.Equal("Stevens (ausgemustert)", z.Rad));
+        // ohne Aktivität alle (Titel der Karteikarte, Hinweis beim Programmstart)
+        Assert.Equal(5, ErstelleAlarmzeilen.Ausfuehren(bestand, null).Count);
+    }
+
+    [Fact]
     public void Nur_die_Alarme_eines_Rads()
     {
         Assert.Equal([2, 1], ErstelleAlarmzeilen.Ausfuehren(Bestand(), 7).Select(z => z.Id));

@@ -12,7 +12,7 @@
 - Tourdetail: Puls-/Zonen-Auswertung, Rundenzeiten, Höhenprofil-Vergleich
 - Karteikarten „Diagramme“, „Statistik“, „Kalender“, „Trainingsplan“, „Planung“
 - Auskünfte: Jahresprognose, Top 50, Gewichtsverlauf, Ruhe-/Erholungspuls, Leistungs-/Trainingskontrolle, Ø-Geschwindigkeits-/Trittfrequenz-Diagramm, Temperatur, virtuelle Weltumrundung
-- Wartung: Kuchendiagramm
+- Wartung: Kuchendiagramm, CSV-Export und -Import
 - Equipment: Gewicht, Radumfang, Roll- und Luftwiderstandswerte, Kettenblätter und Ritzel, Bild
 - Leistungsberechnung (Steig- und Gesamtleistung, Kalorien)
 - Werkzeuge: Ritzelrechner, Pulsrechner, Marathonzeitenplaner
@@ -96,8 +96,11 @@ In Umsetzungsreihenfolge.
 - `teile-haltbarkeit` — Die App zeigt, wie viele Kilometer und Tage ein Teil zwischen zwei gleichartigen Wartungen gehalten hat; die Wartungstabelle zeigt dazu neben dem km-Stand die Kilometer seit der letzten gleichartigen Wartung desselben Rads (z. B. seit dem letzten Kettenwechsel).
   - Abhängig von: `wartung-erfassen`
   - Status: done → [023-teile-haltbarkeit](023-teile-haltbarkeit/spec.md)
-- `wartung-csv` — Wartungen lassen sich als CSV exportieren und aus CSV importieren.
-  - Abhängig von: `wartung-erfassen`
+- `wartung-equipment-auswahl` — Auf der Karteikarte „Wartung“ und in den Fenstern für Wartungen und Alarme erscheinen nur die Equipments, die zur gewählten Aktivität passen (z. B. keine Schuhe bei den Rädern); ausgemusterte Equipments erscheinen nicht.
+  - Abhängig von: `wartungsalarme`
+  - Status: done → [024-wartung-equipment-auswahl](024-wartung-equipment-auswahl/spec.md)
+- `ausgemustert-kennzeichnen` — In allen Listen, Tabellen und Auswahlen steht hinter ausgemustertem Equipment der Zusatz „(ausgemustert)“.
+  - Abhängig von: `wartung-equipment-auswahl`
   - Status: open
 - `suche` — Der Benutzer kann Einheiten über einen Suchbegriff finden, auch in Kommentaren und Anhängen.
   - Abhängig von: `einheiten-tabelle`
