@@ -9,12 +9,12 @@
     4. Karteikarten mit den Arbeitsbereichen (füllt den restlichen Platz); „Aktuell“ zeigt
        Bestleistungen und Jahresfortschritt (AktuellAnsicht), „Trainingseinheiten“ die Tabelle der Einheiten der Auswahl
        (EinheitenTabelle), „Wartung“ Alarme und Wartungen der Räder (WartungenAnsicht; Titel mit der Anzahl
-       fälliger Alarme), die übrigen noch Platzhalter
+       fälliger Alarme)
 
   Alle Inhalte werden per Datenbindung aus dem HauptfensterViewModel gelesen.
   Das ViewModel wird beim Programmstart von App erzeugt und im Konstruktor übergeben.
-  Die Karteikarten enthalten in Phase 0 nur Platzhalter mit Hinweis auf die Phase,
-  in der sie umgesetzt werden (siehe docs/Analyse_und_Plan_Neuprogrammierung.md).
+  Die Karteikarten „Diagramme“, „Statistik“ und „Kalender“ des Originals entfallen (siehe
+  specs/tourenverwaltung/map.md, „Nicht enthalten“).
 -->
 <Window x:Class="AndyTours.App.Views.Hauptfenster"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -29,18 +29,6 @@
     <Window.InputBindings>
         <KeyBinding Key="N" Modifiers="Control" Command="{Binding NeueEinheitCommand}" />
     </Window.InputBindings>
-
-    <Window.Resources>
-        <!-- Einheitliches Aussehen für die Platzhaltertexte in den Karteikarten -->
-        <Style x:Key="PlatzhalterText" TargetType="TextBlock">
-            <Setter Property="HorizontalAlignment" Value="Center" />
-            <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="TextAlignment" Value="Center" />
-            <Setter Property="FontSize" Value="16" />
-            <Setter Property="Foreground" Value="Gray" />
-            <Setter Property="TextWrapping" Value="Wrap" />
-        </Style>
-    </Window.Resources>
 
     <DockPanel>
 
@@ -141,18 +129,6 @@
             </TabItem>
             <TabItem Header="Trainingseinheiten">
                 <views:EinheitenTabelle x:Name="Einheiten" />
-            </TabItem>
-            <TabItem Header="Diagramme">
-                <TextBlock Style="{StaticResource PlatzhalterText}"
-                           Text="Diagramme nach Woche, Monat und Jahr&#10;– folgt in Phase 4 –" />
-            </TabItem>
-            <TabItem Header="Statistik">
-                <TextBlock Style="{StaticResource PlatzhalterText}"
-                           Text="Statistiktabelle Monat × Jahr&#10;– folgt in Phase 4 –" />
-            </TabItem>
-            <TabItem Header="Kalender">
-                <TextBlock Style="{StaticResource PlatzhalterText}"
-                           Text="Monatskalender mit Trainingseinheiten und Wartungen&#10;– folgt in Phase 6 –" />
             </TabItem>
             <!-- IsSelected: auf dieser Karteikarte nennt die Statusleiste die Anzahl der Wartungen;
                  der Titel zeigt die Anzahl fälliger Alarme, z. B. „Wartung (2)“ -->
