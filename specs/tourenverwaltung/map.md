@@ -11,7 +11,7 @@
 - Schwellwerte mit Farben
 - Tourdetail: Puls-/Zonen-Auswertung, Rundenzeiten, Höhenprofil-Vergleich
 - Karteikarten „Diagramme“, „Statistik“, „Kalender“, „Trainingsplan“, „Planung“
-- Auskünfte: Jahresprognose, Top 50, Gewichtsverlauf, Ruhe-/Erholungspuls, Leistungs-/Trainingskontrolle, Ø-Geschwindigkeits-/Trittfrequenz-Diagramm, Temperatur, virtuelle Weltumrundung
+- Auskünfte: Jahresprognose, Top 50, Gewichtsverlauf, Ruhe-/Erholungspuls, Leistungs-/Trainingskontrolle, Ø-Geschwindigkeits-/Trittfrequenz-Diagramm, Temperatur, virtuelle Weltumrundung, Vergleich Aktivitäten/Kategorien
 - Wartung: Kuchendiagramm, CSV-Export und -Import
 - Equipment: Gewicht, Radumfang, Roll- und Luftwiderstandswerte, Kettenblätter und Ritzel, Bild
 - Leistungsberechnung (Steig- und Gesamtleistung, Kalorien)
@@ -108,12 +108,9 @@ In Umsetzungsreihenfolge.
 - `equipment-einsatz` — Eine Auskunft zeigt die insgesamt gefahrenen Kilometer und Höhenmeter je Equipment.
   - Abhängig von: `equipments-verwalten`
   - Status: done → [027-equipment-einsatz](027-equipment-einsatz/spec.md)
-- `vergleich-aktivitaeten-kategorien` — Eine Auskunft vergleicht Aktivitäten und Kategorien nach km, hm, Zeit und Anzahl.
-  - Abhängig von: `aktivitaeten-kategorien-verwalten`
-  - Status: open
 - `gpx-export` — Der Track einer Einheit lässt sich als GPX-Datei exportieren.
   - Abhängig von: `streckenkarte`
-  - Status: open
+  - Status: done → [028-gpx-export](028-gpx-export/spec.md)
 - `track-bearbeiten` — Der Benutzer kann den Track einer Einheit kürzen, umkehren und glätten.
   - Abhängig von: `streckenkarte`
   - Status: open

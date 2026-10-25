@@ -1,5 +1,9 @@
+using System.IO;
+using System.Text;
+using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Win32;
 using AndyTours.Core.Berechnungen;
 using AndyTours.Core.Modell;
 
@@ -30,13 +34,33 @@ public partial class StreckenkarteViewModel : ObservableObject
     /// <summary>Zusätzlicher Lizenzhinweis bei OpenTopoMap.</summary>
     private const string HinweisOpenTopoMap = "Kartendarstellung: © OpenTopoMap (CC-BY-SA)";
 
+    /// <summary>Titel der Fehlermeldung beim Export.</summary>
+    private const string Exporttitel = "Als GPX exportieren";
+
+    /// <summary>Alle Etappen des Tourdetails, auch ohne Aufzeichnung (für Datei und Dateinamen).</summary>
+    private readonly IReadOnlyList<Etappe> _alleEtappen;
+
+    /// <summary>Liest den zuletzt für den Export verwendeten Ordner; <c>null</c> = noch keiner.</summary>
+    private readonly Func<string?> _ladeGpxOrdner;
+
+    /// <summary>Merkt sich den Ordner des letzten Exports.</summary>
+    private readonly Action<string> _speichereGpxOrdner;
+
     /// <summary>
     /// Erzeugt das ViewModel.
     /// </summary>
     /// <param name="etappen">Die Etappen mit Verlauf, in ihrer Reihenfolge.</param>
     /// <param name="mehrere"><c>true</c> bei einer Mehrtagestour (mehrere markierte Einheiten).</param>
-    public StreckenkarteViewModel(IReadOnlyList<Etappe> etappen, bool mehrere)
+    /// <param name="alleEtappen">Alle Etappen des Tourdetails, auch ohne Aufzeichnung, in ihrer Reihenfolge.</param>
+    /// <param name="ladeGpxOrdner">Liest den zuletzt für „Als GPX exportieren…“ verwendeten Ordner.</param>
+    /// <param name="speichereGpxOrdner">Merkt sich den Ordner nach einem Export.</param>
+    public StreckenkarteViewModel(IReadOnlyList<Etappe> etappen, bool mehrere, IReadOnlyList<Etappe> alleEtappen,
+        Func<string?> ladeGpxOrdner, Action<string> speichereGpxOrdner)
     {
+        _alleEtappen = alleEtappen;
+        _ladeGpxOrdner = ladeGpxOrdner;
+        _speichereGpxOrdner = speichereGpxOrdner;
+
         List<Strecke> strecken = [];
         List<Trainingseinheit> ohneGps = [];
         foreach (Etappe etappe in etappen)
@@ -154,4 +178,60 @@ public partial class StreckenkarteViewModel : ObservableObject
     /// <summary>Befehl „Ganze Strecke“: Die Karte zeigt wieder die ganze Strecke.</summary>
     [RelayCommand]
     private void GanzeStrecke() => GanzeStreckeAngefordert?.Invoke(this, EventArgs.Empty);
+
+    /// <summary>Hinweis neben „Als GPX exportieren…“ nach einem gelungenen Export, z. B. „Track exportiert: …“.</summary>
+    [ObservableProperty]
+    private string _exporthinweis = string.Empty;
+
+    /// <summary>
+    /// Befehl „Als GPX exportieren…“: speichert die Strecke (bei einer Mehrtagestour alle Etappen) als GPX-Datei.
+    /// </summary>
+    /// <remarks>
+    /// Der Speichern-Dialog schlägt den zuletzt verwendeten Ordner vor (gibt es ihn nicht mehr, „Dokumente“) und
+    /// den Dateinamen aus <see cref="BildeGpxDateiname"/>; ob eine vorhandene Datei ersetzt wird, fragt der Dialog
+    /// selbst. Den Inhalt erzeugt <see cref="ErstelleGpx"/>. Bei Abbruch geschieht nichts; ein Schreibfehler
+    /// erscheint als Meldung mit dem Grund. Nur wählbar, wenn es eine Strecke gibt.
+    /// </remarks>
+    [RelayCommand(CanExecute = nameof(HatStrecke))]
+    private void GpxExportieren()
+    {
+        if (ErstelleGpx.Ausfuehren(_alleEtappen) is not string inhalt)
+        {
+            return;
+        }
+
+        string? ordner = _ladeGpxOrdner();
+        var dialog = new SaveFileDialog
+        {
+            Title = Exporttitel,
+            Filter = "GPX-Dateien (*.gpx)|*.gpx",
+            DefaultExt = ".gpx",
+            FileName = BildeGpxDateiname.Ausfuehren(_alleEtappen),
+            InitialDirectory = ordner is not null && Directory.Exists(ordner)
+                ? ordner
+                : Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+        };
+        if (dialog.ShowDialog() != true)
+        {
+            return;
+        }
+
+        try
+        {
+            File.WriteAllText(dialog.FileName, inhalt, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+        }
+        catch (Exception fehler) when (fehler is IOException or UnauthorizedAccessException)
+        {
+            Exporthinweis = string.Empty;
+            MessageBox.Show($"Der Track konnte nicht exportiert werden: {fehler.Message}", Exporttitel,
+                MessageBoxButton.OK, MessageBoxImage.Error);
+            return;
+        }
+
+        Exporthinweis = "Track exportiert: " + Path.GetFileName(dialog.FileName);
+        if (Path.GetDirectoryName(dialog.FileName) is string verwendet)
+        {
+            _speichereGpxOrdner(verwendet);
+        }
+    }
 }

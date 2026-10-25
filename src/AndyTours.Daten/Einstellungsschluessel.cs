@@ -36,6 +36,9 @@ public static class Einstellungsschluessel
     /// <summary>Reihenfolge der Aktivitäten als Ids, durch Semikolon getrennt, z. B. „2;1“.</summary>
     public const string AktivitaetenReihenfolge = "Aktivitaeten.Reihenfolge";
 
+    /// <summary>Zuletzt für „Als GPX exportieren…“ verwendeter Ordner.</summary>
+    public const string GpxOrdner = "GpxExport.Ordner";
+
     /// <summary>
     /// Schlüssel einer in den Einstellungen gepflegten Auswahlliste, z. B. „Auswahlliste.Trainingsbereich“;
     /// der Wert enthält die Einträge in der Reihenfolge des Benutzers, einen je Zeile.

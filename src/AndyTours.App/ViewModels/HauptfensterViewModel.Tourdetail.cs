@@ -2,9 +2,12 @@ using System.IO;
 using System.Windows;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Data.Sqlite;
 using AndyTours.App.Views;
 using AndyTours.Core.Berechnungen;
 using AndyTours.Core.Modell;
+using AndyTours.Daten;
+using AndyTours.Daten.Datenordner;
 using AndyTours.Import.Garmin;
 
 namespace AndyTours.App.ViewModels;
@@ -42,7 +45,30 @@ public partial class HauptfensterViewModel
 
         if (etappen is not null)
         {
-            new TourdetailFenster(new TourdetailViewModel(etappen)) { Owner = Application.Current.MainWindow }.Show();
+            var viewModel = new TourdetailViewModel(etappen, LadeGpxOrdner,
+                ordner => SpeichereStill(verbindung => GpxOrdnerEinstellung.Speichern(verbindung, ordner)));
+            new TourdetailFenster(viewModel) { Owner = Application.Current.MainWindow }.Show();
+        }
+    }
+
+    /// <summary>
+    /// Liest den zuletzt für „Als GPX exportieren…“ verwendeten Ordner.
+    /// </summary>
+    /// <remarks>
+    /// Wie beim Speichern (<see cref="SpeichereStill"/>) ohne Fehlermeldung: Ist die Datenbank nicht erreichbar,
+    /// schlägt der Dialog einfach „Dokumente“ vor.
+    /// </remarks>
+    /// <returns>Der Ordner oder <c>null</c>.</returns>
+    private string? LadeGpxOrdner()
+    {
+        try
+        {
+            using SqliteConnection verbindung = OeffneDatenbank.Ausfuehren(Path.Combine(Datenordner, DatenordnerInhalt.Datenbankdatei));
+            return GpxOrdnerEinstellung.Laden(verbindung);
+        }
+        catch (Exception fehler) when (fehler is SqliteException or IOException or UnauthorizedAccessException)
+        {
+            return null;
         }
     }
 
