@@ -25,11 +25,11 @@ public class VervollstaendigeSpaltenanordnungTests
             new(Einheitenspalte.Fahrzeit, 80), new(Einheitenspalte.Name, 250), new(Einheitenspalte.Datum, null),
         ]);
 
-        Assert.Equal(17, anordnung.Count);
+        Assert.Equal(18, anordnung.Count);
         Assert.Equal([new(Einheitenspalte.Fahrzeit, 80), new(Einheitenspalte.Name, 250), new Spalteneinstellung(Einheitenspalte.Datum, null)],
             anordnung.Take(3));
         Assert.Equal(Einheitenspalte.Startzeit, anordnung[3].Spalte); // erste fehlende in Standardreihenfolge
-        Assert.Equal(Einheitenspalte.Trainingsbereich, anordnung[^1].Spalte);
+        Assert.Equal(Einheitenspalte.Kommentar, anordnung[^1].Spalte);
     }
 
     [Fact]
@@ -41,7 +41,7 @@ public class VervollstaendigeSpaltenanordnungTests
             new(Einheitenspalte.Distanz, 0), new(Einheitenspalte.Fahrzeit, double.NaN),
         ]);
 
-        Assert.Equal(17, anordnung.Select(a => a.Spalte).Distinct().Count());
+        Assert.Equal(18, anordnung.Select(a => a.Spalte).Distinct().Count());
         Assert.Equal(new Spalteneinstellung(Einheitenspalte.Name, 200), anordnung[0]);
         Assert.Equal(new Spalteneinstellung(Einheitenspalte.Distanz, null), anordnung[1]);
         Assert.Equal(new Spalteneinstellung(Einheitenspalte.Fahrzeit, null), anordnung[2]);

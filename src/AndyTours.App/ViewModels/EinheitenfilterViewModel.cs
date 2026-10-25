@@ -68,9 +68,9 @@ public partial class EinheitenfilterViewModel : ObservableObject
     [ObservableProperty]
     private string _hoehenmeterBis = string.Empty;
 
-    /// <summary>Eingabe im Namensfeld.</summary>
+    /// <summary>Eingabe im Suchfeld (sucht in Name und Kommentar).</summary>
     [ObservableProperty]
-    private string _name = string.Empty;
+    private string _suchbegriff = string.Empty;
 
     /// <summary><c>true</c>, wenn das Feld „Distanz von“ rot markiert wird.</summary>
     [ObservableProperty]
@@ -108,7 +108,7 @@ public partial class EinheitenfilterViewModel : ObservableObject
         Trainingsbereich: OhneAlle(Trainingsbereich),
         Distanz: LeseFilterbereich.Ausfuehren(DistanzVon, DistanzBis),
         Hoehenmeter: LeseFilterbereich.Ausfuehren(HoehenmeterVon, HoehenmeterBis),
-        Name: Name);
+        Suchbegriff: Suchbegriff);
 
     /// <summary>
     /// Stellt eine gewählte Kategorie auf ihren neuen Namen um (nach Umbenennen oder Zusammenführen in den
@@ -196,7 +196,7 @@ public partial class EinheitenfilterViewModel : ObservableObject
             DistanzBis = string.Empty;
             HoehenmeterVon = string.Empty;
             HoehenmeterBis = string.Empty;
-            Name = string.Empty;
+            Suchbegriff = string.Empty;
         }
         finally
         {
@@ -221,7 +221,7 @@ public partial class EinheitenfilterViewModel : ObservableObject
 
     partial void OnHoehenmeterBisChanged(string value) => Neuberechnen();
 
-    partial void OnNameChanged(string value) => Neuberechnen();
+    partial void OnSuchbegriffChanged(string value) => Neuberechnen();
 
     /// <summary>
     /// Setzt Fehlermerker und <see cref="IstGesetzt"/> neu und meldet die Änderung.
@@ -244,7 +244,7 @@ public partial class EinheitenfilterViewModel : ObservableObject
             || filter.Trainingsbereich is not null
             || !string.IsNullOrWhiteSpace(DistanzVon) || !string.IsNullOrWhiteSpace(DistanzBis)
             || !string.IsNullOrWhiteSpace(HoehenmeterVon) || !string.IsNullOrWhiteSpace(HoehenmeterBis)
-            || !string.IsNullOrWhiteSpace(Name);
+            || !string.IsNullOrWhiteSpace(Suchbegriff);
 
         Geaendert?.Invoke(this, EventArgs.Empty);
     }

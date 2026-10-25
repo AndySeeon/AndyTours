@@ -60,6 +60,7 @@ public partial class EinheitenTabelle : UserControl
         [Einheitenspalte.Temperatur] = "Temperatur (°C)",
         [Einheitenspalte.MaxHoehe] = "Maximalhöhe",
         [Einheitenspalte.Trainingsbereich] = "Trainingsbereich",
+        [Einheitenspalte.Kommentar] = "Kommentar",
     };
 
     /// <summary>Inhalt der Summenzeile: Spalte → Eigenschaft des ViewModels; alle anderen Zellen bleiben leer.</summary>
@@ -121,6 +122,7 @@ public partial class EinheitenTabelle : UserControl
             [Einheitenspalte.Temperatur] = SpalteTemperatur,
             [Einheitenspalte.MaxHoehe] = SpalteMaxHoehe,
             [Einheitenspalte.Trainingsbereich] = SpalteTrainingsbereich,
+            [Einheitenspalte.Kommentar] = SpalteKommentar,
         };
 
         BaueSummenzeile();

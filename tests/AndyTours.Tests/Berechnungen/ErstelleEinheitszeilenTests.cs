@@ -26,6 +26,7 @@ public class ErstelleEinheitszeilenTests
         AktivitaetId = 1, EquipmentId = 7, KategorieIds = [1, 2],
         DistanzKm = km, Hoehenmeter = hm, Fahrzeit = TimeSpan.FromHours(stunden), MaxGeschwindigkeit = maxKmh,
         HfDurchschnitt = 130, HfMax = 170, Trittfrequenz = 80, Temperatur = 18, MaxHoehe = 1567, Trainingsbereich = "GA1",
+        Kommentar = "mit Sabine",
     };
 
     [Fact]
@@ -62,6 +63,7 @@ public class ErstelleEinheitszeilenTests
         Assert.Equal(18, zeile.Temperatur);
         Assert.Equal(1567, zeile.MaxHoehe);
         Assert.Equal("GA1", zeile.Trainingsbereich);
+        Assert.Equal("mit Sabine", zeile.Kommentar);
     }
 
     [Fact]
@@ -83,6 +85,7 @@ public class ErstelleEinheitszeilenTests
         Assert.Null(zeile.MaxHoehe);
         Assert.Equal(string.Empty, zeile.Equipment);
         Assert.Equal(string.Empty, zeile.Kategorien);
+        Assert.Equal(string.Empty, zeile.Kommentar); // ohne Kommentar bleibt die Zelle leer
         Assert.False(zeile.IstBestDistanz || zeile.IstBestHoehenmeter || zeile.IstBestFahrzeit || zeile.IstBestDurchschnittKmh || zeile.IstBestMaxKmh);
     }
 

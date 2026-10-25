@@ -87,6 +87,7 @@ public class UebernimmZellwertTests
     [Theory]
     [InlineData(Einheitenspalte.DurchschnittKmh)]
     [InlineData(Einheitenspalte.Kategorien)]
+    [InlineData(Einheitenspalte.Kommentar)]
     public void Berechnete_und_mehrfache_Spalten_sind_nicht_bearbeitbar(Einheitenspalte spalte)
     {
         Assert.Throws<ArgumentOutOfRangeException>(() => UebernimmZellwert.Ausfuehren(Einheit(), spalte, "1", Bestand()));

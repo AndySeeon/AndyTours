@@ -13,14 +13,14 @@ namespace AndyTours.Core.Modell;
 /// <param name="Trainingsbereich">Gewählter Trainingsbereich oder <c>null</c>.</param>
 /// <param name="Distanz">Bereich der Distanz in km.</param>
 /// <param name="Hoehenmeter">Bereich der Höhenmeter.</param>
-/// <param name="Name">Text, den der Name der Einheit enthalten muss; leer = kein Filter.</param>
+/// <param name="Suchbegriff">Wörter, die alle in Name oder Kommentar der Einheit vorkommen müssen; leer = kein Filter.</param>
 public record Einheitenfilter(
     string? Kategorie,
     string? Equipment,
     string? Trainingsbereich,
     Filterbereich Distanz,
     Filterbereich Hoehenmeter,
-    string Name)
+    string Suchbegriff)
 {
     /// <summary>Filter ohne jede Einschränkung.</summary>
     public static Einheitenfilter Leer { get; } = new(null, null, null, Filterbereich.Leer, Filterbereich.Leer, string.Empty);

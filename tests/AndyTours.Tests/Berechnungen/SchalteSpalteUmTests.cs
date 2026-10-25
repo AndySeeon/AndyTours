@@ -47,12 +47,12 @@ public class SchalteSpalteUmTests
         HashSet<Einheitenspalte> neu = SchalteSpalteUm.Ausfuehren(ausgeblendet, Einheitenspalte.Datum);
 
         Assert.Contains(Einheitenspalte.Datum, neu);
-        Assert.Equal(16, neu.Count);
+        Assert.Equal(17, neu.Count);
     }
 
     [Fact]
-    public void Es_gibt_17_Spalten()
+    public void Es_gibt_18_Spalten()
     {
-        Assert.Equal(17, Enum.GetValues<Einheitenspalte>().Length);
+        Assert.Equal(18, Enum.GetValues<Einheitenspalte>().Length);
     }
 }

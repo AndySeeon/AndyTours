@@ -102,9 +102,9 @@ In Umsetzungsreihenfolge.
 - `ausgemustert-kennzeichnen` — In allen Listen, Tabellen und Auswahlen steht hinter ausgemustertem Equipment der Zusatz „(ausgemustert)“.
   - Abhängig von: `wartung-equipment-auswahl`
   - Status: done → [025-ausgemustert-kennzeichnen](025-ausgemustert-kennzeichnen/spec.md)
-- `suche` — Der Benutzer kann Einheiten über einen Suchbegriff finden, auch in Kommentaren und Anhängen.
+- `suche` — Der Benutzer kann Einheiten über einen Suchbegriff in Name und Kommentar finden.
   - Abhängig von: `einheiten-tabelle`
-  - Status: open
+  - Status: done → [026-suche](026-suche/spec.md)
 - `equipment-einsatz` — Eine Auskunft zeigt die gefahrenen Kilometer je Rad und Jahr.
   - Abhängig von: `equipments-verwalten`
   - Status: open

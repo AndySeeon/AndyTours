@@ -18,8 +18,8 @@ public static class FiltereEinheiten
     /// <item><b>Distanz:</b> Grenzen eingeschlossen. 0 km gilt wie in der Tabelle als „nicht erfasst“; eine
     /// solche Einheit fällt bei aktivem Distanzfilter heraus.</item>
     /// <item><b>Höhenmeter:</b> Grenzen eingeschlossen. 0 hm ist ein echter Wert (Flachtour).</item>
-    /// <item><b>Name:</b> Der Name muss den Text enthalten, ohne Rücksicht auf Groß- und Kleinschreibung;
-    /// Leerzeichen am Anfang und Ende der Eingabe zählen nicht.</item>
+    /// <item><b>Suchbegriff:</b> Jedes Wort muss in Name oder Kommentar vorkommen, ohne Rücksicht auf Groß- und
+    /// Kleinschreibung (siehe <see cref="PasstZumSuchbegriff"/>); nur Leerzeichen filtern nicht.</item>
     /// </list>
     /// Fehlerhafte Zahlenbereiche schränken nicht ein (<see cref="Filterbereich.IstAktiv"/>).
     /// Kategorie und Equipment werden über den Datenbestand von Nummern in Namen übersetzt.
@@ -37,7 +37,6 @@ public static class FiltereEinheiten
         HashSet<long>? equipmentIds = filter.Equipment is null
             ? null
             : bestand.Equipments.Where(e => EquipmentAnzeigename.Passt(e, filter.Equipment)).Select(e => e.Id).ToHashSet(); // auch mit Zusatz „(ausgemustert)“
-        string name = filter.Name.Trim();
 
         return einheiten
             .Where(e => kategorieIds is null || e.KategorieIds.Any(kategorieIds.Contains))
@@ -45,7 +44,7 @@ public static class FiltereEinheiten
             .Where(e => filter.Trainingsbereich is null || e.Trainingsbereich == filter.Trainingsbereich)
             .Where(e => !filter.Distanz.IstAktiv || (e.DistanzKm > 0 && filter.Distanz.Enthaelt(e.DistanzKm)))
             .Where(e => !filter.Hoehenmeter.IstAktiv || filter.Hoehenmeter.Enthaelt(e.Hoehenmeter))
-            .Where(e => name.Length == 0 || e.Name.Contains(name, StringComparison.OrdinalIgnoreCase))
+            .Where(e => PasstZumSuchbegriff.Ausfuehren(e, filter.Suchbegriff))
             .ToList();
     }
 }

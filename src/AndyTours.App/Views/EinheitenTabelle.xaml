@@ -3,11 +3,11 @@
 
   Aufbau:
     - Oben, immer sichtbar: Filterleiste (Kategorie, Equipment, Trainingsbereich, Distanz von–bis,
-      Höhenmeter von–bis, Name, „Filter zurücksetzen“). Datenquelle ist Filter (EinheitenfilterViewModel);
+      Höhenmeter von–bis, Suche in Name und Kommentar, „Filter zurücksetzen“). Datenquelle ist Filter (EinheitenfilterViewModel);
       jede Eingabe wirkt sofort. Ungültige Zahlenfelder erhalten einen roten Rand, die Schaltfläche
       „Filter zurücksetzen“ ist hervorgehoben, solange ein Filter gesetzt ist.
     - Bei Einheiten in Auswahl und Filter:
-        1. Tabelle (DataGrid) mit 17 Spalten, eine Zeile je Einheit; Klick auf eine Überschrift sortiert,
+        1. Tabelle (DataGrid) mit 18 Spalten, eine Zeile je Einheit; Klick auf eine Überschrift sortiert,
            Ziehen einer Überschrift verschiebt die Spalte, Rechtsklick auf die Überschriften öffnet das
            Menü zum Ein- und Ausblenden der Spalten (bleibt für mehrere Klicks offen)
         2. Summenzeile fest am unteren Rand: Anzahl unter „Name“, Summen unter Distanz, Höhenmeter und
@@ -21,7 +21,7 @@
     - Doppelklick auf eine Zeile öffnet das Bearbeitungsfenster; Rechtsklick öffnet das Menü mit
       Neue Einheit, Bearbeiten, Kopieren und Löschen; Entf löscht die markierten Einheiten.
     - F2, Klick in die schon markierte Zelle oder Lostippen bearbeitet den Wert direkt in der Zelle
-      (alle Spalten außer Ø km/h und Kategorien). Aktivität, Equipment und Trainingsbereich werden aus
+      (alle Spalten außer Ø km/h, Kategorien und Kommentar; der Kommentar wird im Bearbeitungsfenster geändert). Aktivität, Equipment und Trainingsbereich werden aus
       einer Auswahlliste gewählt. Enter oder Verlassen der Zelle speichert sofort, Esc verwirft.
       Ein ungültiger Wert färbt die Zelle rot, sie bleibt dann in Bearbeitung (siehe Code-Behind).
     - Ohne Einheiten: nur der Hinweis „Keine Einheiten in dieser Auswahl.“ bzw. „Keine Einheiten passen
@@ -210,8 +210,8 @@
                 </TextBox.Style>
             </TextBox>
 
-            <TextBlock Text="Name:" Style="{StaticResource FilterBeschriftung}" />
-            <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Width="140" VerticalAlignment="Center" />
+            <TextBlock Text="Suche:" Style="{StaticResource FilterBeschriftung}" />
+            <TextBox Text="{Binding Suchbegriff, UpdateSourceTrigger=PropertyChanged}" Width="140" VerticalAlignment="Center" />
 
             <Button Content="Filter zurücksetzen" Command="{Binding FilterZuruecksetzenCommand}" Style="{StaticResource FilterZuruecksetzenStil}" />
         </WrapPanel>
@@ -326,6 +326,8 @@
                         <DataGridTemplateColumn x:Name="SpalteTrainingsbereich" Header="Bereich" SortMemberPath="Trainingsbereich"
                                                 CellTemplate="{StaticResource AuswahlAnzeigeTrainingsbereich}"
                                                 CellEditingTemplate="{StaticResource AuswahlBearbeiten}" />
+                        <DataGridTextColumn x:Name="SpalteKommentar" Header="Kommentar" Binding="{Binding Kommentar, Mode=OneWay}"
+                                            SortMemberPath="Kommentar" IsReadOnly="True" />
                     </DataGrid.Columns>
                 </DataGrid>
             </DockPanel>

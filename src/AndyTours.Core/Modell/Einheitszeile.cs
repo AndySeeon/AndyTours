@@ -71,6 +71,9 @@ public class Einheitszeile
     /// <summary>Kürzel des Trainingsbereichs.</summary>
     public string Trainingsbereich { get; init; } = string.Empty;
 
+    /// <summary>Freier Kommentar der Einheit; leer, wenn keiner erfasst ist.</summary>
+    public string Kommentar { get; init; } = string.Empty;
+
     /// <summary><c>true</c>, wenn die Distanz der Bestwert der Auswahl ist.</summary>
     public bool IstBestDistanz { get; init; }
 

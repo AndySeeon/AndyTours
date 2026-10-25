@@ -65,6 +65,7 @@ public static class ErstelleEinheitszeilen
                 Temperatur = OhneNull(e.Temperatur),
                 MaxHoehe = OhneNull(e.MaxHoehe),
                 Trainingsbereich = e.Trainingsbereich,
+                Kommentar = e.Kommentar,
 
                 // Bestwert-Merker: vorhandener Wert gleich dem Höchstwert der Auswahl
                 IstBestDistanz = distanz is not null && distanz == best.DistanzKm,

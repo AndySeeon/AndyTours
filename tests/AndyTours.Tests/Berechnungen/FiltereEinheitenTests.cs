@@ -20,9 +20,9 @@ public class FiltereEinheitenTests
 
     /// <summary>Einheit mit den für den Filter wichtigen Werten.</summary>
     private static Trainingseinheit Einheit(long id, string name = "Tour", long? equipment = 7, long[]? kategorien = null,
-        string bereich = "GA1", double km = 50, int hm = 500) => new()
+        string bereich = "GA1", double km = 50, int hm = 500, string kommentar = "") => new()
     {
-        Id = id, Name = name, EquipmentId = equipment, KategorieIds = [.. kategorien ?? [1]],
+        Id = id, Name = name, Kommentar = kommentar, EquipmentId = equipment, KategorieIds = [.. kategorien ?? [1]],
         Trainingsbereich = bereich, DistanzKm = km, Hoehenmeter = hm,
     };
 
@@ -120,17 +120,31 @@ public class FiltereEinheitenTests
     [InlineData("ALM")]
     [InlineData("  Brü  ")]
     [InlineData("BRÜNDLING")]
-    public void Name_enthaelt_den_Text_ohne_Ruecksicht_auf_Gross_und_Kleinschreibung(string text)
+    public void Suchbegriff_im_Namen_ohne_Ruecksicht_auf_Gross_und_Kleinschreibung(string text)
     {
         Trainingseinheit[] einheiten = [Einheit(1, name: "Bründlingalm"), Einheit(2, name: "Kampenwand")];
 
-        Assert.Equal([1], Ids(einheiten, Einheitenfilter.Leer with { Name = text }));
+        Assert.Equal([1], Ids(einheiten, Einheitenfilter.Leer with { Suchbegriff = text }));
     }
 
     [Fact]
-    public void Name_nur_aus_Leerzeichen_filtert_nicht()
+    public void Suchbegriff_nur_aus_Leerzeichen_filtert_nicht()
     {
-        Assert.Equal([1], Ids([Einheit(1)], Einheitenfilter.Leer with { Name = "   " }));
+        Assert.Equal([1], Ids([Einheit(1)], Einheitenfilter.Leer with { Suchbegriff = "   " }));
+    }
+
+    [Fact]
+    public void Suchbegriff_findet_auch_den_Kommentar_alle_Woerter_muessen_passen()
+    {
+        Trainingseinheit[] einheiten =
+        [
+            Einheit(1, name: "Bründlingalm", kommentar: "mit Sabine"),
+            Einheit(2, name: "Kampenwand", kommentar: "mit Sabine"),  // „Alm“ fehlt
+            Einheit(3, name: "Hochfellnalm"),                          // „Sabine“ fehlt
+        ];
+
+        Assert.Equal([1, 2], Ids(einheiten, Einheitenfilter.Leer with { Suchbegriff = "sabine" }));
+        Assert.Equal([1], Ids(einheiten, Einheitenfilter.Leer with { Suchbegriff = "Sabine Alm" }));
     }
 
     [Fact]
@@ -146,7 +160,7 @@ public class FiltereEinheitenTests
         ];
         Einheitenfilter filter = Einheitenfilter.Leer with
         {
-            Kategorie = "Alpen", Equipment = "Genius", Distanz = new Filterbereich(50, null), Name = "alm",
+            Kategorie = "Alpen", Equipment = "Genius", Distanz = new Filterbereich(50, null), Suchbegriff = "alm",
         };
 
         Assert.Equal([1], Ids(einheiten, filter));

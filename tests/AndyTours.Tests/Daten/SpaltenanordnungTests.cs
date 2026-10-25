@@ -50,7 +50,7 @@ public class SpaltenanordnungTests
 
         List<Spalteneinstellung> anordnung = SpaltenanordnungEinstellung.Laden(verbindung);
 
-        Assert.Equal(17, anordnung.Count);
+        Assert.Equal(18, anordnung.Count);
         Assert.Equal(
             [new(Einheitenspalte.Fahrzeit, 80), new(Einheitenspalte.Name, null), new Spalteneinstellung(Einheitenspalte.Datum, 96.5)],
             anordnung.Take(3));

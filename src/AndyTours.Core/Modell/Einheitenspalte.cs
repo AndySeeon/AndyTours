@@ -59,4 +59,7 @@ public enum Einheitenspalte
 
     /// <summary>Trainingsbereich.</summary>
     Trainingsbereich,
+
+    /// <summary>Kommentar (neue Spalten kommen ans Ende, damit gespeicherte Anordnungen gültig bleiben).</summary>
+    Kommentar,
 }
