@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using OxyPlot;
+using OxyPlot.Annotations;
 using OxyPlot.Axes;
 using OxyPlot.Series;
 using AndyTours.Core.Berechnungen;
@@ -10,9 +11,18 @@ using AndyTours.Core.Modell;
 namespace AndyTours.App.ViewModels;
 
 /// <summary>
-/// ViewModel des Fensters „Tourdetail“ mit den Karteikarten „Höhenprofil“ und „Karte“.
+/// ViewModel des Fensters „Tourdetail“ mit den Karteikarten „Höhenprofil“ und „Karte“, für eine Einheit oder für
+/// mehrere Einheiten als Mehrtagestour.
 /// </summary>
 /// <remarks>
+/// Das Tourdetail zeigt eine Liste von Etappen; eine einzelne Einheit ist die Etappenliste mit genau einem Eintrag
+/// und sieht aus wie bisher. Bei mehreren Etappen
+/// <list type="bullet">
+/// <item>zeigt die Kopfzeile Zeitraum, Anzahl der Etappen und die Summen (<see cref="BeschreibeMehrtagestour"/>),</item>
+/// <item>folgen die Etappen im Profil hintereinander (<see cref="VerbindeVerlaeufe"/>), mit einer senkrechten Linie
+/// an jedem Etappenwechsel und der Etappe im Hinweis beim Überfahren,</item>
+/// <item>nennen Hinweise die Etappen ohne Aufzeichnung bzw. ohne Höhendaten.</item>
+/// </list>
 /// Das Diagramm ist ein OxyPlot-Datenmodell (<see cref="Diagramm"/>, siehe <c>docs/adr/0001-diagrammbibliothek.md</c>);
 /// die Ansicht bindet es nur an. Es wird bei jeder Änderung von Achse oder Häkchen neu aufgebaut:
 /// <list type="bullet">
@@ -21,16 +31,20 @@ namespace AndyTours.App.ViewModels;
 /// <item>rechts je eingeblendetem Zusatzwert (Puls, Geschwindigkeit, Trittfrequenz, Temperatur) eine eigene Skala
 /// mit einer Linie.</item>
 /// </list>
-/// Die Maussteuerung (<see cref="Steuerung"/>): Überfahren zeigt die Werte an dieser Stelle, mit der linken Taste
-/// einen Bereich aufziehen vergrößert ihn, ein Doppelklick zeigt wieder die ganze Tour. Die Anzeige ist der Stand
-/// beim Öffnen; spätere Änderungen an der Einheit wirken sich nicht aus.
-/// Die Karteikarte „Karte“ hat ein eigenes ViewModel (<see cref="Streckenkarte"/>); es entsteht aus demselben,
-/// nur einmal gelesenen Verlauf.
+/// Fläche und Linien werden je Etappe einzeln gezeichnet, damit über eine Etappe ohne den Wert keine
+/// Verbindungslinie läuft. Die Maussteuerung (<see cref="Steuerung"/>): Überfahren zeigt die Werte an dieser Stelle,
+/// mit der linken Taste einen Bereich aufziehen vergrößert ihn, ein Doppelklick zeigt wieder die ganze Tour. Die
+/// Anzeige ist der Stand beim Öffnen; spätere Änderungen an den Einheiten wirken sich nicht aus.
+/// Die Karteikarte „Karte“ hat ein eigenes ViewModel (<see cref="Streckenkarte"/>); es entsteht aus denselben,
+/// nur einmal gelesenen Verläufen.
 /// </remarks>
 public partial class TourdetailViewModel : ObservableObject
 {
     /// <summary>Hinweis, wenn die Aufzeichnung keine Höhendaten enthält.</summary>
     public const string KeineHoehendaten = "Die Aufzeichnung enthält keine Höhendaten.";
+
+    /// <summary>Hinweis in beiden Karteikarten, wenn keine der Einheiten einer Mehrtagestour eine Aufzeichnung hat.</summary>
+    public const string KeineAufzeichnung = "Keine der Einheiten hat eine Aufzeichnung.";
 
     /// <summary>Deutsche Kultur für Zahlen im Diagramm und im Hinweis beim Überfahren.</summary>
     private static readonly CultureInfo Deutsch = CultureInfo.GetCultureInfo("de-DE");
@@ -47,8 +61,11 @@ public partial class TourdetailViewModel : ObservableObject
         [Verlaufswert.Temperatur] = (OxyColor.FromRgb(0xE6, 0x7E, 0x22), "Temperatur", "°C"),
     };
 
-    /// <summary>Die Messpunkte der Tour.</summary>
-    private readonly IReadOnlyList<Verlaufspunkt> _verlauf;
+    /// <summary>Die Messpunkte aller Etappen, Distanz und Fahrzeit durchgehend.</summary>
+    private readonly Mehrtagesverlauf _verlauf;
+
+    /// <summary><c>true</c> bei mehreren Etappen (Mehrtagestour).</summary>
+    private readonly bool _mehrere;
 
     /// <summary>
     /// Ein Punkt einer Diagrammlinie mit dem fertigen Hinweistext für das Überfahren.
@@ -65,32 +82,74 @@ public partial class TourdetailViewModel : ObservableObject
     /// <summary>
     /// Erzeugt das ViewModel und baut das Diagramm auf.
     /// </summary>
-    /// <param name="einheit">Die Einheit (für die Kopfzeile).</param>
-    /// <param name="verlauf">Die gelesenen Messpunkte ihrer Aufzeichnung.</param>
-    public TourdetailViewModel(Trainingseinheit einheit, IReadOnlyList<Verlaufspunkt> verlauf)
+    /// <param name="etappen">Die Etappen in ihrer Reihenfolge; eine einzelne Einheit ist genau eine Etappe.</param>
+    public TourdetailViewModel(IReadOnlyList<Etappe> etappen)
     {
-        _verlauf = verlauf;
-        Kopfzeile = BeschreibeTourdetail.Ausfuehren(einheit);
-        (HatHoehe, IReadOnlyList<Verlaufswert> vorhanden) = ErmittleVerlaufswerte.Ausfuehren(verlauf);
+        _mehrere = etappen.Count > 1;
+        List<Trainingseinheit> einheiten = etappen.Select(e => e.Einheit).ToList();
+        Kopfzeile = _mehrere ? BeschreibeMehrtagestour.Ausfuehren(einheiten) : BeschreibeTourdetail.Ausfuehren(einheiten[0]);
+
+        _verlauf = VerbindeVerlaeufe.Ausfuehren(etappen);
+        (HatHoehe, IReadOnlyList<Verlaufswert> vorhanden) = ErmittleVerlaufswerte.Ausfuehren(_verlauf.Punkte);
         KannPuls = vorhanden.Contains(Verlaufswert.Puls);
         KannGeschwindigkeit = vorhanden.Contains(Verlaufswert.Geschwindigkeit);
         KannTrittfrequenz = vorhanden.Contains(Verlaufswert.Trittfrequenz);
         KannTemperatur = vorhanden.Contains(Verlaufswert.Temperatur);
 
+        // Hinweise: Hat bei einer Mehrtagestour keine Etappe eine Aufzeichnung, steht das in den Karteikarten; sonst
+        // nennen die Hinweise die fehlenden Etappen
+        bool ohneJedeAufzeichnung = _mehrere && _verlauf.Etappen.Count == 0;
+        HinweisOhneProfil = ohneJedeAufzeichnung ? KeineAufzeichnung : KeineHoehendaten;
+        List<Trainingseinheit> ohneAufzeichnung = etappen.Where(e => !_verlauf.Etappen.Contains(e)).Select(e => e.Einheit).ToList();
+        if (_mehrere && !ohneJedeAufzeichnung && ohneAufzeichnung.Count > 0)
+        {
+            HinweisOhneAufzeichnung = "Ohne Aufzeichnung: " + BeschreibeEtappen.Ausfuehren(ohneAufzeichnung);
+        }
+
+        List<Trainingseinheit> ohneHoehe = _verlauf.Etappen
+            .Where(e => !ErmittleVerlaufswerte.Ausfuehren(e.Verlauf!).HatHoehe)
+            .Select(e => e.Einheit)
+            .ToList();
+        if (_mehrere && HatHoehe && ohneHoehe.Count > 0)
+        {
+            HinweisOhneHoehe = "Ohne Höhendaten: " + BeschreibeEtappen.Ausfuehren(ohneHoehe);
+        }
+
         Diagramm = new PlotModel { Culture = Deutsch, PlotAreaBorderColor = OxyColors.LightGray };
         Steuerung = ErstelleSteuerung();
         BaueDiagramm();
-        Streckenkarte = new StreckenkarteViewModel(ErmittleStrecke.Ausfuehren(verlauf));
+        Streckenkarte = new StreckenkarteViewModel(_verlauf.Etappen, _mehrere);
     }
 
-    /// <summary>Datum, Name, Distanz, Höhenmeter und höchster Punkt der Einheit.</summary>
+    /// <summary>
+    /// Kopfzeile: bei einer Einheit Datum, Name, Distanz, Höhenmeter und höchster Punkt; bei mehreren Zeitraum,
+    /// Anzahl der Etappen, Summen, Durchschnittsgeschwindigkeit und höchster Punkt.
+    /// </summary>
     public string Kopfzeile { get; }
 
-    /// <summary><c>true</c>, wenn die Aufzeichnung Höhendaten enthält; sonst erscheint statt des Diagramms ein Hinweis.</summary>
+    /// <summary>Hinweis unter der Kopfzeile, welche Etappen keine (lesbare) Aufzeichnung haben; sonst <c>null</c>.</summary>
+    public string? HinweisOhneAufzeichnung { get; }
+
+    /// <summary><c>true</c>, wenn <see cref="HinweisOhneAufzeichnung"/> erscheint.</summary>
+    public bool HatHinweisOhneAufzeichnung => HinweisOhneAufzeichnung is not null;
+
+    /// <summary><c>true</c>, wenn es Höhendaten gibt; sonst erscheint statt des Diagramms <see cref="HinweisOhneProfil"/>.</summary>
     public bool HatHoehe { get; }
 
-    /// <summary><c>true</c>, wenn statt des Diagramms der Hinweis <see cref="KeineHoehendaten"/> erscheint.</summary>
+    /// <summary><c>true</c>, wenn statt des Diagramms der Hinweis <see cref="HinweisOhneProfil"/> erscheint.</summary>
     public bool OhneHoehe => !HatHoehe;
+
+    /// <summary>
+    /// Hinweis statt des Diagramms: <see cref="KeineAufzeichnung"/>, wenn keine Etappe eine Aufzeichnung hat, sonst
+    /// <see cref="KeineHoehendaten"/>.
+    /// </summary>
+    public string HinweisOhneProfil { get; }
+
+    /// <summary>Hinweis über dem Diagramm, welche Etappen keine Höhendaten haben; sonst <c>null</c>.</summary>
+    public string? HinweisOhneHoehe { get; }
+
+    /// <summary><c>true</c>, wenn <see cref="HinweisOhneHoehe"/> erscheint.</summary>
+    public bool HatHinweisOhneHoehe => HinweisOhneHoehe is not null;
 
     /// <summary>Das Diagramm (Datenmodell für die Ansicht).</summary>
     public PlotModel Diagramm { get; }
@@ -180,12 +239,13 @@ public partial class TourdetailViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Baut Achsen und Linien nach Achsenwahl und Häkchen neu auf.
+    /// Baut Achsen, Flächen, Linien und Etappenwechsel nach Achsenwahl und Häkchen neu auf.
     /// </summary>
     private void BaueDiagramm()
     {
         Diagramm.Axes.Clear();
         Diagramm.Series.Clear();
+        Diagramm.Annotations.Clear();
         if (!HatHoehe)
         {
             Diagramm.InvalidatePlot(true);
@@ -207,24 +267,31 @@ public partial class TourdetailViewModel : ObservableObject
         });
 
         List<Verlaufswert> eingeblendet = EingeblendeteWerte();
-        List<string> hinweise = _verlauf.Select(p => Hinweis(p, eingeblendet)).ToList();
+        List<string> hinweise = Hinweise(eingeblendet);
 
-        // Höhe als Fläche (Punkte ohne Höhe fehlen); sie reicht bis knapp unter den tiefsten Punkt, nicht bis 0 m
-        double tiefsterPunkt = _verlauf.Where(p => p.Hoehe is not null).Min(p => p.Hoehe!.Value);
-        Diagramm.Series.Add(new AreaSeries
+        // Höhe als Fläche je Etappe (Punkte ohne Höhe fehlen); sie reicht bis knapp unter den tiefsten Punkt, nicht bis 0 m
+        double tiefsterPunkt = _verlauf.Punkte.Where(p => p.Hoehe is not null).Min(p => p.Hoehe!.Value);
+        for (int etappe = 0; etappe < _verlauf.Etappen.Count; etappe++)
         {
-            YAxisKey = "Hoehe",
-            Color = Hoehenfarbe,
-            Fill = OxyColor.FromAColor(70, Hoehenfarbe),
-            StrokeThickness = 1.5,
-            ConstantY2 = Math.Floor(tiefsterPunkt / 50) * 50,
-            ItemsSource = Punkte(p => p.Hoehe, hinweise),
-            DataFieldX = nameof(Diagrammpunkt.X),
-            DataFieldY = nameof(Diagrammpunkt.Y),
-            TrackerFormatString = "{" + nameof(Diagrammpunkt.Hinweis) + "}",
-        });
+            List<Diagrammpunkt> punkte = Punkte(etappe, p => p.Hoehe, hinweise);
+            if (punkte.Count > 0)
+            {
+                Diagramm.Series.Add(new AreaSeries
+                {
+                    YAxisKey = "Hoehe",
+                    Color = Hoehenfarbe,
+                    Fill = OxyColor.FromAColor(70, Hoehenfarbe),
+                    StrokeThickness = 1.5,
+                    ConstantY2 = Math.Floor(tiefsterPunkt / 50) * 50,
+                    ItemsSource = punkte,
+                    DataFieldX = nameof(Diagrammpunkt.X),
+                    DataFieldY = nameof(Diagrammpunkt.Y),
+                    TrackerFormatString = "{" + nameof(Diagrammpunkt.Hinweis) + "}",
+                });
+            }
+        }
 
-        // Je Zusatzwert eine eigene Skala rechts und eine Linie
+        // Je Zusatzwert eine eigene Skala rechts und eine Linie je Etappe
         for (int i = 0; i < eingeblendet.Count; i++)
         {
             Verlaufswert wert = eingeblendet[i];
@@ -240,15 +307,31 @@ public partial class TourdetailViewModel : ObservableObject
                 IsZoomEnabled = false,
                 IsPanEnabled = false,
             });
-            Diagramm.Series.Add(new LineSeries
+            for (int etappe = 0; etappe < _verlauf.Etappen.Count; etappe++)
             {
-                YAxisKey = wert.ToString(),
-                Color = farbe,
+                Diagramm.Series.Add(new LineSeries
+                {
+                    YAxisKey = wert.ToString(),
+                    Color = farbe,
+                    StrokeThickness = 1,
+                    ItemsSource = Punkte(etappe, p => p.Wert(wert), hinweise),
+                    DataFieldX = nameof(Diagrammpunkt.X),
+                    DataFieldY = nameof(Diagrammpunkt.Y),
+                    TrackerFormatString = "{" + nameof(Diagrammpunkt.Hinweis) + "}",
+                });
+            }
+        }
+
+        // Senkrechte Linie an jedem Etappenwechsel (am ersten Messpunkt jeder weiteren Etappe)
+        foreach (int beginn in _verlauf.Beginn.Skip(1))
+        {
+            Diagramm.Annotations.Add(new LineAnnotation
+            {
+                Type = LineAnnotationType.Vertical,
+                X = X(_verlauf.Punkte[beginn]),
+                Color = OxyColors.Gray,
+                LineStyle = LineStyle.Dash,
                 StrokeThickness = 1,
-                ItemsSource = Punkte(p => p.Wert(wert), hinweise),
-                DataFieldX = nameof(Diagrammpunkt.X),
-                DataFieldY = nameof(Diagrammpunkt.Y),
-                TrackerFormatString = "{" + nameof(Diagrammpunkt.Hinweis) + "}",
             });
         }
 
@@ -256,38 +339,59 @@ public partial class TourdetailViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Liefert die Punkte einer Linie; Messpunkte ohne den Wert fehlen.
+    /// Liefert die Punkte einer Linie für eine Etappe; Messpunkte ohne den Wert fehlen.
     /// </summary>
+    /// <param name="etappe">Nummer der Etappe in <see cref="Mehrtagesverlauf.Etappen"/>.</param>
     /// <param name="wert">Liest den senkrechten Wert eines Messpunkts.</param>
     /// <param name="hinweise">Der Hinweistext je Messpunkt (gleiche Reihenfolge wie der Verlauf).</param>
-    private List<Diagrammpunkt> Punkte(Func<Verlaufspunkt, double?> wert, List<string> hinweise)
+    private List<Diagrammpunkt> Punkte(int etappe, Func<Verlaufspunkt, double?> wert, List<string> hinweise)
     {
         List<Diagrammpunkt> punkte = [];
-        for (int i = 0; i < _verlauf.Count; i++)
+        for (int i = _verlauf.Beginn[etappe]; i < Ende(etappe); i++)
         {
-            if (wert(_verlauf[i]) is double y)
+            if (wert(_verlauf.Punkte[i]) is double y)
             {
-                punkte.Add(new Diagrammpunkt(X(_verlauf[i]), y, hinweise[i]));
+                punkte.Add(new Diagrammpunkt(X(_verlauf.Punkte[i]), y, hinweise[i]));
             }
         }
 
         return punkte;
     }
 
+    /// <summary>Stelle hinter dem letzten Messpunkt einer Etappe.</summary>
+    private int Ende(int etappe) =>
+        etappe + 1 < _verlauf.Beginn.Count ? _verlauf.Beginn[etappe + 1] : _verlauf.Punkte.Count;
+
     /// <summary>Waagrechter Wert eines Messpunkts je nach Achsenwahl.</summary>
     private double X(Verlaufspunkt punkt) => NachFahrzeit ? TimeSpanAxis.ToDouble(punkt.Fahrzeit) : punkt.DistanzKm;
 
     /// <summary>
-    /// Text beim Überfahren: Distanz, Fahrzeit, Höhe und die eingeblendeten Zusatzwerte, je eine Zeile.
+    /// Die Hinweistexte aller Messpunkte; bei mehreren Etappen steht in der ersten Zeile die Etappe.
     /// </summary>
-    private static string Hinweis(Verlaufspunkt punkt, List<Verlaufswert> eingeblendet)
+    private List<string> Hinweise(List<Verlaufswert> eingeblendet)
     {
-        List<string> zeilen =
-        [
-            string.Format(Deutsch, "{0:N2} km", punkt.DistanzKm),
-            "Fahrzeit " + FormatiereDauer.Ausfuehren(punkt.Fahrzeit),
-            punkt.Hoehe is double hoehe ? string.Format(Deutsch, "Höhe {0:N0} m", hoehe) : "Höhe –",
-        ];
+        List<string> hinweise = new(_verlauf.Punkte.Count);
+        for (int etappe = 0; etappe < _verlauf.Etappen.Count; etappe++)
+        {
+            string? beschreibung = _mehrere ? BeschreibeEtappen.Ausfuehren([_verlauf.Etappen[etappe].Einheit]) : null;
+            for (int i = _verlauf.Beginn[etappe]; i < Ende(etappe); i++)
+            {
+                hinweise.Add(Hinweis(_verlauf.Punkte[i], eingeblendet, beschreibung));
+            }
+        }
+
+        return hinweise;
+    }
+
+    /// <summary>
+    /// Text beim Überfahren: ggf. die Etappe, dann Distanz, Fahrzeit, Höhe und die eingeblendeten Zusatzwerte, je eine Zeile.
+    /// </summary>
+    private static string Hinweis(Verlaufspunkt punkt, List<Verlaufswert> eingeblendet, string? etappe)
+    {
+        List<string> zeilen = etappe is null ? [] : [etappe];
+        zeilen.Add(string.Format(Deutsch, "{0:N2} km", punkt.DistanzKm));
+        zeilen.Add("Fahrzeit " + FormatiereDauer.Ausfuehren(punkt.Fahrzeit));
+        zeilen.Add(punkt.Hoehe is double hoehe ? string.Format(Deutsch, "Höhe {0:N0} m", hoehe) : "Höhe –");
         foreach (Verlaufswert wert in eingeblendet)
         {
             (_, string titel, string einheit) = Darstellung[wert];

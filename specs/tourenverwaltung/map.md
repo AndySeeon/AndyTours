@@ -19,6 +19,7 @@
 - Import von GPX- und TCX-Dateien
 - Synchronisierung mit Garmin Connect (kein offizieller Zugang für Einzelnutzer)
 - Anhänge einer Einheit öffnen (Aufzeichnung, Dokumentation)
+- Werte einer Einheit aus ihrer Aufzeichnung neu übernehmen (der Garmin-Import übernimmt sie bereits beim Anlegen)
 
 ## Funktionen
 In Umsetzungsreihenfolge.
@@ -83,12 +84,9 @@ In Umsetzungsreihenfolge.
 - `streckenkarte` — Zur gewählten Einheit wird die Strecke auf einer OpenStreetMap-Karte angezeigt.
   - Abhängig von: `einheiten-tabelle`
   - Status: done → [019-streckenkarte](019-streckenkarte/spec.md)
-- `werte-aus-aufzeichnung` — Der Benutzer kann Distanz, Höhenmeter, Puls und weitere Werte einer Einheit aus ihrer Aufzeichnung neu übernehmen.
-  - Abhängig von: `einheit-bearbeiten`
-  - Status: open
 - `mehrtagestour` — Mehrere Einheiten lassen sich gemeinsam als Mehrtagestour auswerten (Summen, Höhenprofil, Karte).
   - Abhängig von: `hoehenprofil`, `streckenkarte`
-  - Status: open
+  - Status: done → [020-mehrtagestour](020-mehrtagestour/spec.md)
 - `wartung-erfassen` — Der Benutzer erfasst Wartungen mit Datum, Rad, Tätigkeit und Kommentar.
   - Abhängig von: `equipments-verwalten`
   - Status: open

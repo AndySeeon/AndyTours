@@ -13,6 +13,16 @@ namespace AndyTours.Tests.Garmin;
 public static class FitTestdatei
 {
     /// <summary>
+    /// Name der xUnit-Testgruppe aller Testklassen, die FIT-Dateien schreiben und lesen.
+    /// </summary>
+    /// <remarks>
+    /// Das Garmin-SDK verträgt es nicht, wenn mehrere Testklassen gleichzeitig FIT-Dateien schreiben und lesen:
+    /// Gelegentlich ist eine Datei dann unlesbar („FIT decode error“). Tests einer Gruppe laufen
+    /// nacheinander. Die App selbst liest Aufzeichnungen immer nacheinander und ist davon nicht betroffen.
+    /// </remarks>
+    public const string Testgruppe = "FIT-Dateien";
+
+    /// <summary>
     /// Die Werte der zu erzeugenden Datei; alles Übrige ist fest.
     /// </summary>
     /// <param name="StartUtc">Startzeit in UTC.</param>

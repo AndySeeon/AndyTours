@@ -1,18 +1,20 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using AndyTours.Core.Berechnungen;
 using AndyTours.Core.Modell;
 
 namespace AndyTours.App.ViewModels;
 
 /// <summary>
-/// ViewModel der Karteikarte „Karte“ im Fenster „Tourdetail“: die gefahrene Strecke auf einer Landkarte.
+/// ViewModel der Karteikarte „Karte“ im Fenster „Tourdetail“: die gefahrene Strecke auf einer Landkarte, bei einer
+/// Mehrtagestour die Strecken aller Etappen.
 /// </summary>
 /// <remarks>
-/// Hält alles, was die Ansicht über die Karte wissen muss: die Strecke, die gewählte Kartenart, den passenden
-/// Lizenzhinweis und die Hinweise ohne GPS-Daten bzw. ohne geladene Karte. Die Karte selbst (Mapsui, siehe
-/// <c>docs/adr/0003-kartenbibliothek.md</c>) baut das Code-Behind des Fensters auf, weil Mapsui seine Ebenen nicht
-/// über Bindungen bekommt; es reagiert auf <see cref="Kartenart"/> und <see cref="GanzeStreckeAngefordert"/> und meldet
-/// Ladefehler über <see cref="MeldeLadefehler"/>.
+/// Hält alles, was die Ansicht über die Karte wissen muss: die Strecken je Etappe und das Rechteck um alle, die
+/// gewählte Kartenart, den passenden Lizenzhinweis und die Hinweise ohne GPS-Daten, ohne Aufzeichnung bzw. ohne
+/// geladene Karte. Die Karte selbst (Mapsui, siehe <c>docs/adr/0003-kartenbibliothek.md</c>) baut das Code-Behind
+/// des Fensters auf, weil Mapsui seine Ebenen nicht über Bindungen bekommt; es reagiert auf <see cref="Kartenart"/>
+/// und <see cref="GanzeStreckeAngefordert"/> und meldet Ladefehler über <see cref="MeldeLadefehler"/>.
 /// </remarks>
 public partial class StreckenkarteViewModel : ObservableObject
 {
@@ -31,10 +33,35 @@ public partial class StreckenkarteViewModel : ObservableObject
     /// <summary>
     /// Erzeugt das ViewModel.
     /// </summary>
-    /// <param name="strecke">Die Strecke der Tour oder <c>null</c>, wenn die Aufzeichnung keine GPS-Daten enthält.</param>
-    public StreckenkarteViewModel(Strecke? strecke)
+    /// <param name="etappen">Die Etappen mit Verlauf, in ihrer Reihenfolge.</param>
+    /// <param name="mehrere"><c>true</c> bei einer Mehrtagestour (mehrere markierte Einheiten).</param>
+    public StreckenkarteViewModel(IReadOnlyList<Etappe> etappen, bool mehrere)
     {
-        Strecke = strecke;
+        List<Strecke> strecken = [];
+        List<Trainingseinheit> ohneGps = [];
+        foreach (Etappe etappe in etappen)
+        {
+            if (ErmittleStrecke.Ausfuehren(etappe.Verlauf ?? []) is Strecke strecke)
+            {
+                strecken.Add(strecke);
+            }
+            else
+            {
+                ohneGps.Add(etappe.Einheit);
+            }
+        }
+
+        Strecken = strecken;
+        if (strecken.Count > 0)
+        {
+            (SuedWest, NordOst) = UmschliesseStrecken.Ausfuehren(strecken);
+        }
+
+        HinweisOhneStrecke = mehrere && etappen.Count == 0 ? TourdetailViewModel.KeineAufzeichnung : KeineGpsDaten;
+        if (mehrere && strecken.Count > 0 && ohneGps.Count > 0)
+        {
+            HinweisOhneGps = "Ohne GPS-Daten: " + BeschreibeEtappen.Ausfuehren(ohneGps);
+        }
     }
 
     /// <summary>
@@ -42,14 +69,35 @@ public partial class StreckenkarteViewModel : ObservableObject
     /// </summary>
     public event EventHandler? GanzeStreckeAngefordert;
 
-    /// <summary>Die Strecke der Tour; <c>null</c> ohne GPS-Daten.</summary>
-    public Strecke? Strecke { get; }
+    /// <summary>Die Strecken der Etappen mit GPS-Daten, in ihrer Reihenfolge; leer ohne GPS-Daten.</summary>
+    public IReadOnlyList<Strecke> Strecken { get; }
+
+    /// <summary>Süd-West-Ecke des Rechtecks um alle Strecken (nur mit Strecke gesetzt).</summary>
+    public Geoposition? SuedWest { get; }
+
+    /// <summary>Nord-Ost-Ecke des Rechtecks um alle Strecken (nur mit Strecke gesetzt).</summary>
+    public Geoposition? NordOst { get; }
 
     /// <summary><c>true</c>, wenn es eine Strecke gibt und die Karte erscheint.</summary>
-    public bool HatStrecke => Strecke is not null;
+    public bool HatStrecke => Strecken.Count > 0;
 
-    /// <summary><c>true</c>, wenn statt der Karte der Hinweis <see cref="KeineGpsDaten"/> erscheint.</summary>
-    public bool OhneStrecke => Strecke is null;
+    /// <summary><c>true</c>, wenn statt der Karte der Hinweis <see cref="HinweisOhneStrecke"/> erscheint.</summary>
+    public bool OhneStrecke => !HatStrecke;
+
+    /// <summary><c>true</c> bei mehreren Strecken; dann erklärt die Zeichenerklärung auch den Etappenwechsel.</summary>
+    public bool MehrereEtappen => Strecken.Count > 1;
+
+    /// <summary>
+    /// Hinweis statt der Karte: <see cref="TourdetailViewModel.KeineAufzeichnung"/>, wenn bei einer Mehrtagestour
+    /// keine Etappe eine Aufzeichnung hat, sonst <see cref="KeineGpsDaten"/>.
+    /// </summary>
+    public string HinweisOhneStrecke { get; }
+
+    /// <summary>Hinweis über der Karte, welche Etappen keine GPS-Daten haben; sonst <c>null</c>.</summary>
+    public string? HinweisOhneGps { get; }
+
+    /// <summary><c>true</c>, wenn <see cref="HinweisOhneGps"/> erscheint.</summary>
+    public bool HatHinweisOhneGps => HinweisOhneGps is not null;
 
     /// <summary>Die gewählte Karte; zu Beginn die OpenStreetMap-Standardkarte.</summary>
     [ObservableProperty]

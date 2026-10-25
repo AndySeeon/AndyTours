@@ -7,6 +7,11 @@ namespace AndyTours.Tests.Garmin;
 /// <summary>
 /// Tests für <see cref="LeseFitVerlauf"/> mit Dateien aus <see cref="FitTestdatei"/>.
 /// </summary>
+/// <remarks>
+/// Läuft in der Testgruppe <see cref="FitTestdatei.Testgruppe"/> nicht gleichzeitig mit anderen Tests, die
+/// FIT-Dateien schreiben und lesen (siehe dort).
+/// </remarks>
+[Collection(FitTestdatei.Testgruppe)]
 public class LeseFitVerlaufTests
 {
     /// <summary>Start 26.09.2026 06:02:49 UTC.</summary>

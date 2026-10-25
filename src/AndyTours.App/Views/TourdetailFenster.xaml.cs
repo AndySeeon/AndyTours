@@ -29,15 +29,29 @@ namespace AndyTours.App.Views;
 /// <list type="bullet">
 /// <item>unten die Kartenausschnitte der gewählten Kartenart, mit Zwischenspeicher je Kartenart im Ordner
 /// <see cref="Programmpfade.Kartenspeicher"/>,</item>
-/// <item>darüber die Strecke als einfarbige Linie,</item>
-/// <item>oben Start (grüner Kreis) und Ziel (rotes Quadrat).</item>
+/// <item>darüber die Strecke als einfarbige Linie; bei einer Mehrtagestour eine Linie je Etappe, deren Farben
+/// reihum wechseln, sodass benachbarte Etappen sich unterscheiden,</item>
+/// <item>oben Start (grüner Kreis) und Ziel (rotes Quadrat) der ganzen Tour, bei einer Mehrtagestour dazu ein kleiner
+/// Punkt an jedem Etappenwechsel.</item>
 /// </list>
 /// Mausrad und Ziehen bringt Mapsui selbst mit. Das Fenster wird nicht modal geöffnet und ohne Rückfrage geschlossen.
 /// </remarks>
 public partial class TourdetailFenster : Window
 {
-    /// <summary>Farbe der Strecke.</summary>
-    private static readonly Mapsui.Styles.Color Streckenfarbe = Mapsui.Styles.Color.FromArgb(230, 0x2E, 0x6D, 0xB4);
+    /// <summary>
+    /// Farben der Strecke: eine Tour in der ersten Farbe, die Etappen einer Mehrtagestour reihum. Grün und Rot fehlen
+    /// bewusst, damit Start- und Zielzeichen sich abheben.
+    /// </summary>
+    private static readonly Mapsui.Styles.Color[] Streckenfarben =
+    [
+        Mapsui.Styles.Color.FromArgb(230, 0x2E, 0x6D, 0xB4),
+        Mapsui.Styles.Color.FromArgb(230, 0xE6, 0x7E, 0x22),
+        Mapsui.Styles.Color.FromArgb(230, 0x8E, 0x44, 0xAD),
+        Mapsui.Styles.Color.FromArgb(230, 0x16, 0xA0, 0x85),
+    ];
+
+    /// <summary>Farbe der Punkte an den Etappenwechseln (passend zur Zeichenerklärung im XAML).</summary>
+    private static readonly Mapsui.Styles.Color Wechselfarbe = Mapsui.Styles.Color.FromArgb(255, 0x55, 0x55, 0x55);
 
     /// <summary>Farbe des Startzeichens (passend zur Zeichenerklärung im XAML).</summary>
     private static readonly Mapsui.Styles.Color Startfarbe = Mapsui.Styles.Color.FromArgb(255, 0x27, 0xAE, 0x60);
@@ -54,22 +68,22 @@ public partial class TourdetailFenster : Window
     /// <summary>Bereits erzeugte Kartenebenen je Kartenart (beim Zurückschalten wiederverwendet).</summary>
     private readonly Dictionary<Kartenart, TileLayer> _kartenebenen = [];
 
-    /// <summary>Umschließendes Rechteck der Strecke in Kartenkoordinaten (Web-Mercator) mit Rand.</summary>
+    /// <summary>Umschließendes Rechteck aller Strecken in Kartenkoordinaten (Web-Mercator) mit Rand.</summary>
     private MRect? _ganzeStrecke;
 
     /// <summary>
     /// Erzeugt das Fenster und verbindet es mit dem ViewModel.
     /// </summary>
-    /// <param name="viewModel">ViewModel mit Kopfzeile und Verlauf der Tour.</param>
+    /// <param name="viewModel">ViewModel mit Kopfzeile und Verlauf der Tour bzw. der Etappen.</param>
     public TourdetailFenster(TourdetailViewModel viewModel)
     {
         InitializeComponent();
         DataContext = viewModel;
         _streckenkarte = viewModel.Streckenkarte;
 
-        if (_streckenkarte.Strecke is Strecke strecke)
+        if (_streckenkarte.HatStrecke)
         {
-            BaueKarte(strecke);
+            BaueKarte();
             _streckenkarte.PropertyChanged += StreckenkarteGeaendert;
             _streckenkarte.GanzeStreckeAngefordert += (_, _) => ZeigeGanzeStrecke();
             Kartenabruf.Fehlgeschlagen += LadefehlerGemeldet;
@@ -92,11 +106,12 @@ public partial class TourdetailFenster : Window
         Dispatcher.BeginInvoke(_streckenkarte.MeldeLadefehler);
 
     /// <summary>
-    /// Baut die Karte auf: Kartenebene, Linie, Start- und Zielzeichen, Ausschnitt mit der ganzen Strecke.
+    /// Baut die Karte auf: Kartenebene, eine Linie je Strecke, Zeichen für Start, Ziel und Etappenwechsel, Ausschnitt
+    /// mit allen Strecken.
     /// </summary>
-    /// <param name="strecke">Die Strecke der Tour.</param>
-    private void BaueKarte(Strecke strecke)
+    private void BaueKarte()
     {
+        IReadOnlyList<Strecke> strecken = _streckenkarte.Strecken;
         var karte = new Map();
 
         // Mapsui legt von sich aus ein Protokoll- und ein Leistungs-Widget auf die Karte (im Debug-Build sichtbar)
@@ -105,26 +120,26 @@ public partial class TourdetailFenster : Window
 
         karte.Layers.Add(Kartenebene(_streckenkarte.Kartenart));
 
-        Coordinate[] linie = [.. strecke.Punkte.Select(InKartenkoordinaten).Select(p => new Coordinate(p.X, p.Y))];
-        Geometry geometrie = linie.Length > 1 ? new LineString(linie) : new NetTopologySuite.Geometries.Point(linie[0]);
         karte.Layers.Add(new MemoryLayer("Strecke")
         {
-            Features = [new GeometryFeature(geometrie)],
-            Style = new VectorStyle { Line = new Pen(Streckenfarbe, 4) },
+            Features = [.. strecken.Select((strecke, i) => Linie(strecke, Streckenfarben[i % Streckenfarben.Length]))],
+            Style = null,
         });
 
-        karte.Layers.Add(new MemoryLayer("Start und Ziel")
+        // Wechsel zuerst, damit Start und Ziel darüber liegen
+        karte.Layers.Add(new MemoryLayer("Start, Ziel und Etappenwechsel")
         {
             Features =
             [
-                Zeichen(strecke.Punkte[0], SymbolType.Ellipse, Startfarbe, 0.8),
-                Zeichen(strecke.Punkte[^1], SymbolType.Rectangle, Zielfarbe, 0.45),
+                .. strecken.Skip(1).Select(strecke => Zeichen(strecke.Punkte[0], SymbolType.Ellipse, Wechselfarbe, 0.35)),
+                Zeichen(strecken[0].Punkte[0], SymbolType.Ellipse, Startfarbe, 0.8),
+                Zeichen(strecken[^1].Punkte[^1], SymbolType.Rectangle, Zielfarbe, 0.45),
             ],
             Style = null,
         });
 
-        MPoint suedWest = InKartenkoordinaten(strecke.SuedWest);
-        MPoint nordOst = InKartenkoordinaten(strecke.NordOst);
+        MPoint suedWest = InKartenkoordinaten(_streckenkarte.SuedWest!);
+        MPoint nordOst = InKartenkoordinaten(_streckenkarte.NordOst!);
 
         // Mindestgröße, damit eine sehr kurze Strecke (oder ein einzelner Punkt) nicht bis zum Anschlag vergrößert wird
         double breite = Math.Max(nordOst.X - suedWest.X, 500);
@@ -201,7 +216,17 @@ public partial class TourdetailFenster : Window
     }
 
     /// <summary>
-    /// Ein Start- oder Zielzeichen an einer Position.
+    /// Die Linie einer Strecke in ihrer Farbe; eine Strecke aus nur einem Punkt wird ein Punkt.
+    /// </summary>
+    private static GeometryFeature Linie(Strecke strecke, Mapsui.Styles.Color farbe)
+    {
+        Coordinate[] linie = [.. strecke.Punkte.Select(InKartenkoordinaten).Select(p => new Coordinate(p.X, p.Y))];
+        Geometry geometrie = linie.Length > 1 ? new LineString(linie) : new NetTopologySuite.Geometries.Point(linie[0]);
+        return new GeometryFeature(geometrie) { Styles = [new VectorStyle { Line = new Pen(farbe, 4) }] };
+    }
+
+    /// <summary>
+    /// Ein Start-, Ziel- oder Wechselzeichen an einer Position.
     /// </summary>
     /// <remarks>
     /// Der Startkreis ist größer als das Zielquadrat: Bei einer Rundtour liegen beide übereinander, und der Kreis
