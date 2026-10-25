@@ -69,6 +69,7 @@
             <MenuItem Header="E_xtras">
                 <MenuItem Header="_Persönliche Daten…" Command="{Binding PersoenlicheDatenOeffnenCommand}" />
                 <MenuItem Header="_Saisonziele…" Command="{Binding SaisonzieleOeffnenCommand}" />
+                <MenuItem Header="E_quipment-Einsatz…" Command="{Binding EquipmentEinsatzOeffnenCommand}" />
                 <MenuItem Header="_Einstellungen…" Command="{Binding EinstellungenOeffnenCommand}" />
                 <Separator />
                 <MenuItem Header="Sicherung _wiederherstellen…" Command="{Binding SicherungWiederherstellenCommand}" />

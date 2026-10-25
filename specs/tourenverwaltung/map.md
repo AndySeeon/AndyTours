@@ -105,9 +105,9 @@ In Umsetzungsreihenfolge.
 - `suche` — Der Benutzer kann Einheiten über einen Suchbegriff in Name und Kommentar finden.
   - Abhängig von: `einheiten-tabelle`
   - Status: done → [026-suche](026-suche/spec.md)
-- `equipment-einsatz` — Eine Auskunft zeigt die gefahrenen Kilometer je Rad und Jahr.
+- `equipment-einsatz` — Eine Auskunft zeigt die insgesamt gefahrenen Kilometer und Höhenmeter je Equipment.
   - Abhängig von: `equipments-verwalten`
-  - Status: open
+  - Status: done → [027-equipment-einsatz](027-equipment-einsatz/spec.md)
 - `vergleich-aktivitaeten-kategorien` — Eine Auskunft vergleicht Aktivitäten und Kategorien nach km, hm, Zeit und Anzahl.
   - Abhängig von: `aktivitaeten-kategorien-verwalten`
   - Status: open
