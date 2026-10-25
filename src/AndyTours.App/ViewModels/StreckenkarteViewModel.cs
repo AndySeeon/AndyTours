@@ -81,6 +81,8 @@ public partial class StreckenkarteViewModel : ObservableObject
             (SuedWest, NordOst) = UmschliesseStrecken.Ausfuehren(strecken);
         }
 
+        BereiteBearbeitungVor(etappen, mehrere);
+
         HinweisOhneStrecke = mehrere && etappen.Count == 0 ? TourdetailViewModel.KeineAufzeichnung : KeineGpsDaten;
         if (mehrere && strecken.Count > 0 && ohneGps.Count > 0)
         {
@@ -93,14 +95,17 @@ public partial class StreckenkarteViewModel : ObservableObject
     /// </summary>
     public event EventHandler? GanzeStreckeAngefordert;
 
-    /// <summary>Die Strecken der Etappen mit GPS-Daten, in ihrer Reihenfolge; leer ohne GPS-Daten.</summary>
-    public IReadOnlyList<Strecke> Strecken { get; }
+    /// <summary>
+    /// Die Strecken der Etappen mit GPS-Daten, in ihrer Reihenfolge; leer ohne GPS-Daten. Nach „Track bearbeiten“
+    /// die bearbeitete Strecke.
+    /// </summary>
+    public IReadOnlyList<Strecke> Strecken { get; private set; }
 
     /// <summary>Süd-West-Ecke des Rechtecks um alle Strecken (nur mit Strecke gesetzt).</summary>
-    public Geoposition? SuedWest { get; }
+    public Geoposition? SuedWest { get; private set; }
 
     /// <summary>Nord-Ost-Ecke des Rechtecks um alle Strecken (nur mit Strecke gesetzt).</summary>
-    public Geoposition? NordOst { get; }
+    public Geoposition? NordOst { get; private set; }
 
     /// <summary><c>true</c>, wenn es eine Strecke gibt und die Karte erscheint.</summary>
     public bool HatStrecke => Strecken.Count > 0;
@@ -189,13 +194,14 @@ public partial class StreckenkarteViewModel : ObservableObject
     /// <remarks>
     /// Der Speichern-Dialog schlägt den zuletzt verwendeten Ordner vor (gibt es ihn nicht mehr, „Dokumente“) und
     /// den Dateinamen aus <see cref="BildeGpxDateiname"/>; ob eine vorhandene Datei ersetzt wird, fragt der Dialog
-    /// selbst. Den Inhalt erzeugt <see cref="ErstelleGpx"/>. Bei Abbruch geschieht nichts; ein Schreibfehler
+    /// selbst. Wurde die Strecke mit „Track bearbeiten“ verändert, wird die bearbeitete Strecke exportiert, und der
+    /// Dateiname trägt den Zusatz „(bearbeitet)“. Den Inhalt erzeugt <see cref="ErstelleGpx"/>. Bei Abbruch geschieht nichts; ein Schreibfehler
     /// erscheint als Meldung mit dem Grund. Nur wählbar, wenn es eine Strecke gibt.
     /// </remarks>
     [RelayCommand(CanExecute = nameof(HatStrecke))]
     private void GpxExportieren()
     {
-        if (ErstelleGpx.Ausfuehren(_alleEtappen) is not string inhalt)
+        if (ErstelleGpx.Ausfuehren(ExportEtappen()) is not string inhalt)
         {
             return;
         }
@@ -206,7 +212,7 @@ public partial class StreckenkarteViewModel : ObservableObject
             Title = Exporttitel,
             Filter = "GPX-Dateien (*.gpx)|*.gpx",
             DefaultExt = ".gpx",
-            FileName = BildeGpxDateiname.Ausfuehren(_alleEtappen),
+            FileName = BildeGpxDateiname.Ausfuehren(_alleEtappen, IstBearbeitet),
             InitialDirectory = ordner is not null && Directory.Exists(ordner)
                 ? ordner
                 : Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),

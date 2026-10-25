@@ -22,11 +22,14 @@ public static class BildeGpxDateiname
     /// <item>Liegen alle Etappen am selben Tag, steht nur dieses eine Datum davor.</item>
     /// <item>Zeichen, die in Dateinamen nicht erlaubt sind (z. B. „/“), sowie Steuerzeichen werden durch „-“
     /// ersetzt. Ohne Namen besteht der Dateiname nur aus dem Datum.</item>
+    /// <item>Eine mit „Track bearbeiten“ veränderte Strecke trägt den Zusatz „(bearbeitet)“, z. B.
+    /// „2026-05-01 Bründlingalm (bearbeitet).gpx“, damit sie nicht mit dem Original verwechselt wird.</item>
     /// </list>
     /// </remarks>
     /// <param name="etappen">Die Etappen des Tourdetails in ihrer Reihenfolge; mindestens eine.</param>
+    /// <param name="bearbeitet"><c>true</c>, wenn die Strecke bearbeitet wurde.</param>
     /// <returns>Der vorgeschlagene Dateiname mit der Endung „.gpx“.</returns>
-    public static string Ausfuehren(IReadOnlyList<Etappe> etappen)
+    public static string Ausfuehren(IReadOnlyList<Etappe> etappen, bool bearbeitet = false)
     {
         DateOnly erstes = etappen.Min(e => e.Einheit.Datum);
         DateOnly letztes = etappen.Max(e => e.Einheit.Datum);
@@ -35,7 +38,8 @@ public static class BildeGpxDateiname
         string name = new(etappen[0].Einheit.Name.Trim()
             .Select(zeichen => Unzulaessig.Contains(zeichen) || char.IsControl(zeichen) ? '-' : zeichen)
             .ToArray());
-        return (name.Length == 0 ? datum : $"{datum} {name}") + ".gpx";
+        string zusatz = bearbeitet ? " (bearbeitet)" : string.Empty;
+        return (name.Length == 0 ? datum : $"{datum} {name}") + zusatz + ".gpx";
     }
 
     /// <summary>Datum als „2026-05-01“.</summary>

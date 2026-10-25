@@ -113,7 +113,7 @@ In Umsetzungsreihenfolge.
   - Status: done → [028-gpx-export](028-gpx-export/spec.md)
 - `track-bearbeiten` — Der Benutzer kann den Track einer Einheit kürzen, umkehren und glätten.
   - Abhängig von: `streckenkarte`
-  - Status: open
+  - Status: done → [029-track-bearbeiten](029-track-bearbeiten/spec.md)
 - `tourenplanung-karte` — Der Benutzer plant eine neue Strecke per Mausklick auf der Karte und speichert sie.
   - Abhängig von: `streckenkarte`
   - Status: open

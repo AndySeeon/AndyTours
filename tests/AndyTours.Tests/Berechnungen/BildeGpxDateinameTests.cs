@@ -31,6 +31,13 @@ public class BildeGpxDateinameTests
         Assert.Equal("2026-05-03 Vormittag.gpx", BildeGpxDateiname.Ausfuehren([Etappe(3, "Vormittag"), Etappe(3, "Nachmittag")]));
     }
 
+    [Fact]
+    public void Bearbeitete_Strecke_traegt_den_Zusatz()
+    {
+        Assert.Equal("2026-05-01 Bründlingalm (bearbeitet).gpx", BildeGpxDateiname.Ausfuehren([Etappe(1, "Bründlingalm")], bearbeitet: true));
+        Assert.Equal("2026-05-01 (bearbeitet).gpx", BildeGpxDateiname.Ausfuehren([Etappe(1, "")], bearbeitet: true));
+    }
+
     [Theory]
     [InlineData("Hin/Zurück", "2026-05-01 Hin-Zurück.gpx")]
     [InlineData("a\\b:c*d?e\"f<g>h|i", "2026-05-01 a-b-c-d-e-f-g-h-i.gpx")]

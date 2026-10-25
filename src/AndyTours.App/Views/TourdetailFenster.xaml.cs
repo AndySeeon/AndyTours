@@ -71,6 +71,12 @@ public partial class TourdetailFenster : Window
     /// <summary>Umschließendes Rechteck aller Strecken in Kartenkoordinaten (Web-Mercator) mit Rand.</summary>
     private MRect? _ganzeStrecke;
 
+    /// <summary>Name der Ebene mit den Linien der Strecken.</summary>
+    private const string Streckenebene = "Strecke";
+
+    /// <summary>Name der Ebene mit den Zeichen für Start, Ziel und Etappenwechsel.</summary>
+    private const string Zeichenebene = "Start, Ziel und Etappenwechsel";
+
     /// <summary>
     /// Erzeugt das Fenster und verbindet es mit dem ViewModel.
     /// </summary>
@@ -86,6 +92,7 @@ public partial class TourdetailFenster : Window
             BaueKarte();
             _streckenkarte.PropertyChanged += StreckenkarteGeaendert;
             _streckenkarte.GanzeStreckeAngefordert += (_, _) => ZeigeGanzeStrecke();
+            _streckenkarte.StreckeGeaendert += (_, _) => ZeichneStrecke();
             Kartenabruf.Fehlgeschlagen += LadefehlerGemeldet;
             Closed += (_, _) =>
             {
@@ -111,7 +118,6 @@ public partial class TourdetailFenster : Window
     /// </summary>
     private void BaueKarte()
     {
-        IReadOnlyList<Strecke> strecken = _streckenkarte.Strecken;
         var karte = new Map();
 
         // Mapsui legt von sich aus ein Protokoll- und ein Leistungs-Widget auf die Karte (im Debug-Build sichtbar)
@@ -120,23 +126,47 @@ public partial class TourdetailFenster : Window
 
         karte.Layers.Add(Kartenebene(_streckenkarte.Kartenart));
 
-        karte.Layers.Add(new MemoryLayer("Strecke")
-        {
-            Features = [.. strecken.Select((strecke, i) => Linie(strecke, Streckenfarben[i % Streckenfarben.Length]))],
-            Style = null,
-        });
+        karte.Layers.Add(new MemoryLayer(Streckenebene) { Style = null });
+        karte.Layers.Add(new MemoryLayer(Zeichenebene) { Style = null });
+        FuelleEbenen(karte);
+
+        Karte.Map = karte;
+
+        // Mapsui merkt sich den Aufruf, bis die Karte ihre Größe kennt (die Karteikarte ist anfangs nicht sichtbar)
+        ZeigeGanzeStrecke();
+    }
+
+    /// <summary>
+    /// Zeichnet Linie und Zeichen neu, nachdem „Track bearbeiten“ die Strecke geändert hat. Der Ausschnitt bleibt,
+    /// damit die Karte beim Ziehen eines Reglers nicht springt; „Ganze Strecke“ zeigt danach die bearbeitete Strecke.
+    /// </summary>
+    private void ZeichneStrecke()
+    {
+        FuelleEbenen(Karte.Map);
+
+        // Refresh statt RefreshData: RefreshData lädt nur neu, gezeichnet würde erst bei der nächsten Mausaktion
+        Karte.Map.Refresh();
+    }
+
+    /// <summary>
+    /// Füllt die Ebenen mit einer Linie je Strecke und den Zeichen für Start, Ziel und Etappenwechsel und bestimmt
+    /// das Rechteck für „Ganze Strecke“.
+    /// </summary>
+    /// <param name="karte">Die Karte mit den beiden Ebenen.</param>
+    private void FuelleEbenen(Map karte)
+    {
+        IReadOnlyList<Strecke> strecken = _streckenkarte.Strecken;
+        var streckenebene = (MemoryLayer)karte.Layers.First(ebene => ebene.Name == Streckenebene);
+        var zeichenebene = (MemoryLayer)karte.Layers.First(ebene => ebene.Name == Zeichenebene);
+        streckenebene.Features = [.. strecken.Select((strecke, i) => Linie(strecke, Streckenfarben[i % Streckenfarben.Length]))];
 
         // Wechsel zuerst, damit Start und Ziel darüber liegen
-        karte.Layers.Add(new MemoryLayer("Start, Ziel und Etappenwechsel")
-        {
-            Features =
-            [
-                .. strecken.Skip(1).Select(strecke => Zeichen(strecke.Punkte[0], SymbolType.Ellipse, Wechselfarbe, 0.35)),
-                Zeichen(strecken[0].Punkte[0], SymbolType.Ellipse, Startfarbe, 0.8),
-                Zeichen(strecken[^1].Punkte[^1], SymbolType.Rectangle, Zielfarbe, 0.45),
-            ],
-            Style = null,
-        });
+        zeichenebene.Features =
+        [
+            .. strecken.Skip(1).Select(strecke => Zeichen(strecke.Punkte[0], SymbolType.Ellipse, Wechselfarbe, 0.35)),
+            Zeichen(strecken[0].Punkte[0], SymbolType.Ellipse, Startfarbe, 0.8),
+            Zeichen(strecken[^1].Punkte[^1], SymbolType.Rectangle, Zielfarbe, 0.45),
+        ];
 
         MPoint suedWest = InKartenkoordinaten(_streckenkarte.SuedWest!);
         MPoint nordOst = InKartenkoordinaten(_streckenkarte.NordOst!);
@@ -148,11 +178,6 @@ public partial class TourdetailFenster : Window
         _ganzeStrecke = new MRect(
             mitte.X - breite * (0.5 + Rand), mitte.Y - hoehe * (0.5 + Rand),
             mitte.X + breite * (0.5 + Rand), mitte.Y + hoehe * (0.5 + Rand));
-
-        Karte.Map = karte;
-
-        // Mapsui merkt sich den Aufruf, bis die Karte ihre Größe kennt (die Karteikarte ist anfangs nicht sichtbar)
-        ZeigeGanzeStrecke();
     }
 
     /// <summary>Zeigt die ganze Strecke (beim Öffnen und bei „Ganze Strecke“).</summary>

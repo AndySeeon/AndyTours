@@ -16,6 +16,9 @@
        c. Karte mit Strecke (bei mehreren Etappen eine Linie je Etappe), Lizenzhinweis unten rechts und ggf. dem
           Hinweis, dass die Karte nicht geladen werden konnte; ohne GPS-Daten bzw. ohne jede Aufzeichnung stattdessen
           ein Hinweis
+       d. unter der Karte die Leiste „Track bearbeiten“ (nur eine Einheit mit GPS-Daten): Regler „Start“ und „Ziel“,
+          „Umkehren“, „Glätten“ (aus / schwach / stark), „Zurücksetzen“ und die Länge der bearbeiteten Strecke;
+          die Karte und „Als GPX exportieren…“ zeigen bzw. speichern dann die bearbeitete Strecke
 
   Das Fenster ist nicht modal: Das Hauptfenster bleibt bedienbar, mehrere Tourdetails können offen sein.
   Maus im Diagramm: Überfahren zeigt die Werte, mit der linken Taste einen Bereich aufziehen vergrößert ihn,
@@ -123,6 +126,28 @@
                     <!-- 3b. Etappen ohne GPS-Daten -->
                     <TextBlock DockPanel.Dock="Top" Text="{Binding HinweisOhneGps}" Style="{StaticResource Etappenhinweis}"
                                Visibility="{Binding HatHinweisOhneGps, Converter={StaticResource SichtbarWennWahr}}" />
+
+                    <!-- 3d. Leiste „Track bearbeiten“ (nur eine Einheit mit GPS-Daten): Regler für Start und Ziel mit
+                         ihrer Stelle in km, Umkehren, Glätten, Zurücksetzen und die Länge der bearbeiteten Strecke -->
+                    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,8,0,0"
+                                Visibility="{Binding KannBearbeiten, Converter={StaticResource SichtbarWennWahr}}">
+                        <TextBlock Text="Track bearbeiten:" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,12,0" />
+                        <Label Content="_Start" Target="{Binding ElementName=StartRegler}" VerticalAlignment="Center" Padding="0,0,4,0" />
+                        <Slider x:Name="StartRegler" Width="160" VerticalAlignment="Center" Minimum="0" Maximum="{Binding LetzterPunkt}"
+                                Value="{Binding Startpunkt}" IsSnapToTickEnabled="True" TickFrequency="1" SmallChange="1" LargeChange="60" />
+                        <TextBlock Text="{Binding StartKm, StringFormat='{}{0:N1} km'}" Width="60" TextAlignment="Right" VerticalAlignment="Center" />
+                        <Label Content="_Ziel" Target="{Binding ElementName=ZielRegler}" VerticalAlignment="Center" Padding="0,0,4,0" Margin="16,0,0,0" />
+                        <Slider x:Name="ZielRegler" Width="160" VerticalAlignment="Center" Minimum="0" Maximum="{Binding LetzterPunkt}"
+                                Value="{Binding Zielpunkt}" IsSnapToTickEnabled="True" TickFrequency="1" SmallChange="1" LargeChange="60" />
+                        <TextBlock Text="{Binding ZielKm, StringFormat='{}{0:N1} km'}" Width="60" TextAlignment="Right" VerticalAlignment="Center" />
+                        <CheckBox Content="_Umkehren" IsChecked="{Binding Umkehren}" VerticalAlignment="Center" Margin="16,0,0,0" />
+                        <TextBlock Text="Glätten:" VerticalAlignment="Center" Margin="16,0,4,0" />
+                        <RadioButton Content="aus" GroupName="Glaettung" IsChecked="{Binding IstGlaettungAus}" VerticalAlignment="Center" />
+                        <RadioButton Content="schwach" GroupName="Glaettung" IsChecked="{Binding IstGlaettungSchwach}" VerticalAlignment="Center" />
+                        <RadioButton Content="stark" GroupName="Glaettung" IsChecked="{Binding IstGlaettungStark}" VerticalAlignment="Center" />
+                        <Button Content="Zu_rücksetzen" Command="{Binding ZuruecksetzenCommand}" Padding="10,2" Margin="16,0,0,0" />
+                        <TextBlock Text="{Binding LaengeKm, StringFormat='Länge: {0:N1} km'}" VerticalAlignment="Center" Margin="16,0,0,0" />
+                    </StackPanel>
 
                     <!-- 3c. Karte mit Hinweisen bzw. Hinweis ohne GPS-Daten oder ohne Aufzeichnung -->
                     <Grid>
