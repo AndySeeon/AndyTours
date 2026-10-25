@@ -175,7 +175,8 @@ public partial class HauptfensterViewModel
             [.. _taetigkeiten],
             titel,
             SpeichereWartung,
-            DateOnly.FromDateTime(DateTime.Today));
+            DateOnly.FromDateTime(DateTime.Today),
+            _bestand);
         var fenster = new WartungBearbeitenFenster(viewModel) { Owner = Application.Current.MainWindow };
         fenster.ShowDialog();
     }

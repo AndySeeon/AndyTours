@@ -95,7 +95,7 @@ In Umsetzungsreihenfolge.
   - Status: done → [022-wartungsalarme](022-wartungsalarme/spec.md)
 - `teile-haltbarkeit` — Die App zeigt, wie viele Kilometer und Tage ein Teil zwischen zwei gleichartigen Wartungen gehalten hat; die Wartungstabelle zeigt dazu neben dem km-Stand die Kilometer seit der letzten gleichartigen Wartung desselben Rads (z. B. seit dem letzten Kettenwechsel).
   - Abhängig von: `wartung-erfassen`
-  - Status: open
+  - Status: done → [023-teile-haltbarkeit](023-teile-haltbarkeit/spec.md)
 - `wartung-csv` — Wartungen lassen sich als CSV exportieren und aus CSV importieren.
   - Abhängig von: `wartung-erfassen`
   - Status: open

@@ -8,7 +8,8 @@ namespace AndyTours.Core.Berechnungen;
 public static class ErstelleWartungszeilen
 {
     /// <summary>
-    /// Liefert die Wartungen als Zeilen mit Rad und km-Stand, auf Wunsch nur die eines Rads, die neueste oben.
+    /// Liefert die Wartungen als Zeilen mit Rad, km-Stand und Haltbarkeit (km und Tage seit der letzten gleichartigen
+    /// Wartung, siehe <see cref="BerechneHaltbarkeit"/>), auf Wunsch nur die eines Rads, die neueste oben.
     /// </summary>
     /// <remarks>
     /// Nur Einträge vom Typ <see cref="WartungsTyp.Wartung"/>; Alarme zeigt eine eigene Funktion. Bei gleichem Datum
@@ -27,11 +28,14 @@ public static class ErstelleWartungszeilen
             .Select(w =>
             {
                 Equipment? rad = w.EquipmentId is long id ? raeder.GetValueOrDefault(id) : null;
+                Haltbarkeit haltbarkeit = BerechneHaltbarkeit.Ausfuehren(bestand, w);
                 return new Wartungszeile(
                     w.Id,
                     w.Datum,
                     rad?.Name ?? string.Empty,
                     rad is null ? null : BerechneKmStand.Ausfuehren(bestand.Trainingseinheiten, rad, w.Datum),
+                    haltbarkeit.Km,
+                    haltbarkeit.Tage,
                     w.Taetigkeit,
                     w.Kommentar);
             })

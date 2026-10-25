@@ -37,15 +37,29 @@ public class ErstelleWartungszeilenTests
 
         // gleiches Datum: die zuletzt erfasste (Nr. 3) oben; die Wartung des ausgemusterten Rads erscheint
         Assert.Equal([3, 2, 1], zeilen.Select(z => z.Id));
-        Assert.Equal(new Wartungszeile(1, new DateOnly(2026, 5, 1), "Genius", 140, "Kettenwechsel", "0,5 %"), zeilen[2]);
+        Assert.Equal(new Wartungszeile(1, new DateOnly(2026, 5, 1), "Genius", 140, 140, 0, "Kettenwechsel", "0,5 %"), zeilen[2]);
         Assert.Equal("Stevens", zeilen[1].Rad);
         Assert.Equal(70, zeilen[1].KmStand);
+        // erste Wartung ihrer Art: km-Stand und Tage seit der ersten Einheit (ohne Anschaffungsdatum)
+        Assert.Equal((140.0, 31), (zeilen[0].KmSeitLetzter, zeilen[0].TageSeitLetzter));
     }
 
     [Fact]
     public void Nur_die_Wartungen_eines_Rads()
     {
         Assert.Equal([3, 1], ErstelleWartungszeilen.Ausfuehren(Bestand(), 7).Select(z => z.Id));
+    }
+
+    [Fact]
+    public void Km_und_Tage_seit_der_letzten_gleichartigen_Wartung()
+    {
+        Datenbestand bestand = Bestand();
+        bestand.Trainingseinheiten.Add(new Trainingseinheit { Datum = new DateOnly(2026, 5, 20), EquipmentId = 7, DistanzKm = 25 });
+        bestand.Wartungen.Add(new Wartung { Id = 6, Datum = new DateOnly(2026, 5, 31), EquipmentId = 7, Taetigkeit = "kettenwechsel" });
+
+        Wartungszeile zeile = ErstelleWartungszeilen.Ausfuehren(bestand, 7).Single(z => z.Id == 6);
+
+        Assert.Equal((165.0, 25.0, 30), (zeile.KmStand!.Value, zeile.KmSeitLetzter!.Value, zeile.TageSeitLetzter!.Value));
     }
 
     [Fact]
@@ -56,6 +70,7 @@ public class ErstelleWartungszeilenTests
 
         Wartungszeile zeile = ErstelleWartungszeilen.Ausfuehren(bestand, null)[0];
 
-        Assert.Equal((5L, "", (double?)null), (zeile.Id, zeile.Rad, zeile.KmStand));
+        Assert.Equal((5L, "", (double?)null, (double?)null, (int?)null),
+            (zeile.Id, zeile.Rad, zeile.KmStand, zeile.KmSeitLetzter, zeile.TageSeitLetzter));
     }
 }

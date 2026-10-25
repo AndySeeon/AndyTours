@@ -36,6 +36,9 @@ public partial class WartungBearbeitenViewModel : ObservableObject
     /// <summary>Die bearbeitete Wartung (liefert Nummer, Typ, Alarm-km und Aktiv-Kennzeichen).</summary>
     private readonly Wartung _basis;
 
+    /// <summary>Der Datenbestand mit den übrigen Wartungen (für die Doppelprüfung; nur gelesen).</summary>
+    private readonly Datenbestand _bestand;
+
     /// <summary>Speichert die fertige Wartung; liefert <c>true</c> bei Erfolg.</summary>
     private readonly Func<Wartung, bool> _speichern;
 
@@ -60,15 +63,18 @@ public partial class WartungBearbeitenViewModel : ObservableObject
     /// <param name="titel">Fenstertitel, z. B. „Wartung bearbeiten“.</param>
     /// <param name="speichern">Speichert die Wartung; <c>true</c> bei Erfolg.</param>
     /// <param name="heute">Der heutige Tag.</param>
+    /// <param name="bestand">Der Datenbestand (nur gelesen) für die Doppelprüfung.</param>
     public WartungBearbeitenViewModel(
         Wartung wartung,
         IReadOnlyList<Auswahleintrag> raeder,
         IReadOnlyList<string> taetigkeiten,
         string titel,
         Func<Wartung, bool> speichern,
-        DateOnly heute)
+        DateOnly heute,
+        Datenbestand bestand)
     {
         _basis = wartung;
+        _bestand = bestand;
         _speichern = speichern;
         _heute = heute;
         _ohneTaetigkeiten = taetigkeiten.Count == 0;
@@ -131,7 +137,7 @@ public partial class WartungBearbeitenViewModel : ObservableObject
     [ObservableProperty]
     private string _kommentar;
 
-    /// <summary>Hinweis unter den Feldern: leere Liste „Tätigkeit“ oder Datum in der Zukunft; leer = kein Hinweis.</summary>
+    /// <summary>Hinweis unter den Feldern: leere Liste „Tätigkeit“, Datum in der Zukunft oder schon vorhandene gleichartige Wartung an diesem Tag; leer = kein Hinweis.</summary>
     [ObservableProperty]
     private string _hinweis = string.Empty;
 
@@ -142,7 +148,7 @@ public partial class WartungBearbeitenViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(KannSpeichern))]
     private void Speichern()
     {
-        if (WartungEingaben.AlsWartung(AktuelleEingaben(), _basis, _heute).Wartung is Wartung wartung && _speichern(wartung))
+        if (WartungEingaben.AlsWartung(AktuelleEingaben(), _basis, _bestand, _heute).Wartung is Wartung wartung && _speichern(wartung))
         {
             IstGespeichert = true;
             SchliessenAngefordert?.Invoke(this, EventArgs.Empty);
@@ -168,7 +174,7 @@ public partial class WartungBearbeitenViewModel : ObservableObject
     /// <summary>Prüft die Eingaben, aktualisiert Fehlermarkierung, Hinweis und die Wählbarkeit von „OK“.</summary>
     private void Pruefen()
     {
-        Wartungsergebnis ergebnis = WartungEingaben.AlsWartung(AktuelleEingaben(), _basis, _heute);
+        Wartungsergebnis ergebnis = WartungEingaben.AlsWartung(AktuelleEingaben(), _basis, _bestand, _heute);
         _fehler = ergebnis.Fehler;
         Hinweis = _ohneTaetigkeiten ? KeineTaetigkeiten : ergebnis.Hinweis ?? string.Empty;
         OnPropertyChanged("Item[]"); // alle Indexer-Bindungen neu lesen

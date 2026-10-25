@@ -10,7 +10,8 @@
        das Menü mit zusätzlich „Ein-/Ausschalten“. Ohne Zeilen der Hinweis „Keine Alarme eingerichtet.“
        (bzw. „Keine Alarme für dieses Rad.“)
     3. Bereich „Wartungen“: Schaltflächen „Neue Wartung…“, „Bearbeiten…“ und „Löschen“, darunter die Tabelle
-       mit Datum, Rad, km-Stand, Tätigkeit und Kommentar, die neueste oben. Ohne Zeilen der Hinweis
+       mit Datum, Rad, km-Stand, km und Tagen seit der letzten gleichartigen Wartung (gleiche Tätigkeit am selben Rad),
+       Tätigkeit und Kommentar, die neueste oben. Ohne Zeilen der Hinweis
        „Noch keine Wartungen erfasst.“ (bzw. „Keine Wartungen für dieses Rad.“)
 
   In beiden Listen: Klick auf eine Überschrift sortiert, ein zweiter Klick kehrt die Reihenfolge um; die Werte
@@ -228,6 +229,11 @@
                             <DataGridTextColumn Header="Rad" Binding="{Binding Rad, Mode=OneWay}" SortMemberPath="Rad" Width="160" />
                             <DataGridTextColumn Header="km-Stand" Binding="{Binding KmStand, Mode=OneWay, StringFormat='N0'}"
                                                 SortMemberPath="KmStand" ElementStyle="{StaticResource Zahl}" Width="90" />
+                            <!-- Haltbarkeit: km und Tage seit der letzten gleichartigen Wartung; ohne Rad leer -->
+                            <DataGridTextColumn Header="km seit letzter" Binding="{Binding KmSeitLetzter, Mode=OneWay, StringFormat='N0'}"
+                                                SortMemberPath="KmSeitLetzter" ElementStyle="{StaticResource Zahl}" Width="110" />
+                            <DataGridTextColumn Header="Tage seit letzter" Binding="{Binding TageSeitLetzter, Mode=OneWay, StringFormat='N0'}"
+                                                SortMemberPath="TageSeitLetzter" ElementStyle="{StaticResource Zahl}" Width="110" />
                             <DataGridTextColumn Header="Tätigkeit" Binding="{Binding Taetigkeit, Mode=OneWay}" SortMemberPath="Taetigkeit" Width="200" />
                             <DataGridTextColumn Header="Kommentar" Binding="{Binding Kommentar, Mode=OneWay}" SortMemberPath="Kommentar" Width="*" />
                         </DataGrid.Columns>
