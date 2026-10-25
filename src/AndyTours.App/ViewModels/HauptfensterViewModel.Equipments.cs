@@ -138,6 +138,7 @@ public partial class HauptfensterViewModel
         if (geloescht)
         {
             _bestand.Equipments.Remove(equipment);
+            AktualisiereWartungen(); // das Rad verschwindet aus der Radauswahl der Karteikarte „Wartung“
         }
 
         return geloescht;

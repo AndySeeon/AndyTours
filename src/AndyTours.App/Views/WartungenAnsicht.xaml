@@ -1,0 +1,115 @@
+<!--
+  Ansicht der Karteikarte „Wartung“ im Hauptfenster.
+
+  Aufbau:
+    1. Oben: Radauswahl („Alle Räder“ und alle Räder alphabetisch) und die Schaltflächen
+       „Neue Wartung…“, „Bearbeiten…“ und „Löschen“
+    2. Darunter die Tabelle (DataGrid) mit Datum, Rad, km-Stand, Tätigkeit und Kommentar, die neueste oben.
+       Klick auf eine Überschrift sortiert, ein zweiter Klick kehrt die Reihenfolge um. Die Werte sind
+       typisiert (Datum, Zahl), damit richtig sortiert wird; das deutsche Format entsteht über
+       Language="de-DE" und StringFormat.
+    3. Ohne Zeilen statt der Tabelle der Hinweis „Noch keine Wartungen erfasst.“ (bzw. „Keine Wartungen
+       für dieses Rad.“)
+
+  Bearbeiten: Doppelklick auf eine Zeile öffnet das Wartungsfenster; Rechtsklick öffnet das Menü mit
+  „Neue Wartung…“, „Bearbeiten…“ und „Löschen“; Entf löscht die markierten Wartungen (nach Rückfrage).
+  „Bearbeiten…“ ist nur bei genau einer markierten Wartung wählbar, „Löschen“ bei mindestens einer.
+
+  Datenquelle ist das HauptfensterViewModel (vom Hauptfenster geerbt); die Markierung meldet das
+  Code-Behind an das ViewModel.
+-->
+<UserControl x:Class="AndyTours.App.Views.WartungenAnsicht"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Language="de-DE">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="SichtbarWennWahr" />
+
+        <!-- Zahlen rechtsbündig -->
+        <Style x:Key="Zahl" TargetType="TextBlock">
+            <Setter Property="TextAlignment" Value="Right" />
+            <Setter Property="Padding" Value="4,0" />
+        </Style>
+
+        <!-- Schaltflächen der Leiste über der Tabelle -->
+        <Style x:Key="Leistenknopf" TargetType="Button">
+            <Setter Property="MinWidth" Value="90" />
+            <Setter Property="Padding" Value="8,2" />
+            <Setter Property="Margin" Value="8,0,0,0" />
+        </Style>
+    </UserControl.Resources>
+
+    <DockPanel>
+        <!-- 1. Radauswahl und Schaltflächen -->
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="6">
+            <TextBlock Text="Rad:" VerticalAlignment="Center" Margin="0,0,6,0" />
+            <ComboBox Width="200" ItemsSource="{Binding Wartungsraeder}" SelectedItem="{Binding GewaehltesWartungsrad}"
+                      DisplayMemberPath="Name" />
+            <Button Content="_Neue Wartung…" Command="{Binding NeueWartungCommand}" Style="{StaticResource Leistenknopf}" Margin="16,0,0,0" />
+            <Button Content="_Bearbeiten…" Command="{Binding WartungBearbeitenCommand}" Style="{StaticResource Leistenknopf}" />
+            <Button Content="_Löschen" Command="{Binding WartungenLoeschenCommand}" Style="{StaticResource Leistenknopf}" />
+        </StackPanel>
+
+        <Grid>
+            <!-- 3. Hinweis ohne Zeilen -->
+            <TextBlock Text="{Binding Wartungshinweis}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                       Foreground="Gray" FontSize="14">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding HatWartungszeilen}" Value="True">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+
+            <!-- 2. Tabelle -->
+            <DataGrid x:Name="Tabelle"
+                      ItemsSource="{Binding Wartungszeilen}"
+                      Visibility="{Binding HatWartungszeilen, Converter={StaticResource SichtbarWennWahr}}"
+                      AutoGenerateColumns="False"
+                      IsReadOnly="True"
+                      CanUserAddRows="False"
+                      CanUserDeleteRows="False"
+                      HeadersVisibility="Column"
+                      GridLinesVisibility="Horizontal"
+                      HorizontalGridLinesBrush="#FFE0E0E0"
+                      SelectionMode="Extended"
+                      SelectionChanged="Tabelle_SelectionChanged"
+                      PreviewKeyDown="Tabelle_PreviewKeyDown"
+                      PreviewMouseRightButtonDown="Tabelle_PreviewMouseRightButtonDown">
+                <DataGrid.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="_Neue Wartung…" Command="{Binding NeueWartungCommand}" />
+                        <MenuItem Header="_Bearbeiten…" Command="{Binding WartungBearbeitenCommand}" />
+                        <Separator />
+                        <MenuItem Header="_Löschen" Command="{Binding WartungenLoeschenCommand}" InputGestureText="Entf" />
+                    </ContextMenu>
+                </DataGrid.ContextMenu>
+                <DataGrid.ColumnHeaderStyle>
+                    <Style TargetType="DataGridColumnHeader">
+                        <Setter Property="Padding" Value="4,2" />
+                    </Style>
+                </DataGrid.ColumnHeaderStyle>
+                <!-- Doppelklick auf eine Zeile öffnet das Wartungsfenster -->
+                <DataGrid.RowStyle>
+                    <Style TargetType="DataGridRow">
+                        <EventSetter Event="MouseDoubleClick" Handler="Zeile_MouseDoubleClick" />
+                    </Style>
+                </DataGrid.RowStyle>
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Datum" Binding="{Binding Datum, Mode=OneWay, StringFormat='ddd, dd.MM.yyyy'}"
+                                        SortMemberPath="Datum" />
+                    <DataGridTextColumn Header="Rad" Binding="{Binding Rad, Mode=OneWay}" SortMemberPath="Rad" Width="160" />
+                    <DataGridTextColumn Header="km-Stand" Binding="{Binding KmStand, Mode=OneWay, StringFormat='N0'}"
+                                        SortMemberPath="KmStand" ElementStyle="{StaticResource Zahl}" Width="90" />
+                    <DataGridTextColumn Header="Tätigkeit" Binding="{Binding Taetigkeit, Mode=OneWay}" SortMemberPath="Taetigkeit" Width="200" />
+                    <DataGridTextColumn Header="Kommentar" Binding="{Binding Kommentar, Mode=OneWay}" SortMemberPath="Kommentar" Width="*" />
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+    </DockPanel>
+</UserControl>

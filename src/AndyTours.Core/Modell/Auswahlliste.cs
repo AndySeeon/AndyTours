@@ -25,4 +25,7 @@ public enum Auswahlliste
 
     /// <summary>Räder und Ausrüstung, z. B. „Genius“; alphabetisch angezeigt (ausgemusterte am Ende) und in einem eigenen Fenster bearbeitet.</summary>
     Equipment,
+
+    /// <summary>Tätigkeiten der Wartungen, z. B. „Kettenwechsel“; Reihenfolge vom Benutzer festgelegt.</summary>
+    Taetigkeit,
 }

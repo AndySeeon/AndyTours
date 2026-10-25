@@ -23,7 +23,10 @@ public interface IAuswahllistenSpeicher
     /// <summary>Zählt, wie viele Einheiten und Equipments einen Eintrag verwenden (für Rückfragen).</summary>
     /// <param name="liste">Die Liste.</param>
     /// <param name="name">Der Eintrag.</param>
-    /// <returns>Anzahl der Einheiten und – nur bei Aktivitäten – der Equipments; bei Equipments nur die Einheiten.</returns>
+    /// <returns>
+    /// Anzahl der Einheiten und – nur bei Aktivitäten – der Equipments; bei Equipments nur die Einheiten;
+    /// bei Tätigkeiten steht im ersten Wert die Anzahl der Wartungen.
+    /// </returns>
     (int Einheiten, int Equipments) ZaehleVerwendung(Auswahlliste liste, string name);
 
     /// <summary>Liefert den Hinweis, warum ein Eintrag nicht gelöscht werden kann, oder <c>null</c>.</summary>

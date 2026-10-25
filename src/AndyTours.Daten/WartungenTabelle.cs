@@ -70,4 +70,125 @@ public static class WartungenTabelle
             befehl.ExecuteNonQuery();
         }
     }
+    /// <summary>
+    /// Fügt eine neue Wartung ein; die Nummer vergibt die Datenbank.
+    /// </summary>
+    /// <param name="verbindung">Geöffnete Verbindung.</param>
+    /// <param name="wartung">Die neue Wartung (ihre Nummer wird nicht verwendet).</param>
+    /// <returns>Die vergebene Nummer.</returns>
+    public static long Einfuegen(SqliteConnection verbindung, Wartung wartung)
+    {
+        using SqliteCommand befehl = verbindung.CreateCommand();
+        befehl.CommandText = """
+            INSERT INTO Wartung (Datum, EquipmentId, Taetigkeit, Kommentar, Typ, AlarmKm, Aktiv)
+            VALUES ($datum, $equipmentId, $taetigkeit, $kommentar, $typ, $alarmKm, $aktiv);
+            SELECT last_insert_rowid();
+            """;
+        SetzeWerte(befehl, wartung);
+        return (long)befehl.ExecuteScalar()!;
+    }
+
+    /// <summary>
+    /// Speichert die geänderten Werte einer vorhandenen Wartung.
+    /// </summary>
+    /// <param name="verbindung">Geöffnete Verbindung.</param>
+    /// <param name="wartung">Die Wartung mit ihrer Nummer.</param>
+    /// <exception cref="InvalidOperationException">Die Wartung gibt es in der Datenbank nicht (mehr).</exception>
+    public static void Aendern(SqliteConnection verbindung, Wartung wartung)
+    {
+        using SqliteCommand befehl = verbindung.CreateCommand();
+        befehl.CommandText = """
+            UPDATE Wartung SET
+                Datum = $datum, EquipmentId = $equipmentId, Taetigkeit = $taetigkeit, Kommentar = $kommentar,
+                Typ = $typ, AlarmKm = $alarmKm, Aktiv = $aktiv
+            WHERE Id = $id;
+            """;
+        SetzeWerte(befehl, wartung);
+        befehl.Parameters.AddWithValue("$id", wartung.Id);
+        if (befehl.ExecuteNonQuery() != 1)
+        {
+            throw new InvalidOperationException($"Die Wartung Nr. {wartung.Id} ist nicht (mehr) vorhanden.");
+        }
+    }
+
+    /// <summary>
+    /// Löscht die Wartungen mit den angegebenen Nummern in einer Transaktion: entweder alle oder keine.
+    /// </summary>
+    /// <param name="verbindung">Geöffnete Verbindung.</param>
+    /// <param name="ids">Die Nummern der zu löschenden Wartungen.</param>
+    public static void Loeschen(SqliteConnection verbindung, IEnumerable<long> ids)
+    {
+        using SqliteTransaction transaktion = verbindung.BeginTransaction();
+        using SqliteCommand befehl = verbindung.CreateCommand();
+        befehl.Transaction = transaktion;
+        befehl.CommandText = "DELETE FROM Wartung WHERE Id = $id;";
+        SqliteParameter id = befehl.Parameters.Add("$id", SqliteType.Integer);
+        foreach (long nummer in ids)
+        {
+            id.Value = nummer;
+            befehl.ExecuteNonQuery();
+        }
+
+        transaktion.Commit();
+    }
+
+    /// <summary>
+    /// Ersetzt eine Tätigkeit in allen Wartungen durch eine neue (Umbenennen in den Auswahllisten).
+    /// </summary>
+    /// <remarks>
+    /// Verglichen wird ohne Leerzeichen am Rand und ohne Unterschied zwischen Groß- und Kleinschreibung, wie
+    /// Einträge der Liste verglichen werden. Der Vergleich geschieht hier im Programm und nicht in SQL, weil
+    /// SQLite Groß- und Kleinschreibung nur für A–Z gleichsetzt und Tätigkeiten Umlaute enthalten
+    /// („Dämpfer eingestellt“). Läuft in der übergebenen Transaktion, damit Liste und Wartungen gemeinsam
+    /// gespeichert werden.
+    /// </remarks>
+    /// <param name="verbindung">Geöffnete Verbindung.</param>
+    /// <param name="transaktion">Laufende Transaktion.</param>
+    /// <param name="alt">Bisherige Tätigkeit.</param>
+    /// <param name="neu">Neue Tätigkeit.</param>
+    /// <returns>Die Anzahl der geänderten Wartungen.</returns>
+    public static int ErsetzeTaetigkeit(SqliteConnection verbindung, SqliteTransaction transaktion, string alt, string neu)
+    {
+        string gesucht = alt.Trim();
+        List<long> betroffen = [];
+        using (SqliteCommand lesen = verbindung.CreateCommand())
+        {
+            lesen.Transaction = transaktion;
+            lesen.CommandText = "SELECT Id, Taetigkeit FROM Wartung;";
+            using SqliteDataReader leser = lesen.ExecuteReader();
+            while (leser.Read())
+            {
+                if (string.Equals(leser.GetString(1).Trim(), gesucht, StringComparison.OrdinalIgnoreCase))
+                {
+                    betroffen.Add(leser.GetInt64(0));
+                }
+            }
+        }
+
+        using SqliteCommand aendern = verbindung.CreateCommand();
+        aendern.Transaction = transaktion;
+        aendern.CommandText = "UPDATE Wartung SET Taetigkeit = $neu WHERE Id = $id;";
+        aendern.Parameters.AddWithValue("$neu", neu.Trim());
+        SqliteParameter id = aendern.Parameters.Add("$id", SqliteType.Integer);
+        foreach (long nummer in betroffen)
+        {
+            id.Value = nummer;
+            aendern.ExecuteNonQuery();
+        }
+
+        return betroffen.Count;
+    }
+
+    /// <summary>Setzt die Werte einer Wartung (ohne Nummer) als Parameter.</summary>
+    private static void SetzeWerte(SqliteCommand befehl, Wartung wartung)
+    {
+        befehl.Parameters.AddWithValue("$datum", DatumSpalte.AlsText(wartung.Datum));
+        befehl.Parameters.AddWithValue("$equipmentId", (object?)wartung.EquipmentId ?? DBNull.Value);
+        befehl.Parameters.AddWithValue("$taetigkeit", wartung.Taetigkeit);
+        befehl.Parameters.AddWithValue("$kommentar", wartung.Kommentar);
+        befehl.Parameters.AddWithValue("$typ", wartung.Typ.ToString());
+        befehl.Parameters.AddWithValue("$alarmKm", wartung.AlarmKm);
+        befehl.Parameters.AddWithValue("$aktiv", wartung.Aktiv);
+    }
 }
+

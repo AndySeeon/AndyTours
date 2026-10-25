@@ -10,7 +10,7 @@ namespace AndyTours.App.ViewModels;
 
 /// <summary>
 /// Teil des Hauptfenster-ViewModels: die in den Einstellungen gepflegten Auswahllisten – Trainingsbereiche,
-/// Aktivitäten und Kategorien – lesen, prüfen und ändern. Die Equipments stehen in
+/// Aktivitäten, Kategorien und Tätigkeiten – lesen, prüfen und ändern. Die Equipments stehen in
 /// <c>HauptfensterViewModel.Equipments.cs</c>; hier sind nur ihre Fälle in den gemeinsamen Methoden.
 /// </summary>
 /// <remarks>
@@ -31,6 +31,9 @@ public partial class HauptfensterViewModel : IAuswahllistenSpeicher
 
     /// <summary>Die gepflegte Liste der Trainingsbereiche in der Reihenfolge des Benutzers.</summary>
     private List<string> _trainingsbereiche = [];
+
+    /// <summary>Die gepflegte Liste der Tätigkeiten der Wartungen in der Reihenfolge des Benutzers.</summary>
+    private List<string> _taetigkeiten = [];
 
     /// <summary>
     /// Solange <c>true</c>, löst ein Wechsel der gewählten Aktivität keinen Neuaufbau aus
@@ -56,6 +59,30 @@ public partial class HauptfensterViewModel : IAuswahllistenSpeicher
         {
             liste = ErmittleTrainingsbereiche.Ausfuehren(bestand.Trainingseinheiten);
             AuswahllisteEinstellung.Speichern(verbindung, null, Auswahlliste.Trainingsbereich, liste);
+        }
+
+        return liste;
+    }
+
+    /// <summary>
+    /// Liest die Liste der Tätigkeiten; wurde sie noch nie angelegt, wird sie aus den Tätigkeiten der
+    /// vorhandenen Wartungen gebildet (alphabetisch) und sofort gespeichert.
+    /// </summary>
+    /// <remarks>
+    /// Wie bei den Trainingsbereichen greift das beim ersten Start mit dieser Funktion, nach dem
+    /// Wiederherstellen einer älteren Sicherung und in einem anderen Datenordner. Eine vom Benutzer
+    /// geleerte Liste bleibt leer.
+    /// </remarks>
+    /// <param name="verbindung">Geöffnete Verbindung.</param>
+    /// <param name="bestand">Der eben geladene Datenbestand.</param>
+    /// <returns>Die Liste.</returns>
+    private static List<string> LadeTaetigkeiten(SqliteConnection verbindung, Datenbestand bestand)
+    {
+        List<string>? liste = AuswahllisteEinstellung.Laden(verbindung, Auswahlliste.Taetigkeit);
+        if (liste is null)
+        {
+            liste = ErmittleTaetigkeiten.Ausfuehren(bestand.Wartungen);
+            AuswahllisteEinstellung.Speichern(verbindung, null, Auswahlliste.Taetigkeit, liste);
         }
 
         return liste;
@@ -127,17 +154,22 @@ public partial class HauptfensterViewModel : IAuswahllistenSpeicher
             .Select(k => new Auswahllistenzeile(k.Name, k.IstStandard ? $"{k.Name} (Standard)" : k.Name))
             .ToList(),
         Auswahlliste.Equipment => LeseEquipments(),
+        Auswahlliste.Taetigkeit => _taetigkeiten.Select(t => new Auswahllistenzeile(t, t)).ToList(),
         _ => throw new ArgumentOutOfRangeException(nameof(liste), liste, null),
     };
 
     /// <inheritdoc/>
-    /// <remarks>Bei Kategorien zählen nur die Einheiten; die Rückfrage nennt keine Equipments.</remarks>
+    /// <remarks>
+    /// Bei Kategorien zählen nur die Einheiten; die Rückfrage nennt keine Equipments. Bei Tätigkeiten steht im
+    /// ersten Wert die Anzahl der Wartungen.
+    /// </remarks>
     (int Einheiten, int Equipments) IAuswahllistenSpeicher.ZaehleVerwendung(Auswahlliste liste, string name) => liste switch
     {
         Auswahlliste.Trainingsbereich => (ZaehleTrainingsbereich.Ausfuehren(_bestand.Trainingseinheiten, name), 0),
         Auswahlliste.Aktivitaet => FindeAktivitaet(name) is { } a ? ZaehleVerwendung.Aktivitaet(_bestand, a.Id) : (0, 0),
         Auswahlliste.Kategorie => FindeKategorie(name) is { } k ? (ZaehleVerwendung.Kategorie(_bestand, k.Id).Einheiten, 0) : (0, 0),
         Auswahlliste.Equipment => FindeEquipment(name) is { } e ? (ZaehleVerwendung.Equipment(_bestand, e.Id).Einheiten, 0) : (0, 0),
+        Auswahlliste.Taetigkeit => (ZaehleTaetigkeit.Ausfuehren(_bestand.Wartungen, name), 0),
         _ => throw new ArgumentOutOfRangeException(nameof(liste), liste, null),
     };
 
@@ -158,6 +190,12 @@ public partial class HauptfensterViewModel : IAuswahllistenSpeicher
                 return FindeKategorie(name) is { } k ? ErmittleLoeschsperre.Kategorie(_bestand, k.Id) : null;
             case Auswahlliste.Equipment:
                 return FindeEquipment(name) is { } e ? ErmittleLoeschsperre.Equipment(_bestand, e.Id) : null;
+            case Auswahlliste.Taetigkeit:
+                int wartungen = ZaehleTaetigkeit.Ausfuehren(_bestand.Wartungen, name);
+                return wartungen == 0
+                    ? null
+                    : string.Format(CultureInfo.GetCultureInfo("de-DE"), "‚{0}‘ wird in {1:N0} {2} verwendet und kann nicht gelöscht werden.",
+                        name, wartungen, wartungen == 1 ? "Wartung" : "Wartungen");
             default:
                 throw new ArgumentOutOfRangeException(nameof(liste), liste, null);
         }
@@ -171,6 +209,9 @@ public partial class HauptfensterViewModel : IAuswahllistenSpeicher
         {
             case Auswahlliste.Trainingsbereich:
                 return SpeichereTrainingsbereiche([.. _trainingsbereiche, neu], null);
+
+            case Auswahlliste.Taetigkeit:
+                return SpeichereTaetigkeiten([.. _taetigkeiten, neu], null);
 
             case Auswahlliste.Aktivitaet:
             {
@@ -225,6 +266,20 @@ public partial class HauptfensterViewModel : IAuswahllistenSpeicher
                 eintraege[stelle] = neuerName;
                 bool verwendet = ZaehleTrainingsbereich.Ausfuehren(_bestand.Trainingseinheiten, alt) > 0;
                 return SpeichereTrainingsbereiche(eintraege, verwendet ? (alt, neuerName) : null);
+            }
+
+            case Auswahlliste.Taetigkeit:
+            {
+                List<string> eintraege = [.. _taetigkeiten];
+                int stelle = eintraege.IndexOf(alt);
+                if (stelle < 0)
+                {
+                    return false;
+                }
+
+                eintraege[stelle] = neuerName;
+                bool verwendet = ZaehleTaetigkeit.Ausfuehren(_bestand.Wartungen, alt) > 0;
+                return SpeichereTaetigkeiten(eintraege, verwendet ? (alt, neuerName) : null);
             }
 
             case Auswahlliste.Aktivitaet:
@@ -284,6 +339,9 @@ public partial class HauptfensterViewModel : IAuswahllistenSpeicher
             case Auswahlliste.Trainingsbereich:
                 return SpeichereTrainingsbereiche(_trainingsbereiche.Where(b => b != name).ToList(), null);
 
+            case Auswahlliste.Taetigkeit:
+                return SpeichereTaetigkeiten(_taetigkeiten.Where(t => t != name).ToList(), null);
+
             case Auswahlliste.Aktivitaet:
             {
                 if (FindeAktivitaet(name) is not { } aktivitaet)
@@ -341,6 +399,9 @@ public partial class HauptfensterViewModel : IAuswahllistenSpeicher
         {
             case Auswahlliste.Trainingsbereich:
                 return SpeichereTrainingsbereiche(reihenfolge.ToList(), null);
+
+            case Auswahlliste.Taetigkeit:
+                return SpeichereTaetigkeiten(reihenfolge.ToList(), null);
 
             case Auswahlliste.Aktivitaet:
             {
@@ -519,6 +580,42 @@ public partial class HauptfensterViewModel : IAuswahllistenSpeicher
             }
 
             AktualisiereSummen();
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Speichert die geänderte Liste der Tätigkeiten; beim Umbenennen eines verwendeten Eintrags zusätzlich
+    /// die Wartungen.
+    /// </summary>
+    /// <remarks>
+    /// Wie bei den Trainingsbereichen werden Liste und Wartungen in einer Transaktion geschrieben und erst
+    /// danach im Speicher geändert. Nach einem Umbenennen wird die Wartungstabelle neu aufgebaut, damit die
+    /// neue Bezeichnung sofort erscheint. Danach geöffnete Wartungsfenster bieten die neue Liste an.
+    /// </remarks>
+    /// <param name="eintraege">Die neuen Einträge in ihrer Reihenfolge.</param>
+    /// <param name="umbenennung">Alter und neuer Name, wenn Wartungen mit umbenannt werden sollen; sonst <c>null</c>.</param>
+    /// <returns><c>true</c>, wenn gespeichert wurde.</returns>
+    private bool SpeichereTaetigkeiten(List<string> eintraege, (string Alt, string Neu)? umbenennung)
+    {
+        bool gespeichert = SchreibeInTransaktion((verbindung, transaktion) =>
+        {
+            AuswahllisteEinstellung.Speichern(verbindung, transaktion, Auswahlliste.Taetigkeit, eintraege);
+            if (umbenennung is { } u)
+            {
+                WartungenTabelle.ErsetzeTaetigkeit(verbindung, transaktion, u.Alt, u.Neu);
+            }
+        });
+        if (!gespeichert)
+        {
+            return false;
+        }
+
+        _taetigkeiten = eintraege;
+        if (umbenennung is { } umbenannt && BenenneTaetigkeitUm.Ausfuehren(_bestand.Wartungen, umbenannt.Alt, umbenannt.Neu) > 0)
+        {
+            AktualisiereWartungen();
         }
 
         return true;

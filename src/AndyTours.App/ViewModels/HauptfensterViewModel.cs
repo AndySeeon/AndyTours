@@ -97,7 +97,7 @@ public partial class HauptfensterViewModel : ObservableObject
     [ObservableProperty]
     private string _ausgewaehlteAktivitaet = string.Empty;
 
-    /// <summary>Text, der links in der Statusleiste angezeigt wird (Gesamtzahl der Einheiten).</summary>
+    /// <summary>Text, der links in der Statusleiste angezeigt wird (Gesamtzahl der Einheiten bzw. auf der Karteikarte „Wartung“ der Wartungen).</summary>
     [ObservableProperty]
     private string _statustext = string.Empty;
 
@@ -288,11 +288,13 @@ public partial class HauptfensterViewModel : ObservableObject
         Fensterposition? fenster;
         int? karteikarte;
         List<string> trainingsbereiche;
+        List<string> taetigkeiten;
         using (SqliteConnection verbindung = OeffneDatenbank.Ausfuehren(Path.Combine(ordner, DatenordnerInhalt.Datenbankdatei)))
         {
             geladen = DatenbestandTabellen.Laden(verbindung);
             geladen.Aktivitaeten = OrdneAktivitaeten.Ausfuehren(geladen.Aktivitaeten, AktivitaetenReihenfolgeEinstellung.Laden(verbindung));
             trainingsbereiche = LadeTrainingsbereiche(verbindung, geladen);
+            taetigkeiten = LadeTaetigkeiten(verbindung, geladen);
             ausgeblendet = AusgeblendeteSpaltenEinstellung.Laden(verbindung);
             anordnung = SpaltenanordnungEinstellung.Laden(verbindung);
             fenster = FensterpositionEinstellung.Laden(verbindung);
@@ -301,6 +303,7 @@ public partial class HauptfensterViewModel : ObservableObject
 
         _bestand = geladen;
         _trainingsbereiche = trainingsbereiche;
+        _taetigkeiten = taetigkeiten;
         Datenordner = ordner;
         Spaltenanordnung = anordnung;
         AusgeblendeteSpalten = ausgeblendet;
@@ -391,6 +394,13 @@ public partial class HauptfensterViewModel : ObservableObject
         // Karteikarte „Aktuell“: alle Jahre, nur Aktivität und Kategorie wirken
         AktualisiereJahresfortschritt();
         Bestleistungen.Aktualisiere(_bestand, GewaehlteAktivitaetId(), Filter.ErstelleFilter().Kategorie, DateOnly.FromDateTime(DateTime.Today));
+
+        // Karteikarte „Wartung“: Räder und km-Stände können sich mit dem Datenbestand geändert haben;
+        // ein bloßer Filterwechsel lässt sie unberührt (die Markierung der Wartungstabelle bleibt so erhalten)
+        if (listenNeu)
+        {
+            AktualisiereWartungen();
+        }
     }
 
     /// <summary>

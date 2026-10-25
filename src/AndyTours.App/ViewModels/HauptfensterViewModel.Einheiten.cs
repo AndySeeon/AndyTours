@@ -342,7 +342,21 @@ public partial class HauptfensterViewModel
         AusgewaehltesJahr = neu.Contains(gewaehlt) ? gewaehlt : aktuellesJahr.ToString(CultureInfo.InvariantCulture);
     }
 
-    /// <summary>Setzt den Text links in der Statusleiste (Gesamtzahl der Einheiten).</summary>
-    private void AktualisiereStatustext() =>
-        Statustext = string.Format(CultureInfo.GetCultureInfo("de-DE"), "{0:N0} Trainingseinheiten in der Datenbank", _bestand.Trainingseinheiten.Count);
+    /// <summary>
+    /// Setzt den Text links in der Statusleiste: auf der Karteikarte „Wartung“ die Gesamtzahl der Wartungen,
+    /// sonst die Gesamtzahl der Einheiten.
+    /// </summary>
+    private void AktualisiereStatustext()
+    {
+        CultureInfo deutsch = CultureInfo.GetCultureInfo("de-DE");
+        if (IstWartungGewaehlt)
+        {
+            int wartungen = ZaehleWartungen();
+            Statustext = string.Format(deutsch, "{0:N0} {1} in der Datenbank", wartungen, wartungen == 1 ? "Wartung" : "Wartungen");
+        }
+        else
+        {
+            Statustext = string.Format(deutsch, "{0:N0} Trainingseinheiten in der Datenbank", _bestand.Trainingseinheiten.Count);
+        }
+    }
 }

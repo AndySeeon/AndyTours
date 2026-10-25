@@ -1,0 +1,110 @@
+<!--
+  Wartungsfenster (Karteikarte „Wartung“: „Neue Wartung…“, „Bearbeiten…“, Doppelklick auf eine Zeile).
+
+  Aufbau:
+    1. Datum, Rad und Tätigkeit; Rad und Tätigkeit sind reine Auswahllisten ohne freie Eingabe
+    2. Mehrzeiliger Kommentar
+    3. Hinweis (leere Liste „Tätigkeit“, Datum in der Zukunft), darunter „OK“ und „Abbrechen“
+
+  Datenquelle ist das WartungBearbeitenViewModel. Jede Eingabe wird sofort geprüft; ein fehlerhaftes Feld
+  erhält einen roten Rahmen (Bindung an den Indexer, z. B. Tag="{Binding [Datum]}"), und „OK“ ist gesperrt.
+  „Abbrechen“ (auch Esc) fragt bei Änderungen nach (siehe Code-Behind).
+-->
+<Window x:Class="AndyTours.App.Views.WartungBearbeitenFenster"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="{Binding Titel}"
+        SizeToContent="Height"
+        Width="440"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        Language="de-DE">
+
+    <Window.Resources>
+        <!-- Beschriftung links neben einem Feld -->
+        <Style x:Key="Beschriftung" TargetType="TextBlock">
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="0,3,8,3" />
+        </Style>
+
+        <!-- Eingabefeld; Tag trägt den Fehlermerker des Feldes und färbt es bei Fehler rot -->
+        <Style x:Key="Eingabe" TargetType="TextBox">
+            <Setter Property="Margin" Value="0,3" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="True">
+                    <Setter Property="BorderBrush" Value="Red" />
+                    <Setter Property="BorderThickness" Value="2" />
+                    <Setter Property="Background" Value="#FFFFE0E0" />
+                    <Setter Property="ToolTip" Value="Ungültiges oder fehlendes Datum" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Rahmen um eine Auswahlliste, der bei Fehler rot wird (Auswahllisten zeigen eigene Rahmen nicht zuverlässig) -->
+        <Style x:Key="Fehlerrahmen" TargetType="Border">
+            <Setter Property="BorderThickness" Value="2" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="Margin" Value="-2,1" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="True">
+                    <Setter Property="BorderBrush" Value="Red" />
+                    <Setter Property="ToolTip" Value="Bitte einen Eintrag wählen" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <StackPanel Margin="16">
+        <!-- 1. Datum, Rad, Tätigkeit -->
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Text="Datum:" Style="{StaticResource Beschriftung}" />
+            <TextBox Grid.Row="0" Grid.Column="1" x:Name="DatumFeld" Width="100" HorizontalAlignment="Left"
+                     Text="{Binding Datum, UpdateSourceTrigger=PropertyChanged}" Tag="{Binding [Datum]}" Style="{StaticResource Eingabe}" />
+
+            <TextBlock Grid.Row="1" Text="Rad:" Style="{StaticResource Beschriftung}" />
+            <Border Grid.Row="1" Grid.Column="1" Tag="{Binding [Rad]}" Style="{StaticResource Fehlerrahmen}">
+                <ComboBox ItemsSource="{Binding Raeder}" SelectedItem="{Binding Rad}" DisplayMemberPath="Name" />
+            </Border>
+
+            <TextBlock Grid.Row="2" Text="Tätigkeit:" Style="{StaticResource Beschriftung}" />
+            <Border Grid.Row="2" Grid.Column="1" Tag="{Binding [Taetigkeit]}" Style="{StaticResource Fehlerrahmen}">
+                <!-- IsEditable bleibt aus: nur Einträge der Liste „Tätigkeit“ sind wählbar -->
+                <ComboBox ItemsSource="{Binding Taetigkeiten}" SelectedItem="{Binding Taetigkeit}" IsEditable="False" />
+            </Border>
+        </Grid>
+
+        <!-- 2. Kommentar -->
+        <TextBlock Text="Kommentar:" Margin="0,12,0,4" />
+        <TextBox Text="{Binding Kommentar, UpdateSourceTrigger=PropertyChanged}" Height="80"
+                 AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" />
+
+        <!-- 3. Hinweis und Schaltflächen -->
+        <TextBlock Text="{Binding Hinweis}" Foreground="#FFB00000" TextWrapping="Wrap" Margin="0,8,0,0">
+            <TextBlock.Style>
+                <Style TargetType="TextBlock">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Hinweis}" Value="">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TextBlock.Style>
+        </TextBlock>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+            <Button Content="OK" MinWidth="90" Padding="8,3" IsDefault="True" Command="{Binding SpeichernCommand}" />
+            <Button Content="Abbrechen" MinWidth="90" Padding="8,3" Margin="8,0,0,0" IsCancel="True" />
+        </StackPanel>
+    </StackPanel>
+</Window>

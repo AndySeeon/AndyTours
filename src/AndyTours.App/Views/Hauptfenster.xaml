@@ -8,7 +8,7 @@
        letzten Aktion (Statusmeldung), rechts der Datenordner
     4. Karteikarten mit den Arbeitsbereichen (füllt den restlichen Platz); „Aktuell“ zeigt
        Bestleistungen und Jahresfortschritt (AktuellAnsicht), „Trainingseinheiten“ die Tabelle der Einheiten der Auswahl
-       (EinheitenTabelle), die übrigen noch Platzhalter
+       (EinheitenTabelle), „Wartung“ die Wartungen der Räder (WartungenAnsicht), die übrigen noch Platzhalter
 
   Alle Inhalte werden per Datenbindung aus dem HauptfensterViewModel gelesen.
   Das ViewModel wird beim Programmstart von App erzeugt und im Konstruktor übergeben.
@@ -152,9 +152,9 @@
                 <TextBlock Style="{StaticResource PlatzhalterText}"
                            Text="Monatskalender mit Trainingseinheiten und Wartungen&#10;– folgt in Phase 6 –" />
             </TabItem>
-            <TabItem Header="Wartung">
-                <TextBlock Style="{StaticResource PlatzhalterText}"
-                           Text="Wartungsliste und Alarme je Equipment&#10;– folgt in Phase 6 –" />
+            <!-- IsSelected: auf dieser Karteikarte nennt die Statusleiste die Anzahl der Wartungen -->
+            <TabItem Header="Wartung" IsSelected="{Binding IstWartungGewaehlt, Mode=OneWayToSource}">
+                <views:WartungenAnsicht />
             </TabItem>
         </TabControl>
 

@@ -89,11 +89,11 @@ In Umsetzungsreihenfolge.
   - Status: done → [020-mehrtagestour](020-mehrtagestour/spec.md)
 - `wartung-erfassen` — Der Benutzer erfasst Wartungen mit Datum, Rad, Tätigkeit und Kommentar.
   - Abhängig von: `equipments-verwalten`
-  - Status: open
+  - Status: done → [021-wartung-erfassen](021-wartung-erfassen/spec.md)
 - `wartungsalarme` — Für ein Rad lässt sich ein Alarm nach einer bestimmten Kilometerzahl setzen, der bei Erreichen auffällig angezeigt wird.
   - Abhängig von: `wartung-erfassen`
   - Status: open
-- `teile-haltbarkeit` — Die App zeigt, wie viele Kilometer und Tage ein Teil zwischen zwei gleichartigen Wartungen gehalten hat.
+- `teile-haltbarkeit` — Die App zeigt, wie viele Kilometer und Tage ein Teil zwischen zwei gleichartigen Wartungen gehalten hat; die Wartungstabelle zeigt dazu neben dem km-Stand die Kilometer seit der letzten gleichartigen Wartung desselben Rads (z. B. seit dem letzten Kettenwechsel).
   - Abhängig von: `wartung-erfassen`
   - Status: open
 - `wartung-csv` — Wartungen lassen sich als CSV exportieren und aus CSV importieren.

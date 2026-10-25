@@ -9,8 +9,8 @@ using AndyTours.Core.Modell;
 namespace AndyTours.App.ViewModels;
 
 /// <summary>
-/// ViewModel des Bereichs „Auswahllisten“ im Einstellungsfenster: Trainingsbereiche, Aktivitäten und
-/// Kategorien hinzufügen, umbenennen, löschen, verschieben, kennzeichnen und zusammenführen; Equipments
+/// ViewModel des Bereichs „Auswahllisten“ im Einstellungsfenster: Trainingsbereiche, Aktivitäten,
+/// Kategorien und Tätigkeiten hinzufügen, umbenennen, löschen, verschieben, kennzeichnen und zusammenführen; Equipments
 /// anlegen, bearbeiten und löschen.
 /// </summary>
 /// <remarks>
@@ -18,13 +18,13 @@ namespace AndyTours.App.ViewModels;
 /// <item>Ein Klick auf einen Eintrag übernimmt ihn in das Eingabefeld. „Hinzufügen“ hängt den Feldinhalt
 /// an, „Umbenennen“ ersetzt den markierten Eintrag durch den Feldinhalt. Ungültige Eingaben (leer, schon
 /// vorhanden) werden mit einem Hinweis abgewiesen.</item>
-/// <item>Trainingsbereiche stehen als Text in den Einheiten: Wird ein verwendeter umbenannt, fragt das
-/// ViewModel mit der Anzahl nach. Aktivitäten und Kategorien sind über ihre Nummer zugeordnet; ihr
+/// <item>Trainingsbereiche stehen als Text in den Einheiten, Tätigkeiten als Text in den Wartungen: Wird ein
+/// verwendeter Eintrag umbenannt, fragt das ViewModel mit der Anzahl nach. Aktivitäten und Kategorien sind über ihre Nummer zugeordnet; ihr
 /// Umbenennen braucht keine Rückfrage.</item>
 /// <item>Löschen ist gesperrt, solange der Eintrag verwendet wird (bei Aktivitäten auch für die
 /// Hauptaktivität und die letzte Aktivität); ein Hinweis nennt den Grund. Ein unbenutzter Eintrag
 /// verschwindet ohne Rückfrage.</item>
-/// <item>„Nach oben“/„Nach unten“ gibt es für Trainingsbereiche und Aktivitäten; Kategorien stehen
+/// <item>„Nach oben“/„Nach unten“ gibt es für Trainingsbereiche, Aktivitäten und Tätigkeiten; Kategorien stehen
 /// alphabetisch. „Als Hauptaktivität“ gilt nur für Aktivitäten, „Standard“ nur für Kategorien,
 /// „Zusammenführen mit …“ für beide.</item>
 /// <item>Equipments haben mehrere Felder: „Hinzufügen“ und „Bearbeiten…“ öffnen dafür das Fenster
@@ -47,6 +47,7 @@ public partial class AuswahllistenViewModel : ObservableObject
         ["Aktivität"] = Auswahlliste.Aktivitaet,
         ["Kategorie"] = Auswahlliste.Kategorie,
         ["Equipment"] = Auswahlliste.Equipment,
+        ["Tätigkeit"] = Auswahlliste.Taetigkeit,
     };
 
     /// <summary>Liest, prüft und speichert die Listen (umgesetzt vom Hauptfenster).</summary>
@@ -118,8 +119,8 @@ public partial class AuswahllistenViewModel : ObservableObject
     /// <summary><c>true</c>, wenn Eingabefeld und „Umbenennen“ sichtbar sind (nicht bei Equipments).</summary>
     public bool HatEingabefeld => !IstEquipmentliste;
 
-    /// <summary><c>true</c> bei Listen, deren Reihenfolge der Benutzer festlegt (Trainingsbereiche, Aktivitäten).</summary>
-    private bool IstSortierbar => Liste is Auswahlliste.Trainingsbereich or Auswahlliste.Aktivitaet;
+    /// <summary><c>true</c> bei Listen, deren Reihenfolge der Benutzer festlegt (Trainingsbereiche, Aktivitäten, Tätigkeiten).</summary>
+    private bool IstSortierbar => Liste is Auswahlliste.Trainingsbereich or Auswahlliste.Aktivitaet or Auswahlliste.Taetigkeit;
 
     /// <summary>Die gewählte Liste.</summary>
     private Auswahlliste Liste => Bezeichnungen.TryGetValue(GewaehlteListe, out Auswahlliste liste) ? liste : Auswahlliste.Trainingsbereich;
@@ -162,7 +163,8 @@ public partial class AuswahllistenViewModel : ObservableObject
 
     /// <summary>
     /// Befehl „Umbenennen“: ersetzt den markierten Eintrag durch den Inhalt des Eingabefelds; ein
-    /// verwendeter Trainingsbereich erst nach Rückfrage, weil die Einheiten mit umbenannt werden.
+    /// verwendeter Trainingsbereich bzw. eine verwendete Tätigkeit erst nach Rückfrage, weil die Einheiten bzw.
+    /// Wartungen mit umbenannt werden.
     /// </summary>
     [RelayCommand(CanExecute = nameof(KannUmbenennen))]
     private void Umbenennen()
@@ -184,13 +186,17 @@ public partial class AuswahllistenViewModel : ObservableObject
             return; // nichts geändert
         }
 
-        if (Liste == Auswahlliste.Trainingsbereich)
+        if (Liste is Auswahlliste.Trainingsbereich or Auswahlliste.Taetigkeit)
         {
+            // Bei Tätigkeiten zählt der erste Wert die Wartungen
             int anzahl = _speicher.ZaehleVerwendung(Liste, alt).Einheiten;
             if (anzahl > 0)
             {
+                string verwendung = Liste == Auswahlliste.Taetigkeit
+                    ? (anzahl == 1 ? "Wartung" : "Wartungen")
+                    : (anzahl == 1 ? "Einheit" : "Einheiten");
                 string frage = string.Format(Deutsch, "In {0:N0} {1} ‚{2}‘ durch ‚{3}‘ ersetzen?",
-                    anzahl, anzahl == 1 ? "Einheit" : "Einheiten", alt, neuerName);
+                    anzahl, verwendung, alt, neuerName);
                 if (!Frage(frage))
                 {
                     return;
