@@ -14,7 +14,7 @@ namespace AndyTours.App.Views;
 /// <see cref="HauptfensterViewModel"/>, das beim Programmstart erzeugt und hier als
 /// DataContext gesetzt wird. Der Code-Behind setzt nur die gemerkte Fenstergröße und -position sowie
 /// die zuletzt gewählte Karteikarte und merkt sie sich beim Schließen zusammen mit der Spaltenanordnung
-/// der Tabelle.
+/// der Tabelle. Nach dem ersten Anzeigen lässt er das ViewModel fällige Wartungsalarme melden.
 /// </remarks>
 public partial class Hauptfenster : Window
 {
@@ -35,6 +35,17 @@ public partial class Hauptfenster : Window
         StelleFensterpositionWiederHer();
         StelleKarteikarteWiederHer();
         Closing += Hauptfenster_Closing;
+        ContentRendered += Hauptfenster_ContentRendered;
+    }
+
+    /// <summary>
+    /// Nach dem ersten Anzeigen des Fensters (Programmstart): fällige Wartungsalarme melden. Das Ereignis wird
+    /// danach abgemeldet, damit der Hinweis nur einmal erscheint.
+    /// </summary>
+    private void Hauptfenster_ContentRendered(object? sender, EventArgs e)
+    {
+        ContentRendered -= Hauptfenster_ContentRendered;
+        _viewModel.MeldeFaelligeAlarme();
     }
 
     /// <summary>

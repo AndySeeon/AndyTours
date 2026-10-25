@@ -1,0 +1,109 @@
+<!--
+  Alarmfenster (Karteikarte „Wartung“: „Neuer Alarm…“, „Bearbeiten…“, Doppelklick auf einen Alarm).
+
+  Aufbau:
+    1. Rad und Tätigkeit als reine Auswahllisten ohne freie Eingabe, Intervall in km
+    2. Kontrollkästchen „Alarm eingeschaltet“
+    3. Hinweis (leere Liste „Tätigkeit“, schon vorhandener Alarm), darunter „OK“ und „Abbrechen“
+
+  Datenquelle ist das AlarmBearbeitenViewModel. Jede Eingabe wird sofort geprüft; ein fehlerhaftes Feld
+  erhält einen roten Rahmen (Bindung an den Indexer, z. B. Tag="{Binding [Intervall]}"), und „OK“ ist gesperrt.
+  „Abbrechen“ (auch Esc) fragt bei Änderungen nach (siehe Code-Behind).
+-->
+<Window x:Class="AndyTours.App.Views.AlarmBearbeitenFenster"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="{Binding Titel}"
+        SizeToContent="Height"
+        Width="420"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        Language="de-DE">
+
+    <Window.Resources>
+        <!-- Beschriftung links neben einem Feld -->
+        <Style x:Key="Beschriftung" TargetType="TextBlock">
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="0,3,8,3" />
+        </Style>
+
+        <!-- Eingabefeld; Tag trägt den Fehlermerker des Feldes und färbt es bei Fehler rot -->
+        <Style x:Key="Eingabe" TargetType="TextBox">
+            <Setter Property="Margin" Value="0,3" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="TextAlignment" Value="Right" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="True">
+                    <Setter Property="BorderBrush" Value="Red" />
+                    <Setter Property="BorderThickness" Value="2" />
+                    <Setter Property="Background" Value="#FFFFE0E0" />
+                    <Setter Property="ToolTip" Value="Bitte eine ganze Zahl größer als 0 eingeben" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Rahmen um eine Auswahlliste, der bei Fehler rot wird (Auswahllisten zeigen eigene Rahmen nicht zuverlässig) -->
+        <Style x:Key="Fehlerrahmen" TargetType="Border">
+            <Setter Property="BorderThickness" Value="2" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="Margin" Value="-2,1" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="True">
+                    <Setter Property="BorderBrush" Value="Red" />
+                    <Setter Property="ToolTip" Value="Bitte einen Eintrag wählen" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <StackPanel Margin="16">
+        <!-- 1. Rad, Tätigkeit, Intervall -->
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Text="Rad:" Style="{StaticResource Beschriftung}" />
+            <Border Grid.Row="0" Grid.Column="1" Tag="{Binding [Rad]}" Style="{StaticResource Fehlerrahmen}">
+                <ComboBox x:Name="RadFeld" ItemsSource="{Binding Raeder}" SelectedItem="{Binding Rad}" DisplayMemberPath="Name" />
+            </Border>
+
+            <TextBlock Grid.Row="1" Text="Tätigkeit:" Style="{StaticResource Beschriftung}" />
+            <Border Grid.Row="1" Grid.Column="1" Tag="{Binding [Taetigkeit]}" Style="{StaticResource Fehlerrahmen}">
+                <!-- IsEditable bleibt aus: nur Einträge der Liste „Tätigkeit“ sind wählbar -->
+                <ComboBox ItemsSource="{Binding Taetigkeiten}" SelectedItem="{Binding Taetigkeit}" IsEditable="False" />
+            </Border>
+
+            <TextBlock Grid.Row="2" Text="Alle (km):" Style="{StaticResource Beschriftung}" />
+            <TextBox Grid.Row="2" Grid.Column="1" x:Name="IntervallFeld" Width="90" HorizontalAlignment="Left"
+                     Text="{Binding Intervall, UpdateSourceTrigger=PropertyChanged}" Tag="{Binding [Intervall]}" Style="{StaticResource Eingabe}" />
+        </Grid>
+
+        <!-- 2. Ein/Aus -->
+        <CheckBox Content="Alarm _eingeschaltet" IsChecked="{Binding Eingeschaltet}" Margin="0,10,0,0" />
+
+        <!-- 3. Hinweis und Schaltflächen -->
+        <TextBlock Text="{Binding Hinweis}" Foreground="#FFB00000" TextWrapping="Wrap" Margin="0,8,0,0">
+            <TextBlock.Style>
+                <Style TargetType="TextBlock">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Hinweis}" Value="">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TextBlock.Style>
+        </TextBlock>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+            <Button Content="OK" MinWidth="90" Padding="8,3" IsDefault="True" Command="{Binding SpeichernCommand}" />
+            <Button Content="Abbrechen" MinWidth="90" Padding="8,3" Margin="8,0,0,0" IsCancel="True" />
+        </StackPanel>
+    </StackPanel>
+</Window>

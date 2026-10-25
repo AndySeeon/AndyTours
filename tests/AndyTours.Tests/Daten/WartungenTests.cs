@@ -7,7 +7,7 @@ namespace AndyTours.Tests.Daten;
 
 /// <summary>
 /// Tests für <see cref="WartungenTabelle.Einfuegen"/>, <see cref="WartungenTabelle.Aendern"/>,
-/// <see cref="WartungenTabelle.Loeschen"/>, <see cref="WartungenTabelle.ErsetzeTaetigkeit"/> und die Liste
+/// <see cref="WartungenTabelle.Loeschen"/>, <see cref="WartungenTabelle.ErsetzeTaetigkeit"/>, Alarme und die Liste
 /// „Tätigkeit“ in <see cref="AuswahllisteEinstellung"/>.
 /// </summary>
 public class WartungenTests
@@ -95,6 +95,27 @@ public class WartungenTests
         Assert.Equal(1, umlaut);
         Assert.Equal(["Kette gewechselt", "Dämpfer", "Kette gewechselt"],
             WartungenTabelle.Laden(verbindung).OrderBy(w => w.Id).Select(w => w.Taetigkeit));
+    }
+
+    [Fact]
+    public void Alarm_mit_Intervall_und_Ein_Aus_bleibt_erhalten_und_laesst_sich_aendern()
+    {
+        using SqliteConnection verbindung = DatenbankMitWartungen();
+        var alarm = new Wartung
+        {
+            Datum = new DateOnly(2026, 10, 1), EquipmentId = 7, Taetigkeit = "Kettenwechsel",
+            Typ = WartungsTyp.Alarm, AlarmKm = 3000, Aktiv = true,
+        };
+
+        alarm.Id = WartungenTabelle.Einfuegen(verbindung, alarm);
+        Wartung geladen = WartungenTabelle.Laden(verbindung).Single(w => w.Id == alarm.Id);
+        Assert.Equal((WartungsTyp.Alarm, 3000.0, true, new DateOnly(2026, 10, 1)), (geladen.Typ, geladen.AlarmKm, geladen.Aktiv, geladen.Datum));
+
+        alarm.AlarmKm = 2500;
+        alarm.Aktiv = false;
+        WartungenTabelle.Aendern(verbindung, alarm);
+        geladen = WartungenTabelle.Laden(verbindung).Single(w => w.Id == alarm.Id);
+        Assert.Equal((WartungsTyp.Alarm, 2500.0, false), (geladen.Typ, geladen.AlarmKm, geladen.Aktiv));
     }
 
     [Fact]

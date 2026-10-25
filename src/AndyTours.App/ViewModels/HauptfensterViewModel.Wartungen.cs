@@ -20,7 +20,8 @@ namespace AndyTours.App.ViewModels;
 /// (über <see cref="Schreibe"/>), und die Tabelle bleibt beim vorherigen Stand.
 /// <para>
 /// Die Zeilen werden nach jeder Änderung an Einheiten, Rädern, Wartungen oder der Liste „Tätigkeit“ neu
-/// aufgebaut (<see cref="AktualisiereWartungen"/>); so bleibt der km-Stand immer aktuell.
+/// aufgebaut (<see cref="AktualisiereWartungen"/>); so bleibt der km-Stand immer aktuell. Die Alarmliste
+/// (<c>HauptfensterViewModel.Alarme.cs</c>) folgt derselben Radauswahl und wird jedes Mal mit aufgebaut.
 /// </para>
 /// </remarks>
 public partial class HauptfensterViewModel
@@ -273,7 +274,8 @@ public partial class HauptfensterViewModel
 
     /// <summary>
     /// Füllt die Tabelle mit den Wartungen des gewählten Rads (dieselbe Sammlung, damit die gewählte
-    /// Sortierung erhalten bleibt) und setzt den Hinweis für eine leere Tabelle.
+    /// Sortierung erhalten bleibt) und setzt den Hinweis für eine leere Tabelle; die Alarmliste wird mit
+    /// aufgebaut, weil jede Wartung einen Alarm zurücksetzen kann.
     /// </summary>
     private void FuelleWartungszeilen()
     {
@@ -289,6 +291,8 @@ public partial class HauptfensterViewModel
         Wartungshinweis = ZaehleWartungen() > 0
             ? "Keine Wartungen für dieses Rad."
             : "Noch keine Wartungen erfasst.";
+
+        FuelleAlarmzeilen();
     }
 
     /// <summary>Sucht eine Wartung im Datenbestand.</summary>

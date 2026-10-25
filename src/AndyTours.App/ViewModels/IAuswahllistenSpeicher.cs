@@ -25,7 +25,7 @@ public interface IAuswahllistenSpeicher
     /// <param name="name">Der Eintrag.</param>
     /// <returns>
     /// Anzahl der Einheiten und – nur bei Aktivitäten – der Equipments; bei Equipments nur die Einheiten;
-    /// bei Tätigkeiten steht im ersten Wert die Anzahl der Wartungen.
+    /// bei Tätigkeiten steht im ersten Wert die Anzahl der Wartungen, im zweiten die der Alarme.
     /// </returns>
     (int Einheiten, int Equipments) ZaehleVerwendung(Auswahlliste liste, string name);
 

@@ -161,7 +161,7 @@ public partial class HauptfensterViewModel : IAuswahllistenSpeicher
     /// <inheritdoc/>
     /// <remarks>
     /// Bei Kategorien zählen nur die Einheiten; die Rückfrage nennt keine Equipments. Bei Tätigkeiten steht im
-    /// ersten Wert die Anzahl der Wartungen.
+    /// ersten Wert die Anzahl der Wartungen, im zweiten die der Alarme.
     /// </remarks>
     (int Einheiten, int Equipments) IAuswahllistenSpeicher.ZaehleVerwendung(Auswahlliste liste, string name) => liste switch
     {
@@ -169,7 +169,8 @@ public partial class HauptfensterViewModel : IAuswahllistenSpeicher
         Auswahlliste.Aktivitaet => FindeAktivitaet(name) is { } a ? ZaehleVerwendung.Aktivitaet(_bestand, a.Id) : (0, 0),
         Auswahlliste.Kategorie => FindeKategorie(name) is { } k ? (ZaehleVerwendung.Kategorie(_bestand, k.Id).Einheiten, 0) : (0, 0),
         Auswahlliste.Equipment => FindeEquipment(name) is { } e ? (ZaehleVerwendung.Equipment(_bestand, e.Id).Einheiten, 0) : (0, 0),
-        Auswahlliste.Taetigkeit => (ZaehleTaetigkeit.Ausfuehren(_bestand.Wartungen, name), 0),
+        Auswahlliste.Taetigkeit => (ZaehleTaetigkeit.Ausfuehren(_bestand.Wartungen, name, WartungsTyp.Wartung),
+            ZaehleTaetigkeit.Ausfuehren(_bestand.Wartungen, name, WartungsTyp.Alarm)),
         _ => throw new ArgumentOutOfRangeException(nameof(liste), liste, null),
     };
 
@@ -191,11 +192,11 @@ public partial class HauptfensterViewModel : IAuswahllistenSpeicher
             case Auswahlliste.Equipment:
                 return FindeEquipment(name) is { } e ? ErmittleLoeschsperre.Equipment(_bestand, e.Id) : null;
             case Auswahlliste.Taetigkeit:
-                int wartungen = ZaehleTaetigkeit.Ausfuehren(_bestand.Wartungen, name);
-                return wartungen == 0
+                int wartungen = ZaehleTaetigkeit.Ausfuehren(_bestand.Wartungen, name, WartungsTyp.Wartung);
+                int alarme = ZaehleTaetigkeit.Ausfuehren(_bestand.Wartungen, name, WartungsTyp.Alarm);
+                return wartungen + alarme == 0
                     ? null
-                    : string.Format(CultureInfo.GetCultureInfo("de-DE"), "‚{0}‘ wird in {1:N0} {2} verwendet und kann nicht gelöscht werden.",
-                        name, wartungen, wartungen == 1 ? "Wartung" : "Wartungen");
+                    : $"‚{name}‘ wird in {AuswahllistenViewModel.BeschreibeTaetigkeitsverwendung(wartungen, alarme)} verwendet und kann nicht gelöscht werden.";
             default:
                 throw new ArgumentOutOfRangeException(nameof(liste), liste, null);
         }
@@ -278,7 +279,8 @@ public partial class HauptfensterViewModel : IAuswahllistenSpeicher
                 }
 
                 eintraege[stelle] = neuerName;
-                bool verwendet = ZaehleTaetigkeit.Ausfuehren(_bestand.Wartungen, alt) > 0;
+                // Wartungen und Alarme werden gemeinsam umbenannt
+                bool verwendet = _bestand.Wartungen.Any(w => string.Equals(w.Taetigkeit.Trim(), alt.Trim(), StringComparison.OrdinalIgnoreCase));
                 return SpeichereTaetigkeiten(eintraege, verwendet ? (alt, neuerName) : null);
             }
 

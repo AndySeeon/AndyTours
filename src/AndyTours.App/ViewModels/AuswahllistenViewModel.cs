@@ -188,15 +188,15 @@ public partial class AuswahllistenViewModel : ObservableObject
 
         if (Liste is Auswahlliste.Trainingsbereich or Auswahlliste.Taetigkeit)
         {
-            // Bei Tätigkeiten zählt der erste Wert die Wartungen
-            int anzahl = _speicher.ZaehleVerwendung(Liste, alt).Einheiten;
+            // Bei Tätigkeiten zählt der erste Wert die Wartungen, der zweite die Alarme
+            (int erster, int zweiter) = _speicher.ZaehleVerwendung(Liste, alt);
+            int anzahl = Liste == Auswahlliste.Taetigkeit ? erster + zweiter : erster;
             if (anzahl > 0)
             {
                 string verwendung = Liste == Auswahlliste.Taetigkeit
-                    ? (anzahl == 1 ? "Wartung" : "Wartungen")
-                    : (anzahl == 1 ? "Einheit" : "Einheiten");
-                string frage = string.Format(Deutsch, "In {0:N0} {1} ‚{2}‘ durch ‚{3}‘ ersetzen?",
-                    anzahl, verwendung, alt, neuerName);
+                    ? BeschreibeTaetigkeitsverwendung(erster, zweiter)
+                    : string.Format(Deutsch, "{0:N0} {1}", anzahl, anzahl == 1 ? "Einheit" : "Einheiten");
+                string frage = $"In {verwendung} ‚{alt}‘ durch ‚{neuerName}‘ ersetzen?";
                 if (!Frage(frage))
                 {
                     return;
@@ -332,6 +332,29 @@ public partial class AuswahllistenViewModel : ObservableObject
 
     /// <summary>Wählbarkeit von „Zusammenführen mit …“: markiert, und es gibt einen anderen Eintrag als Ziel.</summary>
     private bool KannZusammenfuehren() => Markiert is not null && KannZusammenfuehrenAnzeigen && Eintraege.Count > 1;
+
+    /// <summary>
+    /// Beschreibt, wo eine Tätigkeit verwendet wird, z. B. „32 Wartungen und 1 Alarm“, „1 Wartung“ oder „2 Alarmen“
+    /// (für Rückfrage und Löschsperre; Anzahlen von 0 entfallen).
+    /// </summary>
+    /// <param name="wartungen">Anzahl der Wartungen.</param>
+    /// <param name="alarme">Anzahl der Alarme.</param>
+    /// <returns>Der Text, passend nach „in“.</returns>
+    internal static string BeschreibeTaetigkeitsverwendung(int wartungen, int alarme)
+    {
+        var teile = new List<string>();
+        if (wartungen > 0)
+        {
+            teile.Add(string.Format(Deutsch, "{0:N0} {1}", wartungen, wartungen == 1 ? "Wartung" : "Wartungen"));
+        }
+
+        if (alarme > 0)
+        {
+            teile.Add(string.Format(Deutsch, "{0:N0} {1}", alarme, alarme == 1 ? "Alarm" : "Alarmen"));
+        }
+
+        return string.Join(" und ", teile);
+    }
 
     /// <summary>Stellt eine Ja/Nein-Frage; vorbelegt ist „Nein“.</summary>
     private static bool Frage(string text) =>
