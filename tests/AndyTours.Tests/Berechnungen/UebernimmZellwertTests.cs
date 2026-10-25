@@ -93,6 +93,20 @@ public class UebernimmZellwertTests
     }
 
     [Fact]
+    public void Ausgemustertes_Equipment_mit_Zusatz_bleibt_zugeordnet()
+    {
+        Datenbestand bestand = Bestand();
+        bestand.Equipments[0].Ausgemustert = true;
+
+        string rohtext = UebernimmZellwert.Rohtext(Einheit(), Einheitenspalte.Equipment, bestand);
+        Eingabeergebnis ergebnis = UebernimmZellwert.Ausfuehren(Einheit(), Einheitenspalte.Equipment, rohtext, bestand);
+
+        Assert.Equal("Genius (ausgemustert)", rohtext);
+        Assert.True(ergebnis.IstGueltig);
+        Assert.Equal(7, ergebnis.Einheit!.EquipmentId);
+    }
+
+    [Fact]
     public void Rohtext_ohne_Tausenderpunkt_und_mit_Namen()
     {
         Assert.Equal("1234,5", UebernimmZellwert.Rohtext(Einheit(), Einheitenspalte.Distanz, Bestand()));

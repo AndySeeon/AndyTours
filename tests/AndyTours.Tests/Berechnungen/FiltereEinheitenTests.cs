@@ -53,6 +53,17 @@ public class FiltereEinheitenTests
     }
 
     [Fact]
+    public void Ausgemustertes_Equipment_filtert_mit_und_ohne_Zusatz()
+    {
+        Datenbestand bestand = Bestand();
+        bestand.Equipments[1].Ausgemustert = true; // Rennrad
+        Trainingseinheit[] einheiten = [Einheit(1, equipment: 7), Einheit(2, equipment: 8)];
+
+        Assert.Equal([2L], FiltereEinheiten.Ausfuehren(einheiten, Einheitenfilter.Leer with { Equipment = "Rennrad (ausgemustert)" }, bestand).Select(e => e.Id));
+        Assert.Equal([2L], FiltereEinheiten.Ausfuehren(einheiten, Einheitenfilter.Leer with { Equipment = "Rennrad" }, bestand).Select(e => e.Id));
+    }
+
+    [Fact]
     public void Unbekannter_Name_ergibt_keine_Einheiten()
     {
         Assert.Empty(Ids([Einheit(1)], Einheitenfilter.Leer with { Equipment = "Gibt es nicht" }));

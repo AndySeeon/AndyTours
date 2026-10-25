@@ -48,7 +48,7 @@ public partial class HauptfensterViewModel
 
         if (equipment.Ausgemustert)
         {
-            text += " (ausgemustert)";
+            text += EquipmentAnzeigename.ZusatzAusgemustert;
         }
 
         return text;

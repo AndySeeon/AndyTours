@@ -41,6 +41,10 @@ Verbindliche Regeln für den Quellcode. Grundlage ist die Projektvorgabe in `CLA
 - Klassen, Methoden, Eigenschaften: `PascalCase`; lokale Variablen und Parameter: `camelCase`; private Felder: `_camelCase`.
 - Einheiten im Namen, wenn sie nicht offensichtlich sind: `DistanzKm`, `GewichtKg`, `FahrzeitSekunden`.
 
+## Anzeige
+
+- **Equipment-Namen** werden in Listen, Tabellen und Auswahlen immer über `EquipmentAnzeigename.Bilden(equipment)` gebildet, damit ausgemustertes Equipment überall den Zusatz „(ausgemustert)“ trägt. Wird ein angezeigter Name wieder in ein Equipment übersetzt (Filter, Zellbearbeitung), vergleicht `EquipmentAnzeigename.Passt`. Hinweis- und Fehlertexte nennen den gespeicherten Namen.
+
 ## Technik
 
 - .NET 10 (`net10.0`, App: `net10.0-windows10.0.19041.0`), C# `latest`, Nullable aktiviert – gemeinsam festgelegt in `Directory.Build.props`; die SDK-Version (10.0.4xx, keine Vorabversionen) legt `global.json` fest.

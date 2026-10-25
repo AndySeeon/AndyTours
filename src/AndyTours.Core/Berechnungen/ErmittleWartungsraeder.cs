@@ -8,18 +8,6 @@ namespace AndyTours.Core.Berechnungen;
 /// </summary>
 public static class ErmittleWartungsraeder
 {
-    /// <summary>Zusatz hinter dem Namen eines ausgemusterten Equipments.</summary>
-    public const string ZusatzAusgemustert = " (ausgemustert)";
-
-    /// <summary>
-    /// Liefert den angezeigten Namen eines Equipments: bei einem ausgemusterten mit dem Zusatz „(ausgemustert)“
-    /// (in der Auswahl und in den Listen „Wartungen“ und „Alarme“).
-    /// </summary>
-    /// <param name="equipment">Das Equipment.</param>
-    /// <returns>Der Name, ggf. mit Zusatz.</returns>
-    public static string Anzeigename(Equipment equipment) =>
-        equipment.Ausgemustert ? equipment.Name + ZusatzAusgemustert : equipment.Name;
-
     /// <summary>
     /// Liefert die Equipments im Einsatz, die zur gültigen Aktivität gehören, alphabetisch.
     /// </summary>
@@ -39,6 +27,6 @@ public static class ErmittleWartungsraeder
             .Where(e => (!e.Ausgemustert && Wartungsaktivitaet.Passt(e, aktivitaetId)) || e.Id == bisherigesEquipmentId)
             .OrderBy(e => e.Ausgemustert)
             .ThenBy(e => e.Name, StringComparer.CurrentCultureIgnoreCase)
-            .Select(e => new Auswahleintrag(e.Id, Anzeigename(e)))
+            .Select(e => new Auswahleintrag(e.Id, EquipmentAnzeigename.Bilden(e)))
             .ToList();
 }

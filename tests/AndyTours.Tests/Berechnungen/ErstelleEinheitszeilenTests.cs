@@ -29,6 +29,15 @@ public class ErstelleEinheitszeilenTests
     };
 
     [Fact]
+    public void Ausgemustertes_Equipment_mit_Zusatz()
+    {
+        Datenbestand bestand = Bestand();
+        bestand.Equipments[0].Ausgemustert = true;
+
+        Assert.Equal("Genius (ausgemustert)", ErstelleEinheitszeilen.Ausfuehren([Einheit(1)], bestand)[0].Equipment);
+    }
+
+    [Fact]
     public void Eine_Zeile_je_Einheit_mit_aufgeloesten_Namen()
     {
         List<Einheitszeile> zeilen = ErstelleEinheitszeilen.Ausfuehren([Einheit(1), Einheit(2)], Bestand());

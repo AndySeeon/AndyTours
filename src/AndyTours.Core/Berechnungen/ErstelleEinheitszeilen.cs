@@ -13,7 +13,8 @@ public static class ErstelleEinheitszeilen
     /// <remarks>
     /// <list type="bullet">
     /// <item>Aktivität, Equipment und Kategorien werden über den Datenbestand in Namen übersetzt;
-    /// unbekannte Nummern ergeben einen leeren Text.</item>
+    /// unbekannte Nummern ergeben einen leeren Text. Ausgemustertes Equipment trägt den Zusatz „(ausgemustert)“
+    /// (siehe <see cref="EquipmentAnzeigename"/>); die Spalte sortiert nach diesem Text.</item>
     /// <item>Werte, die als 0 gespeichert sind, gelten als „nicht erfasst“ und werden <c>null</c>:
     /// Distanz, Fahrzeit, max km/h, Ø und max Puls, Trittfrequenz, Temperatur (0 °C gilt in den
     /// Altdaten als „nicht aufgezeichnet“) und Maximalhöhe. Höhenmeter bleiben als Zahl, denn 0 hm
@@ -29,7 +30,7 @@ public static class ErstelleEinheitszeilen
     public static List<Einheitszeile> Ausfuehren(IReadOnlyCollection<Trainingseinheit> einheiten, Datenbestand bestand)
     {
         Dictionary<long, string> aktivitaeten = bestand.Aktivitaeten.ToDictionary(a => a.Id, a => a.Name);
-        Dictionary<long, string> equipments = bestand.Equipments.ToDictionary(e => e.Id, e => e.Name);
+        Dictionary<long, string> equipments = bestand.Equipments.ToDictionary(e => e.Id, EquipmentAnzeigename.Bilden);
         Dictionary<long, string> kategorien = bestand.Kategorien.ToDictionary(k => k.Id, k => k.Name);
         Bestwerte best = ErmittleBestwerte.Ausfuehren(einheiten);
 

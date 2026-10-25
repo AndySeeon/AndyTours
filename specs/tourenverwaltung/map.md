@@ -101,7 +101,7 @@ In Umsetzungsreihenfolge.
   - Status: done → [024-wartung-equipment-auswahl](024-wartung-equipment-auswahl/spec.md)
 - `ausgemustert-kennzeichnen` — In allen Listen, Tabellen und Auswahlen steht hinter ausgemustertem Equipment der Zusatz „(ausgemustert)“.
   - Abhängig von: `wartung-equipment-auswahl`
-  - Status: open
+  - Status: done → [025-ausgemustert-kennzeichnen](025-ausgemustert-kennzeichnen/spec.md)
 - `suche` — Der Benutzer kann Einheiten über einen Suchbegriff finden, auch in Kommentaren und Anhängen.
   - Abhängig von: `einheiten-tabelle`
   - Status: open

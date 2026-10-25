@@ -51,7 +51,7 @@ public class ErmittleEingabelistenTests
     {
         Eingabelisten listen = ErmittleEingabelisten.Ausfuehren(Bestand(), new Trainingseinheit { EquipmentId = 9 }, Bereiche);
 
-        Assert.Equal(["(kein)", "Altes Rad", "Genius", "Rennrad"], listen.Equipments.Select(e => e.Name));
+        Assert.Equal(["(kein)", "Genius", "Rennrad", "Altes Rad (ausgemustert)"], listen.Equipments.Select(e => e.Name));
     }
 
     [Fact]

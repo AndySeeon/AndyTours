@@ -15,6 +15,8 @@ public static class ErmittleFilterwerte
     /// <item>Jede Liste beginnt mit <see cref="Filterwerte.Alle"/>; danach folgen die Werte alphabetisch
     /// (ohne Rücksicht auf Groß- und Kleinschreibung) und ohne Doppelte.</item>
     /// <item>Leere Werte (Einheit ohne Equipment, ohne Trainingsbereich, unbekannte Nummer) erscheinen nicht.</item>
+    /// <item>Ausgemustertes Equipment trägt den Zusatz „(ausgemustert)“ (siehe <see cref="EquipmentAnzeigename"/>)
+    /// und steht nach den Equipments im Einsatz, ebenfalls alphabetisch.</item>
     /// <item>Ein bereits gewählter Wert, der in der Auswahl nicht mehr vorkommt (z. B. nach einem Wechsel des
     /// Jahres), wird trotzdem aufgenommen. So bleibt er sichtbar gewählt, statt dass der Filter unbemerkt
     /// verschwindet; die Tabelle zeigt dann den Hinweis, dass keine Einheit passt.</item>
@@ -27,13 +29,13 @@ public static class ErmittleFilterwerte
     public static Filterwerte Ausfuehren(IReadOnlyCollection<Trainingseinheit> auswahl, Datenbestand bestand, Einheitenfilter aktuelleWahl)
     {
         Dictionary<long, string> kategorien = bestand.Kategorien.ToDictionary(k => k.Id, k => k.Name);
-        Dictionary<long, string> equipments = bestand.Equipments.ToDictionary(e => e.Id, e => e.Name);
+        Dictionary<long, string> equipments = bestand.Equipments.ToDictionary(e => e.Id, EquipmentAnzeigename.Bilden);
 
         return new Filterwerte(
             Kategorien: Liste(auswahl.SelectMany(e => e.KategorieIds).Select(id => kategorien.GetValueOrDefault(id, string.Empty)),
                 aktuelleWahl.Kategorie),
             Equipments: Liste(auswahl.Select(e => e.EquipmentId is long id ? equipments.GetValueOrDefault(id, string.Empty) : string.Empty),
-                aktuelleWahl.Equipment),
+                aktuelleWahl.Equipment, ausgemusterteAmEnde: true),
             Trainingsbereiche: Liste(auswahl.Select(e => e.Trainingsbereich), aktuelleWahl.Trainingsbereich));
     }
 
@@ -42,15 +44,17 @@ public static class ErmittleFilterwerte
     /// </summary>
     /// <param name="werte">Die vorkommenden Werte (auch leere und doppelte).</param>
     /// <param name="gewaehlt">Der gewählte Wert oder <c>null</c>.</param>
+    /// <param name="ausgemusterteAmEnde"><c>true</c> (Equipments): Werte mit dem Zusatz „(ausgemustert)“ stehen am Ende.</param>
     /// <returns>Die fertige Liste.</returns>
-    private static List<string> Liste(IEnumerable<string> werte, string? gewaehlt)
+    private static List<string> Liste(IEnumerable<string> werte, string? gewaehlt, bool ausgemusterteAmEnde = false)
     {
         IEnumerable<string> alle = gewaehlt is null ? werte : werte.Append(gewaehlt);
         return alle
             .Select(w => w.Trim())
             .Where(w => w.Length > 0)
             .Distinct(StringComparer.Ordinal)
-            .Order(StringComparer.CurrentCultureIgnoreCase)
+            .OrderBy(w => ausgemusterteAmEnde && w.EndsWith(EquipmentAnzeigename.ZusatzAusgemustert, StringComparison.Ordinal))
+            .ThenBy(w => w, StringComparer.CurrentCultureIgnoreCase)
             .Prepend(Filterwerte.Alle)
             .ToList();
     }

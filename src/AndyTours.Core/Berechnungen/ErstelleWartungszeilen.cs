@@ -39,7 +39,7 @@ public static class ErstelleWartungszeilen
                 return new Wartungszeile(
                     w.Id,
                     w.Datum,
-                    rad is null ? string.Empty : ErmittleWartungsraeder.Anzeigename(rad),
+                    rad is null ? string.Empty : EquipmentAnzeigename.Bilden(rad),
                     rad is null ? null : BerechneKmStand.Ausfuehren(bestand.Trainingseinheiten, rad, w.Datum),
                     haltbarkeit.Km,
                     haltbarkeit.Tage,

@@ -33,7 +33,7 @@ public static class ErstelleAlarmzeilen
             .Select(alarm =>
             {
                 Alarmstand stand = BerechneAlarmstand.Ausfuehren(bestand, alarm);
-                string rad = alarm.EquipmentId is long id ? equipments.GetValueOrDefault(id) is Equipment e ? ErmittleWartungsraeder.Anzeigename(e) : string.Empty : string.Empty;
+                string rad = alarm.EquipmentId is long id ? equipments.GetValueOrDefault(id) is Equipment e ? EquipmentAnzeigename.Bilden(e) : string.Empty : string.Empty;
                 return new Alarmzeile(alarm.Id, rad, alarm.Taetigkeit, alarm.AlarmKm, stand.GefahrenKm, stand.VerbleibendKm, stand.Zustand);
             })
             .OrderBy(z => z.Zustand)

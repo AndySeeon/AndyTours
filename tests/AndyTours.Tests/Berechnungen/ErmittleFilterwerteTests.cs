@@ -47,6 +47,17 @@ public class ErmittleFilterwerteTests
     }
 
     [Fact]
+    public void Ausgemustertes_Equipment_mit_Zusatz_am_Ende()
+    {
+        Datenbestand bestand = Bestand();
+        bestand.Equipments[0].Ausgemustert = true; // Genius
+
+        Filterwerte werte = ErmittleFilterwerte.Ausfuehren([Einheit(7, [1], ""), Einheit(8, [1], ""), Einheit(9, [1], "")], bestand, Einheitenfilter.Leer);
+
+        Assert.Equal(["(alle)", "Altes Rad", "Rennrad", "Genius (ausgemustert)"], werte.Equipments);
+    }
+
+    [Fact]
     public void Leere_Auswahl_ergibt_nur_alle()
     {
         Filterwerte werte = ErmittleFilterwerte.Ausfuehren([], Bestand(), Einheitenfilter.Leer);

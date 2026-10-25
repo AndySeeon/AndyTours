@@ -51,7 +51,7 @@ public class EquipmentauswahlTests
     [Fact]
     public void Bisheriges_Equipment_bleibt_auch_ausgemustert_oder_fremd_erhalten()
     {
-        Assert.Equal(["(kein)", "Altrad", "Cube", "Neu", "Schuhe"],
+        Assert.Equal(["(kein)", "Cube", "Neu", "Schuhe", "Altrad (ausgemustert)"],
             ErmittleEquipmentauswahl.Ausfuehren(Auswahlbestand.MitEquipments(), 2, 4).Select(e => e.Name));
     }
 

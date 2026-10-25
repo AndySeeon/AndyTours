@@ -16,7 +16,8 @@ public static class UebernimmZellwert
     /// über <see cref="EinheitEingaben.AlsEinheit"/> geprüft. So gelten in Tabelle und Fenster dieselben Regeln.
     /// <para>
     /// Aktivität und Equipment kommen als Name aus der Auswahlliste und werden über den Datenbestand in
-    /// ihre Nummer übersetzt; „(kein)“ oder ein leerer Text bedeutet „kein Equipment“. Ein unbekannter Name
+    /// ihre Nummer übersetzt; „(kein)“ oder ein leerer Text bedeutet „kein Equipment“. Beim Equipment zählt auch
+    /// der angezeigte Name mit dem Zusatz „(ausgemustert)“ (siehe <see cref="EquipmentAnzeigename.Passt"/>). Ein unbekannter Name
     /// gilt als Fehler. Ø km/h (berechnet) und Kategorien (mehrere) lassen sich in der Zelle nicht ändern.
     /// </para>
     /// </remarks>
@@ -43,7 +44,7 @@ public static class UebernimmZellwert
                 {
                     eingaben = eingaben with { EquipmentId = null };
                 }
-                else if (bestand.Equipments.FirstOrDefault(e => e.Name == wert) is Equipment equipment)
+                else if (bestand.Equipments.FirstOrDefault(e => EquipmentAnzeigename.Passt(e, wert)) is Equipment equipment)
                 {
                     eingaben = eingaben with { EquipmentId = equipment.Id };
                 }
@@ -97,7 +98,9 @@ public static class UebernimmZellwert
             Einheitenspalte.Startzeit => e.Startzeit,
             Einheitenspalte.Name => e.Name,
             Einheitenspalte.Aktivitaet => bestand.Aktivitaeten.FirstOrDefault(a => a.Id == einheit.AktivitaetId)?.Name ?? string.Empty,
-            Einheitenspalte.Equipment => bestand.Equipments.FirstOrDefault(q => q.Id == einheit.EquipmentId)?.Name ?? Eingabelisten.KeinEquipment,
+            Einheitenspalte.Equipment => bestand.Equipments.FirstOrDefault(q => q.Id == einheit.EquipmentId) is Equipment equipment
+                ? EquipmentAnzeigename.Bilden(equipment) // wie in der Auswahl der Zelle, damit der Eintrag vorgewählt ist
+                : Eingabelisten.KeinEquipment,
             Einheitenspalte.Distanz => e.Distanz,
             Einheitenspalte.Hoehenmeter => e.Hoehenmeter,
             Einheitenspalte.Fahrzeit => e.Fahrzeit,

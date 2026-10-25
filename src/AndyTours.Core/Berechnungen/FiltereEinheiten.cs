@@ -36,7 +36,7 @@ public static class FiltereEinheiten
             : bestand.Kategorien.Where(k => k.Name == filter.Kategorie).Select(k => k.Id).ToHashSet();
         HashSet<long>? equipmentIds = filter.Equipment is null
             ? null
-            : bestand.Equipments.Where(e => e.Name == filter.Equipment).Select(e => e.Id).ToHashSet();
+            : bestand.Equipments.Where(e => EquipmentAnzeigename.Passt(e, filter.Equipment)).Select(e => e.Id).ToHashSet(); // auch mit Zusatz „(ausgemustert)“
         string name = filter.Name.Trim();
 
         return einheiten

@@ -16,7 +16,8 @@ public static class ErmittleEquipmentauswahl
     /// <item>die nicht ausgemusterten Equipments der gewählten Aktivität,</item>
     /// <item>die nicht ausgemusterten Equipments ohne Aktivität (sie passen zu jeder Aktivität),</item>
     /// <item>das Equipment, das die Einheit bereits hat – auch wenn es ausgemustert ist oder zu einer
-    /// anderen Aktivität gehört, damit die Zuordnung alter Touren nicht verloren geht.</item>
+    /// anderen Aktivität gehört, damit die Zuordnung alter Touren nicht verloren geht. Ist es ausgemustert,
+    /// steht es am Ende und trägt den Zusatz „(ausgemustert)“ (siehe <see cref="EquipmentAnzeigename"/>).</item>
     /// </list>
     /// Ohne gewählte Aktivität (<c>null</c> oder 0) werden nur die Equipments ohne Aktivität angeboten.
     /// </remarks>
@@ -28,8 +29,9 @@ public static class ErmittleEquipmentauswahl
         bestand.Equipments
             .Where(e => e.Id == bisherigesEquipmentId
                 || (!e.Ausgemustert && (e.AktivitaetId is null || (aktivitaetId is long id && id != 0 && e.AktivitaetId == id))))
-            .OrderBy(e => e.Name, StringComparer.CurrentCultureIgnoreCase)
-            .Select(e => new Auswahleintrag(e.Id, e.Name))
+            .OrderBy(e => e.Ausgemustert)
+            .ThenBy(e => e.Name, StringComparer.CurrentCultureIgnoreCase)
+            .Select(e => new Auswahleintrag(e.Id, EquipmentAnzeigename.Bilden(e)))
             .Prepend(new Auswahleintrag(null, Eingabelisten.KeinEquipment))
             .ToList();
 
@@ -47,8 +49,9 @@ public static class ErmittleEquipmentauswahl
     public static List<Auswahleintrag> Ausfuehren(Datenbestand bestand, IReadOnlyCollection<long> aktivitaetIds) =>
         bestand.Equipments
             .Where(e => !e.Ausgemustert && (e.AktivitaetId is null || aktivitaetIds.Contains(e.AktivitaetId.Value)))
-            .OrderBy(e => e.Name, StringComparer.CurrentCultureIgnoreCase)
-            .Select(e => new Auswahleintrag(e.Id, e.Name))
+            .OrderBy(e => e.Ausgemustert)
+            .ThenBy(e => e.Name, StringComparer.CurrentCultureIgnoreCase)
+            .Select(e => new Auswahleintrag(e.Id, EquipmentAnzeigename.Bilden(e)))
             .Prepend(new Auswahleintrag(null, Eingabelisten.KeinEquipment))
             .ToList();
 }
