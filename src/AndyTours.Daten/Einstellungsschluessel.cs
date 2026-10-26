@@ -39,6 +39,24 @@ public static class Einstellungsschluessel
     /// <summary>Zuletzt für „Als GPX exportieren…“ verwendeter Ordner.</summary>
     public const string GpxOrdner = "GpxExport.Ordner";
 
+    /// <summary>Zuletzt gewähltes Fahrprofil der Tourenplanung, z. B. „Trekking“.</summary>
+    public const string PlanungProfil = "Tourenplanung.Profil";
+
+    /// <summary>Zuletzt gezeigter Kartenausschnitt der Tourenplanung: „Südbreite;Westlänge;Nordbreite;Ostlänge“.</summary>
+    public const string PlanungAusschnitt = "Tourenplanung.Ausschnitt";
+
+    /// <summary>Zuletzt zum Speichern oder Öffnen einer Planung verwendeter Ordner.</summary>
+    public const string PlanungOrdner = "Tourenplanung.Ordner";
+
+    /// <summary>Gewählter Routingdienst, z. B. „BRouter“; fehlt der Eintrag, gilt BRouter.</summary>
+    public const string RoutingDienst = "Routing.Dienst";
+
+    /// <summary>Adresse des BRouter-Servers; fehlt der Eintrag, gilt der öffentliche Server.</summary>
+    public const string RoutingBRouterAdresse = "Routing.BRouterAdresse";
+
+    /// <summary>Zugangsschlüssel für openrouteservice. Geheim: nie im Klartext anzeigen oder protokollieren.</summary>
+    public const string RoutingOpenrouteserviceSchluessel = "Routing.OpenrouteserviceSchluessel";
+
     /// <summary>
     /// Schlüssel einer in den Einstellungen gepflegten Auswahlliste, z. B. „Auswahlliste.Trainingsbereich“;
     /// der Wert enthält die Einträge in der Reihenfolge des Benutzers, einen je Zeile.

@@ -23,6 +23,24 @@ public partial class EinstellungenFenster : Window
     {
         InitializeComponent();
         DataContext = viewModel;
+
+        // Gespeicherten Zugangsschlüssel maskiert anzeigen; nach einem Ordnerwechsel den des neuen Datenordners
+        SchluesselFeld.Password = viewModel.Schluessel;
+        viewModel.SchluesselNeuGelesen += (_, _) => SchluesselFeld.Password = viewModel.Schluessel;
+    }
+
+    /// <summary>
+    /// Meldet einen geänderten Zugangsschlüssel an das ViewModel, das ihn sofort speichert.
+    /// </summary>
+    /// <remarks>
+    /// Ein Passwortfeld lässt sich (aus Sicherheitsgründen) nicht binden, deshalb dieser Umweg.
+    /// </remarks>
+    private void SchluesselFeld_PasswordChanged(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is EinstellungenViewModel viewModel)
+        {
+            viewModel.SchluesselGeaendert(SchluesselFeld.Password);
+        }
     }
 
     /// <summary>Doppelklick auf einen Eintrag der Auswahlliste: bei Equipments wie „Bearbeiten…“.</summary>

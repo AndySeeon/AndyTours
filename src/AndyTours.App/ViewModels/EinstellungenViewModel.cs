@@ -17,7 +17,7 @@ namespace AndyTours.App.ViewModels;
 /// ViewModel des Einstellungsfensters.
 /// </summary>
 /// <remarks>
-/// Es enthält drei Bereiche:
+/// Es enthält vier Bereiche:
 /// <list type="bullet">
 /// <item><b>Datenordner:</b> Der eigentliche Wechsel (Ordnerwahl, Rückfragen, Kopieren, Laden, Merken)
 /// wird vom Hauptfenster-ViewModel als Funktion übergeben, weil dieses den Datenbestand hält und neu
@@ -26,6 +26,10 @@ namespace AndyTours.App.ViewModels;
 /// des aktuellen Datenordners und werden sofort gespeichert, sobald ein gültiger Wert eingegeben bzw.
 /// ein Ordner gewählt ist. Nach einem Wechsel des Datenordners werden die Werte des neuen Ordners
 /// angezeigt.</item>
+/// <item><b>Routing (Tourenplanung):</b> Routingdienst, BRouter-Adresse und Zugangsschlüssel für openrouteservice
+/// (siehe <c>docs/adr/0004-routingdienst.md</c>). Auch sie liegen in der Datenbank des Datenordners und werden
+/// sofort gespeichert, die Adresse nur, wenn sie gültig ist. Der Schlüssel steht in einem maskierten Feld, das das
+/// Code-Behind füllt und meldet (ein Passwortfeld lässt sich nicht binden).</item>
 /// <item><b>Auswahllisten:</b> eigenes ViewModel (<see cref="AuswahllistenViewModel"/>), das das
 /// Hauptfenster-ViewModel erzeugt, weil Änderungen den Datenbestand betreffen.</item>
 /// </list>
@@ -40,6 +44,14 @@ public partial class EinstellungenViewModel : ObservableObject
     /// <summary>Hinweis bei einer ungültigen Eingabe für Intervall oder Höchstzahl.</summary>
     public static readonly string Bereichshinweis = string.Create(CultureInfo.InvariantCulture,
         $"Bitte eine ganze Zahl von {Sicherungseinstellungen.Minimalwert} bis {Sicherungseinstellungen.Maximalwert} eingeben.");
+
+    /// <summary>Hinweis bei einer ungültigen Adresse des BRouter-Servers.</summary>
+    public const string UngueltigeAdresse = "Bitte eine vollständige Adresse eingeben, z. B. https://brouter.de/brouter.";
+
+    /// <summary>Hinweis, wenn openrouteservice ohne Zugangsschlüssel gewählt ist.</summary>
+    public const string Schluesselhinweis =
+        "Ohne Zugangsschlüssel kann openrouteservice keine Strecken ermitteln. Einen kostenlosen Schlüssel gibt es nach " +
+        "einer Anmeldung auf openrouteservice.org.";
 
     /// <summary>Führt den Ordnerwechsel durch; liefert den neuen Ordner oder <c>null</c>.</summary>
     private readonly Func<Task<string?>> _ordnerWechseln;
@@ -62,7 +74,14 @@ public partial class EinstellungenViewModel : ObservableObject
         _ordnerWechseln = ordnerWechseln;
         Auswahllisten = auswahllisten;
         ZeigeSicherungseinstellungen();
+        ZeigeRoutingeinstellungen();
     }
+
+    /// <summary>
+    /// Wird ausgelöst, wenn der Zugangsschlüssel neu gelesen wurde (nach einem Wechsel des Datenordners), damit das
+    /// Code-Behind das maskierte Feld neu füllt.
+    /// </summary>
+    public event EventHandler? SchluesselNeuGelesen;
 
     /// <summary>Bereich „Auswahllisten“: gepflegte Listen mit festen Werten (zunächst die Trainingsbereiche).</summary>
     public AuswahllistenViewModel Auswahllisten { get; }
@@ -116,6 +135,8 @@ public partial class EinstellungenViewModel : ObservableObject
         {
             Datenordner = neu;
             ZeigeSicherungseinstellungen();
+            ZeigeRoutingeinstellungen();
+            SchluesselNeuGelesen?.Invoke(this, EventArgs.Empty);
         }
     }
 
@@ -228,6 +249,119 @@ public partial class EinstellungenViewModel : ObservableObject
             MessageBox.Show($"Die Einstellung konnte nicht gespeichert werden:\n\n{fehler.Message}",
                 "Einstellungen", MessageBoxButton.OK, MessageBoxImage.Error);
             return false;
+        }
+    }
+
+    /// <summary>Routingdienst „BRouter“ gewählt (Optionsfeld); sonst openrouteservice.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(RoutingHinweis), nameof(IstOpenrouteservice))]
+    private bool _istBRouter = true;
+
+    /// <summary>Routingdienst „openrouteservice“ gewählt (zweites Optionsfeld).</summary>
+    public bool IstOpenrouteservice
+    {
+        get => !IstBRouter;
+        set => IstBRouter = !value;
+    }
+
+    /// <summary>Adresse des BRouter-Servers (Eingabefeld).</summary>
+    [ObservableProperty]
+    private string _bRouterAdresse = Routingeinstellungen.StandardBRouterAdresse;
+
+    /// <summary>Hinweis unter der Adresse; leer, solange sie gültig ist.</summary>
+    [ObservableProperty]
+    private string _adressHinweis = string.Empty;
+
+    /// <summary>Gespeicherter Zugangsschlüssel für openrouteservice; nur für das maskierte Feld, nie anzeigen.</summary>
+    public string Schluessel => _routing.OpenrouteserviceSchluessel ?? string.Empty;
+
+    /// <summary>Hinweis unter dem Zugangsschlüssel, wenn openrouteservice ohne Schlüssel gewählt ist.</summary>
+    public string RoutingHinweis =>
+        !IstBRouter && string.IsNullOrWhiteSpace(_routing.OpenrouteserviceSchluessel) ? Schluesselhinweis : string.Empty;
+
+    /// <summary>Die zuletzt gelesenen bzw. gespeicherten Routingeinstellungen.</summary>
+    private Routingeinstellungen _routing = Routingeinstellungen.Standard;
+
+    /// <summary>
+    /// Übernimmt einen im maskierten Feld geänderten Zugangsschlüssel und speichert ihn sofort.
+    /// </summary>
+    /// <param name="schluessel">Der Inhalt des Felds.</param>
+    public void SchluesselGeaendert(string schluessel)
+    {
+        if (!_wirdAngezeigt && schluessel != Schluessel)
+        {
+            SpeichereRouting(_routing with { OpenrouteserviceSchluessel = string.IsNullOrWhiteSpace(schluessel) ? null : schluessel.Trim() });
+            OnPropertyChanged(nameof(RoutingHinweis));
+        }
+    }
+
+    /// <summary>Wird bei der Wahl des Dienstes aufgerufen: sofort speichern.</summary>
+    partial void OnIstBRouterChanged(bool value)
+    {
+        if (!_wirdAngezeigt)
+        {
+            SpeichereRouting(_routing with { Dienst = value ? Routingdienst.BRouter : Routingdienst.Openrouteservice });
+        }
+    }
+
+    /// <summary>Wird bei jeder Änderung der Adresse aufgerufen: eine gültige Adresse sofort speichern.</summary>
+    partial void OnBRouterAdresseChanged(string value)
+    {
+        bool gueltig = Uri.TryCreate(value.Trim(), UriKind.Absolute, out Uri? adresse)
+            && (adresse.Scheme == Uri.UriSchemeHttps || adresse.Scheme == Uri.UriSchemeHttp);
+        AdressHinweis = gueltig ? string.Empty : UngueltigeAdresse;
+        if (!_wirdAngezeigt && gueltig)
+        {
+            SpeichereRouting(_routing with { BRouterAdresse = value.Trim() });
+        }
+    }
+
+    /// <summary>
+    /// Liest die Routingeinstellungen des aktuellen Datenordners und zeigt sie an; ist die Datenbank nicht lesbar,
+    /// gelten die Standardwerte.
+    /// </summary>
+    private void ZeigeRoutingeinstellungen()
+    {
+        try
+        {
+            using SqliteConnection verbindung = OeffneDatenbank.Ausfuehren(Datenbankdatei);
+            _routing = RoutingEinstellung.Laden(verbindung);
+        }
+        catch (Exception fehler) when (fehler is SqliteException or IOException or UnauthorizedAccessException)
+        {
+            _routing = Routingeinstellungen.Standard;
+        }
+
+        _wirdAngezeigt = true;
+        try
+        {
+            IstBRouter = _routing.Dienst == Routingdienst.BRouter;
+            BRouterAdresse = _routing.BRouterAdresse;
+            AdressHinweis = string.Empty;
+            OnPropertyChanged(nameof(RoutingHinweis));
+        }
+        finally
+        {
+            _wirdAngezeigt = false;
+        }
+    }
+
+    /// <summary>
+    /// Speichert geänderte Routingeinstellungen; die Fehlermeldung nennt den Zugangsschlüssel nicht.
+    /// </summary>
+    /// <param name="neu">Die neuen Einstellungen.</param>
+    private void SpeichereRouting(Routingeinstellungen neu)
+    {
+        try
+        {
+            using SqliteConnection verbindung = OeffneDatenbank.Ausfuehren(Datenbankdatei);
+            RoutingEinstellung.Speichern(verbindung, neu);
+            _routing = neu;
+        }
+        catch (Exception fehler) when (fehler is SqliteException or IOException or UnauthorizedAccessException)
+        {
+            MessageBox.Show($"Die Einstellung konnte nicht gespeichert werden:\n\n{fehler.Message}",
+                "Einstellungen", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 

@@ -1,11 +1,5 @@
 using System.ComponentModel;
-// WPF-Projekte binden System.IO nicht automatisch ein
-using System.IO;
 using System.Windows;
-using BruTile;
-using BruTile.Cache;
-using BruTile.Predefined;
-using BruTile.Web;
 using Mapsui;
 using Mapsui.Layers;
 using Mapsui.Nts;
@@ -27,8 +21,7 @@ namespace AndyTours.App.Views;
 /// dieses Code-Behind auf, weil Mapsui (siehe <c>docs/adr/0003-kartenbibliothek.md</c>) seine Ebenen nicht über
 /// Bindungen bekommt:
 /// <list type="bullet">
-/// <item>unten die Kartenausschnitte der gewählten Kartenart, mit Zwischenspeicher je Kartenart im Ordner
-/// <see cref="Programmpfade.Kartenspeicher"/>,</item>
+/// <item>unten die Kartenausschnitte der gewählten Kartenart, mit Zwischenspeicher (<see cref="Kartenebenen"/>),</item>
 /// <item>darüber die Strecke als einfarbige Linie; bei einer Mehrtagestour eine Linie je Etappe, deren Farben
 /// reihum wechseln, sodass benachbarte Etappen sich unterscheiden,</item>
 /// <item>oben Start (grüner Kreis) und Ziel (rotes Quadrat) der ganzen Tour, bei einer Mehrtagestour dazu ein kleiner
@@ -206,13 +199,8 @@ public partial class TourdetailFenster : Window
     }
 
     /// <summary>
-    /// Liefert die Kartenebene einer Kartenart; beim ersten Mal wird sie erzeugt.
+    /// Liefert die Kartenebene einer Kartenart; beim ersten Mal wird sie erzeugt (<see cref="Kartenebenen"/>).
     /// </summary>
-    /// <remarks>
-    /// Die Ausschnitte werden je Kartenart in einem eigenen Unterordner des Kartenspeichers abgelegt und von dort
-    /// gelesen, sobald sie einmal geladen sind – auch ohne Internet. Der Zwischenspeicher verfällt nicht.
-    /// OpenStreetMap liefert bis Stufe 19, OpenTopoMap bis Stufe 17.
-    /// </remarks>
     /// <param name="kartenart">Die gewünschte Kartenart.</param>
     /// <returns>Die Kartenebene.</returns>
     private TileLayer Kartenebene(Kartenart kartenart)
@@ -222,20 +210,7 @@ public partial class TourdetailFenster : Window
             return vorhanden;
         }
 
-        var zwischenspeicher = new FileCache(Path.Combine(Programmpfade.Kartenspeicher, kartenart.ToString()), "png");
-        HttpTileSource quelle = kartenart switch
-        {
-            Kartenart.OpenTopoMap => new HttpTileSource(
-                new GlobalSphericalMercator(YAxis.OSM, 0, 17), "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
-                ["a", "b", "c"], name: kartenart.ToString(), persistentCache: zwischenspeicher,
-                configureHttpRequestMessage: Kartenabruf.SetzeKennung),
-            _ => new HttpTileSource(
-                new GlobalSphericalMercator(YAxis.OSM, 0, 19), "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-                name: kartenart.ToString(), persistentCache: zwischenspeicher,
-                configureHttpRequestMessage: Kartenabruf.SetzeKennung),
-        };
-
-        var ebene = new TileLayer(quelle, httpClient: Kartenabruf.Verbindung) { Name = kartenart.ToString() };
+        TileLayer ebene = Kartenebenen.Erzeuge(kartenart);
         _kartenebenen[kartenart] = ebene;
         return ebene;
     }

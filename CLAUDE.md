@@ -14,6 +14,7 @@ Programmiersprache: C#
 - Diagramme: OxyPlot (`OxyPlot.Wpf`), siehe `docs/adr/0001-diagrammbibliothek.md`
 - Mediengeräte (Edge 1040 per MTP): `MediaDevices`, siehe `docs/adr/0002-zugriff-auf-mediengeraete.md`
 - Karte: Mapsui (`Mapsui.Wpf`), nur im App-Projekt, siehe `docs/adr/0003-kartenbibliothek.md`
+- Routing (Tourenplanung): BRouter (voreingestellt) oder openrouteservice, wählbar in den Einstellungen, siehe `docs/adr/0004-routingdienst.md`
 
 ## Werkzeuge (Entwicklungsumgebung)
 | Werkzeug | Zweck | Installation |

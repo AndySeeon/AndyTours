@@ -2,7 +2,7 @@
   Hauptfenster von AndyTours.
 
   Aufbau von oben nach unten (DockPanel):
-    1. Menüleiste (Datei, Einheit, Extras, Hilfe); „Einheit → Neue Einheit“ auch mit Strg+N
+    1. Menüleiste (Datei, Einheit, Tourenplanung, Extras, Hilfe); „Einheit → Neue Einheit“ auch mit Strg+N
     2. Werkzeugleiste mit Jahres- und Aktivitätsauswahl, daneben die Summen der Auswahl (Anzahl, km, hm)
     3. Statusleiste (am unteren Rand angedockt): links Gesamtzahl der Einheiten und die Meldung zur
        letzten Aktion (Statusmeldung), rechts der Datenordner
@@ -53,6 +53,9 @@
                 <MenuItem Header="_Equipment ändern…" Command="{Binding EquipmentAendernCommand}" />
                 <Separator />
                 <MenuItem Header="_Löschen" Command="{Binding EinheitenLoeschenCommand}" InputGestureText="Entf" />
+            </MenuItem>
+            <MenuItem Header="_Tourenplanung">
+                <MenuItem Header="Tour _planen…" Command="{Binding TourPlanenCommand}" />
             </MenuItem>
             <MenuItem Header="E_xtras">
                 <MenuItem Header="_Persönliche Daten…" Command="{Binding PersoenlicheDatenOeffnenCommand}" />

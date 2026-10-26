@@ -11,6 +11,7 @@
 - Diagramme: OxyPlot (`OxyPlot.Wpf`), siehe `docs/adr/0001-diagrammbibliothek.md`
 - Zugriff auf Mediengeräte (Garmin Edge 1040 per MTP): `MediaDevices`, nur im App-Projekt, siehe `docs/adr/0002-zugriff-auf-mediengeraete.md`
 - Karte: Mapsui (`Mapsui.Wpf`), nur im App-Projekt, siehe `docs/adr/0003-kartenbibliothek.md`
+- Routing (Tourenplanung): BRouter (voreingestellt) oder openrouteservice, wählbar in den Einstellungen, siehe `docs/adr/0004-routingdienst.md`
 
 ## Werkzeuge
 - .NET SDK 10.0.4xx, festgelegt in `global.json` (keine Vorabversionen)

@@ -116,7 +116,7 @@ In Umsetzungsreihenfolge.
   - Status: done → [029-track-bearbeiten](029-track-bearbeiten/spec.md)
 - `tourenplanung-karte` — Der Benutzer plant eine neue Strecke per Mausklick auf der Karte und speichert sie.
   - Abhängig von: `streckenkarte`
-  - Status: open
+  - Status: done → [030-tourenplanung-karte](030-tourenplanung-karte/spec.md)
 - `overlays` — Gespeicherte Strecken lassen sich als zusätzliche Ebene auf der Karte einblenden und in Ordnern verwalten.
   - Abhängig von: `streckenkarte`
   - Status: open

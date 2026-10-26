@@ -6,16 +6,20 @@
     2. Hinweis, warum der Ordner in der Entwicklungsversion nicht änderbar ist (nur dort sichtbar)
     3. Gruppe „Datensicherung“: Sicherungsordner mit „Ändern…“, Intervall (Programmstarts) und
        Höchstzahl der Sicherungen, jeweils mit Hinweis bei ungültiger Eingabe (erlaubt 1 bis 99)
-    4. Gruppe „Auswahllisten“: Auswahl der Liste („Trainingsbereich“, „Aktivität“, „Kategorie“, „Equipment“),
+    4. Gruppe „Routing (Tourenplanung)“: Wahl des Dienstes (BRouter oder openrouteservice), Adresse des
+       BRouter-Servers mit Hinweis bei ungültiger Adresse, Zugangsschlüssel für openrouteservice als maskiertes Feld
+       mit Hinweis, wenn er fehlt (siehe docs/adr/0004-routingdienst.md)
+    5. Gruppe „Auswahllisten“: Auswahl der Liste („Trainingsbereich“, „Aktivität“, „Kategorie“, „Equipment“),
        deren Einträge mit „Nach oben“, „Nach unten“ (bei Kategorien und Equipments nicht wählbar, sie stehen
        alphabetisch) und „Löschen“, dazu nur bei Aktivitäten „Als Hauptaktivität“, nur bei Kategorien
        „Standard“, bei beiden „Zusammenführen mit …“ und nur bei Equipments „Bearbeiten…“ (auch Doppelklick);
        darunter das Eingabefeld „Eintrag“ mit „Hinzufügen“ und „Umbenennen“ (bei Equipments nur „Hinzufügen“,
        das das Fenster „Equipment“ öffnet) und ein roter Hinweis bei abgewiesenen Eingaben oder gesperrtem Löschen
-    5. Schaltfläche „Schließen“
+    6. Schaltfläche „Schließen“
 
   Ein Ordnerwechsel gilt sofort nach Abschluss der Rückfragen; ein eigenes „OK“ ist nicht nötig.
-  Ebenso werden Sicherungsordner, Intervall und Höchstzahl sofort gespeichert, sobald sie gültig sind.
+  Ebenso werden Sicherungsordner, Intervall, Höchstzahl und die Routingeinstellungen sofort gespeichert, sobald sie
+  gültig sind.
 -->
 <Window x:Class="AndyTours.App.Views.EinstellungenFenster"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -93,7 +97,42 @@
             </Grid>
         </GroupBox>
 
-        <!-- 4. Auswahllisten: feste Werte der Eingabefelder; jede Änderung wird sofort gespeichert -->
+        <!-- 4. Routing: Dienst der Tourenplanung; Werte gelten für den oben angezeigten Datenordner -->
+        <GroupBox Header="Routing (Tourenplanung)" Padding="8" Margin="0,12,0,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <RadioButton Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" GroupName="Routingdienst"
+                             Content="BRouter (_kostenlos, ohne Zugangsschlüssel)" IsChecked="{Binding IstBRouter}" />
+                <Label Grid.Row="1" Grid.Column="0" Content="Server_adresse:" Target="{Binding ElementName=AdressFeld}"
+                       VerticalAlignment="Center" Margin="16,4,0,0" />
+                <TextBox x:Name="AdressFeld" Grid.Row="1" Grid.Column="1" Margin="0,4,0,0" VerticalContentAlignment="Center"
+                         Text="{Binding BRouterAdresse, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding AdressHinweis}" Foreground="Firebrick" TextWrapping="Wrap" />
+
+                <RadioButton Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" GroupName="Routingdienst" Margin="0,8,0,0"
+                             Content="open_routeservice (mit Zugangsschlüssel)" IsChecked="{Binding IstOpenrouteservice}" />
+                <!-- Der Schlüssel ist geheim: maskiertes Feld, gefüllt und gemeldet vom Code-Behind -->
+                <Label Grid.Row="4" Grid.Column="0" Content="Zu_gangsschlüssel:" Target="{Binding ElementName=SchluesselFeld}"
+                       VerticalAlignment="Top" Margin="16,4,0,0" />
+                <StackPanel Grid.Row="4" Grid.Column="1" Margin="0,4,0,0">
+                    <PasswordBox x:Name="SchluesselFeld" VerticalContentAlignment="Center" PasswordChanged="SchluesselFeld_PasswordChanged" />
+                    <TextBlock Text="{Binding RoutingHinweis}" Foreground="Firebrick" TextWrapping="Wrap" />
+                </StackPanel>
+            </Grid>
+        </GroupBox>
+
+        <!-- 5. Auswahllisten: feste Werte der Eingabefelder; jede Änderung wird sofort gespeichert -->
         <GroupBox Header="Auswahllisten" Padding="8" Margin="0,12,0,0" DataContext="{Binding Auswahllisten}">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -149,7 +188,7 @@
             </Grid>
         </GroupBox>
 
-        <!-- 5. Schließen -->
+        <!-- 6. Schließen -->
         <Button Content="_Schließen" IsCancel="True" IsDefault="True" HorizontalAlignment="Right"
                 MinWidth="90" Padding="8,3" Margin="0,16,0,0" />
 
