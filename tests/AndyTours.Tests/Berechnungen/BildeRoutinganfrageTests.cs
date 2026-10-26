@@ -92,6 +92,29 @@ public class BildeRoutinganfrageTests
     }
 
     [Fact]
+    public void BRouter_ueber_mehrere_Punkte()
+    {
+        Routinganfrage anfrage = BildeRoutinganfrage.Ausfuehren(Routingeinstellungen.Standard, Fahrprofil.Mountainbike,
+            [Von, new Geoposition(48.14, 11.6), Nach])!;
+
+        Assert.StartsWith("https://brouter.de/brouter?lonlats=11.5755,48.1374%7C11.6,48.14%7C11.62,48.15&profile=mtb&",
+            anfrage.Adresse.AbsoluteUri);
+    }
+
+    [Fact]
+    public void Openrouteservice_ueber_mehrere_Punkte()
+    {
+        Routinganfrage anfrage = BildeRoutinganfrage.Ausfuehren(Openrouteservice(), Fahrprofil.Trekking,
+            [Von, new Geoposition(48.14, 11.6), Nach])!;
+
+        using JsonDocument inhalt = JsonDocument.Parse(anfrage.Inhalt!);
+        JsonElement[] koordinaten = [.. inhalt.RootElement.GetProperty("coordinates").EnumerateArray()];
+        Assert.Equal(3, koordinaten.Length);
+        Assert.Equal([11.6, 48.14], koordinaten[1].EnumerateArray().Select(z => z.GetDouble()));
+        Assert.True(inhalt.RootElement.GetProperty("instructions").GetBoolean());
+    }
+
+    [Fact]
     public void Schluessel_erscheint_nicht_im_Text_der_Einstellungen_und_der_Anfrage()
     {
         Routinganfrage anfrage = BildeRoutinganfrage.Ausfuehren(Openrouteservice(), Fahrprofil.Trekking, Von, Nach)!;

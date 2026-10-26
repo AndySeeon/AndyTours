@@ -34,4 +34,25 @@ public class BeschreibeAbbiegungTests
     {
         Assert.Equal("Kreisverkehr", BeschreibeAbbiegung.Ausfuehren(new Abbiegepunkt(Ort, Abbiegerichtung.Kreisverkehr)));
     }
+
+    [Theory]
+    [InlineData(Abbiegerichtung.Links, null, "Links")]
+    [InlineData(Abbiegerichtung.ScharfRechts, null, "Scharf rechts")]
+    [InlineData(Abbiegerichtung.Wenden, null, "Wenden")]
+    [InlineData(Abbiegerichtung.Kreisverkehr, 2, "Kreisel 2. Ausf.")]
+    [InlineData(Abbiegerichtung.Kreisverkehr, null, "Kreisel")]
+    [InlineData(Abbiegerichtung.Kreisverkehr, 12, "Kreisel")]
+    public void Kurze_Form_fuer_den_Edge(Abbiegerichtung richtung, int? ausfahrt, string text)
+    {
+        Assert.Equal(text, BeschreibeAbbiegung.Kurz(richtung, ausfahrt));
+    }
+
+    [Fact]
+    public void Kurze_Formen_passen_auf_den_Edge()
+    {
+        foreach (Abbiegerichtung richtung in Enum.GetValues<Abbiegerichtung>())
+        {
+            Assert.InRange(BeschreibeAbbiegung.Kurz(richtung, 9).Length, 1, BeschreibeAbbiegung.KurzeLaenge);
+        }
+    }
 }

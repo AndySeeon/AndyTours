@@ -85,7 +85,10 @@ public partial class TourdetailViewModel : ObservableObject
     /// <param name="etappen">Die Etappen in ihrer Reihenfolge; eine einzelne Einheit ist genau eine Etappe.</param>
     /// <param name="ladeGpxOrdner">Liest den zuletzt für „Als GPX exportieren…“ verwendeten Ordner.</param>
     /// <param name="speichereGpxOrdner">Merkt sich den Ordner nach einem Export.</param>
-    public TourdetailViewModel(IReadOnlyList<Etappe> etappen, Func<string?> ladeGpxOrdner, Action<string> speichereGpxOrdner)
+    /// <param name="ladeProfil">Liest das zuletzt in der Tourenplanung gewählte Fahrprofil (für „Auf Garmin übertragen…“).</param>
+    /// <param name="ladeRouting">Liest die Routingeinstellungen (für „Auf Garmin übertragen…“).</param>
+    public TourdetailViewModel(IReadOnlyList<Etappe> etappen, Func<string?> ladeGpxOrdner, Action<string> speichereGpxOrdner,
+        Func<Fahrprofil> ladeProfil, Func<Routingeinstellungen> ladeRouting)
     {
         _mehrere = etappen.Count > 1;
         List<Trainingseinheit> einheiten = etappen.Select(e => e.Einheit).ToList();
@@ -120,7 +123,8 @@ public partial class TourdetailViewModel : ObservableObject
         Diagramm = new PlotModel { Culture = Deutsch, PlotAreaBorderColor = OxyColors.LightGray };
         Steuerung = ErstelleSteuerung();
         BaueDiagramm();
-        Streckenkarte = new StreckenkarteViewModel(_verlauf.Etappen, _mehrere, etappen, ladeGpxOrdner, speichereGpxOrdner);
+        Streckenkarte = new StreckenkarteViewModel(_verlauf.Etappen, _mehrere, etappen, ladeGpxOrdner, speichereGpxOrdner,
+            ladeProfil, ladeRouting);
     }
 
     /// <summary>

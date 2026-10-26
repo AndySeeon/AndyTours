@@ -44,14 +44,26 @@ public static class BildeRoutinganfrage
     /// für openrouteservice fehlt der Zugangsschlüssel.
     /// </returns>
     public static Routinganfrage? Ausfuehren(Routingeinstellungen einstellungen, Fahrprofil profil, Geoposition von, Geoposition nach) =>
+        Ausfuehren(einstellungen, profil, [von, nach]);
+
+    /// <summary>
+    /// Liefert die Anfrage für eine Strecke über mehrere Punkte in ihrer Reihenfolge, z. B. über die Stützpunkte einer
+    /// gefahrenen Strecke (<see cref="WaehleStuetzpunkte"/>), deren Abbiegungen ermittelt werden sollen.
+    /// </summary>
+    /// <remarks>Profile, Fähren und Schlüssel wie bei der Anfrage für zwei Wegpunkte.</remarks>
+    /// <param name="einstellungen">Die Routingeinstellungen.</param>
+    /// <param name="profil">Das Fahrprofil.</param>
+    /// <param name="punkte">Die Punkte, über die die Strecke führt; mindestens zwei.</param>
+    /// <returns>Die Anfrage oder <c>null</c>, wenn sie sich nicht bilden lässt (wie oben).</returns>
+    public static Routinganfrage? Ausfuehren(Routingeinstellungen einstellungen, Fahrprofil profil, IReadOnlyList<Geoposition> punkte) =>
         einstellungen.Dienst switch
         {
-            Routingdienst.Openrouteservice => Openrouteservice(einstellungen.OpenrouteserviceSchluessel, profil, von, nach),
-            _ => BRouter(einstellungen.BRouterAdresse, profil, von, nach),
+            Routingdienst.Openrouteservice => Openrouteservice(einstellungen.OpenrouteserviceSchluessel, profil, punkte),
+            _ => BRouter(einstellungen.BRouterAdresse, profil, punkte),
         };
 
     /// <summary>GET-Anfrage an einen BRouter-Server.</summary>
-    private static Routinganfrage? BRouter(string adresse, Fahrprofil profil, Geoposition von, Geoposition nach)
+    private static Routinganfrage? BRouter(string adresse, Fahrprofil profil, IReadOnlyList<Geoposition> punkte)
     {
         if (!Uri.TryCreate(adresse.Trim(), UriKind.Absolute, out Uri? basis) || (basis.Scheme != Uri.UriSchemeHttps && basis.Scheme != Uri.UriSchemeHttp))
         {
@@ -64,14 +76,14 @@ public static class BildeRoutinganfrage
             Fahrprofil.Mountainbike => "mtb",
             _ => "trekking",
         };
-        string abfrage = $"lonlats={Zahl(von.Laenge)},{Zahl(von.Breite)}%7C{Zahl(nach.Laenge)},{Zahl(nach.Breite)}"
+        string abfrage = "lonlats=" + string.Join("%7C", punkte.Select(p => $"{Zahl(p.Laenge)},{Zahl(p.Breite)}"))
             + $"&profile={profilname}&alternativeidx=0&format=geojson&timode=3&profile:allow_ferries=0";
         var ziel = new UriBuilder(basis) { Query = abfrage };
         return new Routinganfrage(Routingdienst.BRouter, ziel.Uri, null, new Dictionary<string, string>());
     }
 
     /// <summary>POST-Anfrage an openrouteservice.</summary>
-    private static Routinganfrage? Openrouteservice(string? schluessel, Fahrprofil profil, Geoposition von, Geoposition nach)
+    private static Routinganfrage? Openrouteservice(string? schluessel, Fahrprofil profil, IReadOnlyList<Geoposition> punkte)
     {
         if (string.IsNullOrWhiteSpace(schluessel))
         {
@@ -86,7 +98,7 @@ public static class BildeRoutinganfrage
         };
         string inhalt = JsonSerializer.Serialize(new
         {
-            coordinates = new[] { new[] { von.Laenge, von.Breite }, new[] { nach.Laenge, nach.Breite } },
+            coordinates = punkte.Select(p => new[] { p.Laenge, p.Breite }).ToArray(),
             elevation = true,
             instructions = true,
             options = new { avoid_features = GemiedeneWege },

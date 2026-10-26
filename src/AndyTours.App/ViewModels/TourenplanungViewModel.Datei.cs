@@ -4,13 +4,15 @@ using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Win32;
+using AndyTours.App.Views;
 using AndyTours.Core.Berechnungen;
 using AndyTours.Core.Modell;
 
 namespace AndyTours.App.ViewModels;
 
 /// <summary>
-/// Teil des ViewModels „Tour planen“: Speichern, Öffnen und die Rückfrage bei ungespeicherten Änderungen.
+/// Teil des ViewModels „Tour planen“: Speichern, Öffnen, Übertragen auf den Garmin und die Rückfrage bei
+/// ungespeicherten Änderungen.
 /// </summary>
 /// <remarks>
 /// Eine Planung wird als GPX-Datei gespeichert (<see cref="PlanungsGpx"/>). Vorgeschlagen werden beim ersten
@@ -62,6 +64,22 @@ public partial class TourenplanungViewModel
         _ermittlung?.Cancel();
         _ermittlung?.Dispose();
         _ermittlung = null;
+    }
+
+    /// <summary>
+    /// Befehl „Auf Garmin übertragen…“: überträgt die Planung als Course auf den angeschlossenen Edge (Spec 032).
+    /// </summary>
+    /// <remarks>
+    /// Vorgeschlagen wird der Name der Datei ohne Endung, bei einer ungespeicherten Planung „Planung JJJJ-MM-TT“. Ohne
+    /// Gerät erscheint nur ein Hinweis; das Ergebnis meldet <see cref="CourseUebertragenViewModel.Zeige"/>. Die Planung
+    /// bleibt unverändert. Wählbar wie „Speichern…“, also ab zwei Wegpunkten.
+    /// </remarks>
+    [RelayCommand(CanExecute = nameof(KannSpeichern))]
+    private void GarminUebertragen()
+    {
+        string name = BildeCoursename.FuerPlanung(Dateipfad, DateOnly.FromDateTime(DateTime.Today));
+        Window? fenster = Application.Current?.Windows.OfType<TourenplanungFenster>().FirstOrDefault(f => f.DataContext == this);
+        CourseUebertragenViewModel.Zeige(fenster, [new Coursezeile(Planung, name)], Profil, _ladeRouting);
     }
 
     /// <summary>Befehl „Speichern…“: Datei wählen und die Planung als GPX schreiben.</summary>

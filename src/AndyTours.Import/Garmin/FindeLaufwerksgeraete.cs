@@ -8,7 +8,7 @@ namespace AndyTours.Import.Garmin;
 public static class FindeLaufwerksgeraete
 {
     /// <summary>Ordner der Aufzeichnungen auf dem Laufwerk (Edge 800/1000).</summary>
-    private static readonly string[] Aufzeichnungsordner = [Path.Combine("Garmin", "Activities"), Path.Combine("Garmin", "Activity")];
+    internal static readonly string[] Aufzeichnungsordner = [Path.Combine("Garmin", "Activities"), Path.Combine("Garmin", "Activity")];
 
     /// <summary>
     /// Durchsucht alle bereiten Wechsellaufwerke.
@@ -50,10 +50,11 @@ public static class FindeLaufwerksgeraete
     }
 
     /// <summary>
-    /// Liest die Modellbeschreibung aus <c>Garmin/GarminDevice.xml</c>.
+    /// Liest die Modellbeschreibung aus <c>Garmin/GarminDevice.xml</c> (auch für <see cref="FindeLaufwerksziele"/>).
     /// </summary>
+    /// <param name="wurzel">Wurzelordner des Laufwerks, z. B. „E:\“.</param>
     /// <returns>Der Name, z. B. „Edge 1000“, oder <c>null</c>, wenn die Datei fehlt oder unlesbar ist.</returns>
-    private static string? LeseGeraetename(string wurzel)
+    internal static string? LeseGeraetename(string wurzel)
     {
         string pfad = Path.Combine(wurzel, "Garmin", "GarminDevice.xml");
         try

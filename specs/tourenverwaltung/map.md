@@ -122,7 +122,7 @@ In Umsetzungsreihenfolge.
   - Status: done → [031-overlays](031-overlays/spec.md)
 - `courses-uebertragen` — Geplante oder gefahrene Strecken lassen sich als Course auf den Garmin Edge 1040 übertragen.
   - Abhängig von: `garmin-import`, `tourenplanung-karte`
-  - Status: open
+  - Status: done → [032-courses-uebertragen](032-courses-uebertragen/spec.md)
 - `bildergalerie` — Fotos lassen sich einer Einheit zuordnen, als Galerie anzeigen und über die Aufnahmezeit auf der Strecke verorten.
   - Abhängig von: `streckenkarte`
   - Status: open

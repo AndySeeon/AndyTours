@@ -37,8 +37,8 @@ public partial class HauptfensterViewModel
     /// <summary>Titel der Meldungen beim Import.</summary>
     private const string Importtitel = "Garmin-Import";
 
-    /// <summary>Hinweis, wenn kein Gerät angeschlossen ist.</summary>
-    private const string KeinGeraet = "Kein Garmin-Gerät gefunden. Bitte den Edge per USB anschließen.";
+    /// <summary>Hinweis, wenn kein Gerät angeschlossen ist (auch beim Übertragen von Courses).</summary>
+    internal const string KeinGeraet = "Kein Garmin-Gerät gefunden. Bitte den Edge per USB anschließen.";
 
     /// <summary>Hinweis, wenn alle Touren schon in AndyTours sind.</summary>
     private const string KeineNeuenTouren = "Keine neuen Touren gefunden.";

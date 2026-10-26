@@ -209,6 +209,7 @@ public partial class TourenplanungViewModel : ObservableObject
         LetztenPunktEntfernenCommand.NotifyCanExecuteChanged();
         AllesLoeschenCommand.NotifyCanExecuteChanged();
         SpeichernCommand.NotifyCanExecuteChanged();
+        GarminUebertragenCommand.NotifyCanExecuteChanged();
         PlanungGeaendert?.Invoke(this, EventArgs.Empty);
     }
 

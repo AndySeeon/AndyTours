@@ -29,4 +29,24 @@ public static class BeschreibeAbbiegung
         Abbiegerichtung.Wenden => "Wenden",
         _ => abbiegepunkt.Richtung.ToString(),
     };
+
+    /// <summary>
+    /// Liefert die kurze Form für den Garmin Edge, der den Text einer Abbiegung beim Ankündigen anzeigt.
+    /// </summary>
+    /// <remarks>
+    /// Die Texte haben höchstens <see cref="KurzeLaenge"/> Zeichen, damit der Edge sie nicht abschneidet. Sie gleichen
+    /// den langen Texten, nur der Kreisverkehr heißt „Kreisel“ und die Ausfahrt „Ausf.“, z. B. „Kreisel 2. Ausf.“.
+    /// </remarks>
+    /// <param name="richtung">Richtung der Abbiegung.</param>
+    /// <param name="ausfahrt">Nummer der Ausfahrt bei einem Kreisverkehr, sonst <c>null</c>.</param>
+    /// <returns>Der kurze Text.</returns>
+    public static string Kurz(Abbiegerichtung richtung, int? ausfahrt) => richtung switch
+    {
+        Abbiegerichtung.Kreisverkehr when ausfahrt is int nummer and > 0 and < 10 => $"Kreisel {nummer}. Ausf.",
+        Abbiegerichtung.Kreisverkehr => "Kreisel",
+        _ => Ausfuehren(new Abbiegepunkt(new Geoposition(0, 0), richtung)),
+    };
+
+    /// <summary>Höchste Länge der kurzen Texte für den Edge.</summary>
+    public const int KurzeLaenge = 16;
 }

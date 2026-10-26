@@ -46,7 +46,9 @@ public partial class HauptfensterViewModel
         if (etappen is not null)
         {
             var viewModel = new TourdetailViewModel(etappen, LadeGpxOrdner,
-                ordner => SpeichereStill(verbindung => GpxOrdnerEinstellung.Speichern(verbindung, ordner)));
+                ordner => SpeichereStill(verbindung => GpxOrdnerEinstellung.Speichern(verbindung, ordner)),
+                () => (LadeEinstellung(PlanungseinstellungenEinstellung.Laden) ?? Planungseinstellungen.Standard).Profil,
+                () => LadeEinstellung(RoutingEinstellung.Laden) ?? Routingeinstellungen.Standard);
             new TourdetailFenster(viewModel) { Owner = Application.Current.MainWindow }.Show();
         }
     }

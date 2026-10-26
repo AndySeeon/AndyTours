@@ -61,8 +61,8 @@ public static partial class FindeMtpGeraete
         return aufzeichnungen;
     }
 
-    /// <summary>Prüft am Hersteller (bzw. an der Beschreibung), ob es ein Garmin-Gerät ist.</summary>
-    private static bool IstGarmin(MediaDevice geraet) =>
+    /// <summary>Prüft am Hersteller (bzw. an der Beschreibung), ob es ein Garmin-Gerät ist (auch für <see cref="FindeMtpZiele"/>).</summary>
+    internal static bool IstGarmin(MediaDevice geraet) =>
         (geraet.Manufacturer ?? "").Contains("Garmin", StringComparison.OrdinalIgnoreCase)
         || (geraet.Description ?? "").Contains("Garmin", StringComparison.OrdinalIgnoreCase);
 
@@ -128,16 +128,16 @@ public static partial class FindeMtpGeraete
     /// <summary>
     /// Name des Geräts, z. B. „Edge 1040“: der Anzeigename, sonst das Modell, sonst „Garmin-Mediengerät“.
     /// </summary>
-    private static string Geraetename(MediaDevice geraet) =>
+    internal static string Geraetename(MediaDevice geraet) =>
         new[] { geraet.FriendlyName, geraet.Model, geraet.Description }
             .Select(n => n?.Trim())
             .FirstOrDefault(n => !string.IsNullOrEmpty(n)) ?? "Garmin-Mediengerät";
 
     /// <summary>Fehler, die beim Zugriff auf ein Mediengerät auftreten können.</summary>
-    private static bool IstGeraetefehler(Exception fehler) =>
+    internal static bool IstGeraetefehler(Exception fehler) =>
         fehler is COMException or IOException or UnauthorizedAccessException or InvalidOperationException or NotSupportedException;
 
     /// <summary>Speicher, der ein Laufwerk ist, z. B. <c>\E:</c>.</summary>
     [GeneratedRegex(@"^\\[A-Za-z]:\\?$")]
-    private static partial Regex LaufwerksSpeicher();
+    internal static partial Regex LaufwerksSpeicher();
 }

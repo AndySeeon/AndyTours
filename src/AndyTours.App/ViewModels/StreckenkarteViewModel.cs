@@ -4,6 +4,7 @@ using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Win32;
+using AndyTours.App.Views;
 using AndyTours.Core.Berechnungen;
 using AndyTours.Core.Modell;
 
@@ -46,6 +47,15 @@ public partial class StreckenkarteViewModel : ObservableObject
     /// <summary>Merkt sich den Ordner des letzten Exports.</summary>
     private readonly Action<string> _speichereGpxOrdner;
 
+    /// <summary>Die Etappen mit GPS-Daten, in ihrer Reihenfolge (für „Auf Garmin übertragen…“).</summary>
+    private readonly List<Etappe> _gpsEtappen = [];
+
+    /// <summary>Liest das zuletzt in der Tourenplanung gewählte Fahrprofil.</summary>
+    private readonly Func<Fahrprofil> _ladeProfil;
+
+    /// <summary>Liest die Routingeinstellungen.</summary>
+    private readonly Func<Routingeinstellungen> _ladeRouting;
+
     /// <summary>
     /// Erzeugt das ViewModel.
     /// </summary>
@@ -54,12 +64,16 @@ public partial class StreckenkarteViewModel : ObservableObject
     /// <param name="alleEtappen">Alle Etappen des Tourdetails, auch ohne Aufzeichnung, in ihrer Reihenfolge.</param>
     /// <param name="ladeGpxOrdner">Liest den zuletzt für „Als GPX exportieren…“ verwendeten Ordner.</param>
     /// <param name="speichereGpxOrdner">Merkt sich den Ordner nach einem Export.</param>
+    /// <param name="ladeProfil">Liest das zuletzt in der Tourenplanung gewählte Fahrprofil (Vorwahl beim Übertragen).</param>
+    /// <param name="ladeRouting">Liest die Routingeinstellungen (Abbiegungen beim Übertragen).</param>
     public StreckenkarteViewModel(IReadOnlyList<Etappe> etappen, bool mehrere, IReadOnlyList<Etappe> alleEtappen,
-        Func<string?> ladeGpxOrdner, Action<string> speichereGpxOrdner)
+        Func<string?> ladeGpxOrdner, Action<string> speichereGpxOrdner, Func<Fahrprofil> ladeProfil, Func<Routingeinstellungen> ladeRouting)
     {
         _alleEtappen = alleEtappen;
         _ladeGpxOrdner = ladeGpxOrdner;
         _speichereGpxOrdner = speichereGpxOrdner;
+        _ladeProfil = ladeProfil;
+        _ladeRouting = ladeRouting;
 
         List<Strecke> strecken = [];
         List<Trainingseinheit> ohneGps = [];
@@ -68,6 +82,7 @@ public partial class StreckenkarteViewModel : ObservableObject
             if (ErmittleStrecke.Ausfuehren(etappe.Verlauf ?? []) is Strecke strecke)
             {
                 strecken.Add(strecke);
+                _gpsEtappen.Add(etappe);
             }
             else
             {
@@ -239,5 +254,30 @@ public partial class StreckenkarteViewModel : ObservableObject
         {
             _speichereGpxOrdner(verwendet);
         }
+    }
+
+    /// <summary>
+    /// Befehl „Auf Garmin übertragen…“: überträgt die gefahrene Strecke als Course auf den angeschlossenen Edge
+    /// (Spec 032).
+    /// </summary>
+    /// <remarks>
+    /// Bei einer Mehrtagestour wird jede Etappe mit GPS-Daten ein eigener Course mit eigenem Namen; wurde der Track mit
+    /// „Track bearbeiten“ verändert, wird wie beim GPX-Export die bearbeitete Strecke übertragen. Vorgeschlagen werden
+    /// Datum und Name wie beim GPX-Export. Ohne Gerät erscheint nur ein Hinweis; das Ergebnis meldet
+    /// <see cref="CourseUebertragenViewModel.Zeige"/>. Nur wählbar, wenn es eine Strecke gibt.
+    /// </remarks>
+    [RelayCommand(CanExecute = nameof(HatStrecke))]
+    private void GarminUebertragen()
+    {
+        List<Coursezeile> zeilen = IstBearbeitet && _einheit is not null
+            ? [new Coursezeile(_bearbeitet, BildeCoursename.FuerEtappe(new Etappe(_einheit, _bearbeitet), bearbeitet: true), "Strecke")]
+            : [.. _gpsEtappen.Select(e => new Coursezeile(e.Verlauf!, BildeCoursename.FuerEtappe(e),
+                _alleEtappen.Count > 1 ? $"Etappe {Nummer(e)}" : "Strecke"))];
+        Window? fenster = Application.Current?.Windows.OfType<TourdetailFenster>()
+            .FirstOrDefault(f => f.DataContext is TourdetailViewModel tourdetail && tourdetail.Streckenkarte == this);
+        CourseUebertragenViewModel.Zeige(fenster, zeilen, _ladeProfil(), _ladeRouting);
+
+        // Nummer der Etappe unter allen Etappen des Tourdetails, ab 1
+        int Nummer(Etappe etappe) => _alleEtappen.Select((e, i) => (e, i)).First(paar => paar.e.Einheit == etappe.Einheit).i + 1;
     }
 }
