@@ -20,6 +20,7 @@
 - Formatierung nach `.editorconfig`
 - Codeprüfung: eingebauter .NET-Analyzer (`AnalysisLevel`, `EnforceCodeStyleInBuild` in `Directory.Build.props`); Meldungen als Warnungen beim Build
 - Git
+- Inno Setup 6 (Installations- und Deinstallationsprogramm), siehe `docs/adr/0005-installationsprogramm.md`; Installation: `winget install JRSoftware.InnoSetup`
 - Visual Studio 2026 (Workload „.NET-Desktopentwicklung“), optional VS Code
 
 ## Code-Regeln
@@ -33,3 +34,4 @@
 - Bauen (inkl. Codeprüfung): `dotnet build AndyTours.slnx`
 - Testen: `dotnet test AndyTours.slnx`
 - Starten: `dotnet run --project src/AndyTours.App`
+- Installationsprogramm bauen: `powershell tools/AndyTours.Installation/Erstelle-Installation.ps1`

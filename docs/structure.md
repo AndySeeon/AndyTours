@@ -5,6 +5,7 @@
 - `src/AndyTours.Import/` — Einlesen von Garmin-FIT-Dateien
 - `src/AndyTours.App/` — WPF-Oberfläche (`Views/`, `ViewModels/`, `Funktionen/`)
 - `tools/AndyTours.Altdatenuebernahme/` — Kommandozeilenprogramm für die einmalige Umwandlung der BikeXperience-Daten
+- `tools/AndyTours.Installation/` — Inno-Setup-Skript und Bauskript des Installationsprogramms
 - `tests/AndyTours.Tests/` — Unit-Tests (xUnit)
 - `Daten/` — BikeXperience-Altdaten, Quelle der einmaligen Umwandlung; nicht versioniert
 - `AppDaten/` — Datenordner von AndyTours während der Entwicklung (Debug-Build); nicht versioniert

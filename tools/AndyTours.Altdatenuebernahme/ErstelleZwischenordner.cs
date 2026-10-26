@@ -34,17 +34,7 @@ public static class ErstelleZwischenordner
     /// <returns>Vollständiger Pfad des fertigen Zwischenordners.</returns>
     public static string Ausfuehren(Migrationsergebnis ergebnis, string quellordner, string zielordner)
     {
-        string ziel = Path.TrimEndingDirectorySeparator(zielordner);
-        string uebergeordnet = Path.GetDirectoryName(ziel)
-            ?? throw new IOException($"Ein Laufwerk ({zielordner}) kann nicht als Zielordner dienen; bitte einen Unterordner angeben.");
-        string zwischenordner = Path.Combine(uebergeordnet, $".{Path.GetFileName(ziel)}.umwandlung");
-
-        if (Directory.Exists(zwischenordner))
-        {
-            Directory.Delete(zwischenordner, recursive: true);
-        }
-
-        Directory.CreateDirectory(zwischenordner);
+        string zwischenordner = LegeLeerAn(zielordner);
         try
         {
             using (SqliteConnection verbindung = OeffneDatenbank.Ausfuehren(Path.Combine(zwischenordner, DatenordnerInhalt.Datenbankdatei)))
@@ -72,6 +62,32 @@ public static class ErstelleZwischenordner
             throw;
         }
 
+        return zwischenordner;
+    }
+
+    /// <summary>
+    /// Legt den leeren Zwischenordner neben dem Zielordner an; ein Rest eines früheren Laufs wird vorher entfernt.
+    /// </summary>
+    /// <remarks>
+    /// Wird auch von <see cref="ErstelleAufzeichnungsordner"/> verwendet, damit beide Wege denselben
+    /// Zwischenordner nutzen und ihn auf dieselbe Weise gegen das Ziel austauschen.
+    /// </remarks>
+    /// <param name="zielordner">Späterer Zielordner; bestimmt Ort und Namen des Zwischenordners.</param>
+    /// <returns>Vollständiger Pfad des leeren Zwischenordners <c>.&lt;Zielname&gt;.umwandlung</c>.</returns>
+    /// <exception cref="IOException">Der Zielordner ist ein Laufwerk.</exception>
+    public static string LegeLeerAn(string zielordner)
+    {
+        string ziel = Path.TrimEndingDirectorySeparator(zielordner);
+        string uebergeordnet = Path.GetDirectoryName(ziel)
+            ?? throw new IOException($"Ein Laufwerk ({zielordner}) kann nicht als Zielordner dienen; bitte einen Unterordner angeben.");
+        string zwischenordner = Path.Combine(uebergeordnet, $".{Path.GetFileName(ziel)}.umwandlung");
+
+        if (Directory.Exists(zwischenordner))
+        {
+            Directory.Delete(zwischenordner, recursive: true);
+        }
+
+        Directory.CreateDirectory(zwischenordner);
         return zwischenordner;
     }
 }

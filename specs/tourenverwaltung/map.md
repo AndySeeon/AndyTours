@@ -124,3 +124,6 @@ In Umsetzungsreihenfolge.
 - `courses-uebertragen` — Geplante oder gefahrene Strecken lassen sich als Course auf den Garmin Edge 1040 übertragen.
   - Abhängig von: `garmin-import`, `tourenplanung-karte`
   - Status: done → [032-courses-uebertragen](032-courses-uebertragen/spec.md)
+- `installationsprogramm` — Ein Installationsprogramm installiert AndyTours, übernimmt die vorhandenen BikeXperience-Daten mit dem Umwandlungsprogramm und hält alle Änderungen fest, damit das Deinstallationsprogramm sie sauber rückgängig machen kann.
+  - Abhängig von: `datenordner-waehlen`, `altdaten-umwandeln`
+  - Status: done → [033-installationsprogramm](033-installationsprogramm/spec.md)
