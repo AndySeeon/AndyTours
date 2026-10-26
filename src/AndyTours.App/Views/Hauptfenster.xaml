@@ -56,6 +56,7 @@
             </MenuItem>
             <MenuItem Header="_Tourenplanung">
                 <MenuItem Header="Tour _planen…" Command="{Binding TourPlanenCommand}" />
+                <MenuItem Header="_Overlays…" Command="{Binding OverlaysOeffnenCommand}" />
             </MenuItem>
             <MenuItem Header="E_xtras">
                 <MenuItem Header="_Persönliche Daten…" Command="{Binding PersoenlicheDatenOeffnenCommand}" />

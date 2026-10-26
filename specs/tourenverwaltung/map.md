@@ -119,7 +119,7 @@ In Umsetzungsreihenfolge.
   - Status: done → [030-tourenplanung-karte](030-tourenplanung-karte/spec.md)
 - `overlays` — Gespeicherte Strecken lassen sich als zusätzliche Ebene auf der Karte einblenden und in Ordnern verwalten.
   - Abhängig von: `streckenkarte`
-  - Status: open
+  - Status: done → [031-overlays](031-overlays/spec.md)
 - `courses-uebertragen` — Geplante oder gefahrene Strecken lassen sich als Course auf den Garmin Edge 1040 übertragen.
   - Abhängig von: `garmin-import`, `tourenplanung-karte`
   - Status: open

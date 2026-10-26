@@ -9,17 +9,19 @@
     4. Gruppe „Routing (Tourenplanung)“: Wahl des Dienstes (BRouter oder openrouteservice), Adresse des
        BRouter-Servers mit Hinweis bei ungültiger Adresse, Zugangsschlüssel für openrouteservice als maskiertes Feld
        mit Hinweis, wenn er fehlt (siehe docs/adr/0004-routingdienst.md)
-    5. Gruppe „Auswahllisten“: Auswahl der Liste („Trainingsbereich“, „Aktivität“, „Kategorie“, „Equipment“),
+    5. Gruppe „Overlays“: gemeinsame Farbe aller Overlays ohne eigene Farbe (Auswahl aus zwölf Farben, voreingestellt
+       Violett)
+    6. Gruppe „Auswahllisten“: Auswahl der Liste („Trainingsbereich“, „Aktivität“, „Kategorie“, „Equipment“),
        deren Einträge mit „Nach oben“, „Nach unten“ (bei Kategorien und Equipments nicht wählbar, sie stehen
        alphabetisch) und „Löschen“, dazu nur bei Aktivitäten „Als Hauptaktivität“, nur bei Kategorien
        „Standard“, bei beiden „Zusammenführen mit …“ und nur bei Equipments „Bearbeiten…“ (auch Doppelklick);
        darunter das Eingabefeld „Eintrag“ mit „Hinzufügen“ und „Umbenennen“ (bei Equipments nur „Hinzufügen“,
        das das Fenster „Equipment“ öffnet) und ein roter Hinweis bei abgewiesenen Eingaben oder gesperrtem Löschen
-    6. Schaltfläche „Schließen“
+    7. Schaltfläche „Schließen“
 
   Ein Ordnerwechsel gilt sofort nach Abschluss der Rückfragen; ein eigenes „OK“ ist nicht nötig.
-  Ebenso werden Sicherungsordner, Intervall, Höchstzahl und die Routingeinstellungen sofort gespeichert, sobald sie
-  gültig sind.
+  Ebenso werden Sicherungsordner, Intervall, Höchstzahl, die Routingeinstellungen und die Overlay-Farbe sofort
+  gespeichert, sobald sie gültig sind.
 -->
 <Window x:Class="AndyTours.App.Views.EinstellungenFenster"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -132,7 +134,24 @@
             </Grid>
         </GroupBox>
 
-        <!-- 5. Auswahllisten: feste Werte der Eingabefelder; jede Änderung wird sofort gespeichert -->
+        <!-- 5. Overlays: gemeinsame Farbe aller Overlays ohne eigene Farbe; gilt sofort auf allen offenen Karten -->
+        <GroupBox Header="Overlays" Padding="8" Margin="0,12,0,0">
+            <StackPanel Orientation="Horizontal">
+                <Label Content="Gemeinsame _Farbe:" Target="{Binding ElementName=OverlayfarbeFeld}" VerticalAlignment="Center" />
+                <ComboBox x:Name="OverlayfarbeFeld" Width="180" ItemsSource="{Binding Overlayfarben}" SelectedItem="{Binding Overlayfarbe}">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <Rectangle Width="24" Height="10" Fill="{Binding Pinsel}" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                <TextBlock Text="{Binding Name}" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+            </StackPanel>
+        </GroupBox>
+
+        <!-- 6. Auswahllisten: feste Werte der Eingabefelder; jede Änderung wird sofort gespeichert -->
         <GroupBox Header="Auswahllisten" Padding="8" Margin="0,12,0,0" DataContext="{Binding Auswahllisten}">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -188,7 +207,7 @@
             </Grid>
         </GroupBox>
 
-        <!-- 6. Schließen -->
+        <!-- 7. Schließen -->
         <Button Content="_Schließen" IsCancel="True" IsDefault="True" HorizontalAlignment="Right"
                 MinWidth="90" Padding="8,3" Margin="0,16,0,0" />
 

@@ -10,8 +10,8 @@
        b. ggf. Hinweis auf Etappen ohne Höhendaten
        c. Diagramm; ohne Höhendaten bzw. ohne jede Aufzeichnung stattdessen ein Hinweis
     3. Karteikarte „Karte“ (DataContext: Streckenkarte):
-       a. Umschalter „OpenStreetMap“ / „OpenTopoMap“, Schaltflächen „Ganze Strecke“ und „Als GPX exportieren…“
-          (danach der Hinweis „Track exportiert: …“) und Zeichenerklärung
+       a. Umschalter „OpenStreetMap“ / „OpenTopoMap“, Schaltflächen „Ganze Strecke“, „Als GPX exportieren…“
+          (danach der Hinweis „Track exportiert: …“) und „Overlays…“ (öffnet die Overlay-Verwaltung), Zeichenerklärung
        b. ggf. Hinweis auf Etappen ohne GPS-Daten
        c. Karte mit Strecke (bei mehreren Etappen eine Linie je Etappe), Lizenzhinweis unten rechts und ggf. dem
           Hinweis, dass die Karte nicht geladen werden konnte; ohne GPS-Daten bzw. ohne jede Aufzeichnung stattdessen
@@ -104,7 +104,7 @@
             <TabItem Header="Karte" DataContext="{Binding Streckenkarte}">
                 <DockPanel Margin="8">
 
-                    <!-- 3a. Kartenart, „Ganze Strecke“, „Als GPX exportieren…“ und Zeichenerklärung -->
+                    <!-- 3a. Kartenart, „Ganze Strecke“, „Als GPX exportieren…“, „Overlays…“ und Zeichenerklärung -->
                     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,8"
                                 Visibility="{Binding HatStrecke, Converter={StaticResource SichtbarWennWahr}}">
                         <TextBlock Text="Karte:" VerticalAlignment="Center" />
@@ -112,6 +112,7 @@
                         <RadioButton Content="Open_TopoMap" GroupName="Kartenart" IsChecked="{Binding IstOpenTopoMap}" />
                         <Button Content="_Ganze Strecke" Command="{Binding GanzeStreckeCommand}" Padding="10,2" Margin="24,0,0,0" />
                         <Button Content="Als GP_X exportieren…" Command="{Binding GpxExportierenCommand}" Padding="10,2" Margin="8,0,0,0" />
+                        <Button Content="O_verlays…" Click="OverlaysOeffnen_Click" Padding="10,2" Margin="8,0,0,0" />
                         <TextBlock Text="{Binding Exporthinweis}" VerticalAlignment="Center" Margin="8,0,0,0" Foreground="Gray" />
                         <TextBlock VerticalAlignment="Center" Margin="24,0,0,0" Foreground="Gray">
                             <Run Text="●" Foreground="#27AE60" /> Start

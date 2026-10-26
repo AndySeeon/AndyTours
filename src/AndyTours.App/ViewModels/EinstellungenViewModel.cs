@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Data.Sqlite;
 using Microsoft.Win32;
+using AndyTours.App.Funktionen;
 using AndyTours.Core.Berechnungen;
 using AndyTours.Core.Modell;
 using AndyTours.Daten;
@@ -17,7 +18,7 @@ namespace AndyTours.App.ViewModels;
 /// ViewModel des Einstellungsfensters.
 /// </summary>
 /// <remarks>
-/// Es enthält vier Bereiche:
+/// Es enthält fünf Bereiche:
 /// <list type="bullet">
 /// <item><b>Datenordner:</b> Der eigentliche Wechsel (Ordnerwahl, Rückfragen, Kopieren, Laden, Merken)
 /// wird vom Hauptfenster-ViewModel als Funktion übergeben, weil dieses den Datenbestand hält und neu
@@ -30,6 +31,8 @@ namespace AndyTours.App.ViewModels;
 /// (siehe <c>docs/adr/0004-routingdienst.md</c>). Auch sie liegen in der Datenbank des Datenordners und werden
 /// sofort gespeichert, die Adresse nur, wenn sie gültig ist. Der Schlüssel steht in einem maskierten Feld, das das
 /// Code-Behind füllt und meldet (ein Passwortfeld lässt sich nicht binden).</item>
+/// <item><b>Overlays:</b> die gemeinsame Overlay-Farbe; sie wird sofort gespeichert und allen offenen Karten gemeldet
+/// (<see cref="Overlaybestand"/>).</item>
 /// <item><b>Auswahllisten:</b> eigenes ViewModel (<see cref="AuswahllistenViewModel"/>), das das
 /// Hauptfenster-ViewModel erzeugt, weil Änderungen den Datenbestand betreffen.</item>
 /// </list>
@@ -75,6 +78,7 @@ public partial class EinstellungenViewModel : ObservableObject
         Auswahllisten = auswahllisten;
         ZeigeSicherungseinstellungen();
         ZeigeRoutingeinstellungen();
+        ZeigeOverlayfarbe();
     }
 
     /// <summary>
@@ -136,6 +140,7 @@ public partial class EinstellungenViewModel : ObservableObject
             Datenordner = neu;
             ZeigeSicherungseinstellungen();
             ZeigeRoutingeinstellungen();
+            ZeigeOverlayfarbe();
             SchluesselNeuGelesen?.Invoke(this, EventArgs.Empty);
         }
     }
@@ -362,6 +367,53 @@ public partial class EinstellungenViewModel : ObservableObject
         {
             MessageBox.Show($"Die Einstellung konnte nicht gespeichert werden:\n\n{fehler.Message}",
                 "Einstellungen", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    /// <summary>Die wählbaren gemeinsamen Overlay-Farben.</summary>
+    public IReadOnlyList<Overlayfarbeintrag> Overlayfarben { get; } = Overlayfarbeintrag.Alle();
+
+    /// <summary>Die gewählte gemeinsame Overlay-Farbe (Auswahlfeld der Gruppe „Overlays“).</summary>
+    [ObservableProperty]
+    private Overlayfarbeintrag? _overlayfarbe;
+
+    /// <summary>
+    /// Wird bei der Wahl der gemeinsamen Overlay-Farbe aufgerufen: sofort speichern und den offenen Karten melden.
+    /// </summary>
+    partial void OnOverlayfarbeChanged(Overlayfarbeintrag? value)
+    {
+        if (_wirdAngezeigt || value?.Farbe is not Overlayfarbe farbe)
+        {
+            return;
+        }
+
+        try
+        {
+            using SqliteConnection verbindung = OeffneDatenbank.Ausfuehren(Datenbankdatei);
+            OverlayfarbeEinstellung.Speichern(verbindung, farbe);
+            Overlaybestand.SetzeFarbe(farbe);
+        }
+        catch (Exception fehler) when (fehler is SqliteException or IOException or UnauthorizedAccessException)
+        {
+            MessageBox.Show($"Die Einstellung konnte nicht gespeichert werden:\n\n{fehler.Message}",
+                "Einstellungen", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    /// <summary>
+    /// Zeigt die gemeinsame Overlay-Farbe des aktuellen Datenordners an (sie ist beim Laden des Datenordners bereits im
+    /// <see cref="Overlaybestand"/>).
+    /// </summary>
+    private void ZeigeOverlayfarbe()
+    {
+        _wirdAngezeigt = true;
+        try
+        {
+            Overlayfarbe = Overlayfarben.First(e => e.Farbe == Overlaybestand.Farbe);
+        }
+        finally
+        {
+            _wirdAngezeigt = false;
         }
     }
 

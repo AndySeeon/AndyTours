@@ -1,0 +1,26 @@
+# Aufgaben: 031 – Overlays
+
+- [x] 1. Modell anlegen: Overlayordner, Overlay, Overlayfarbe
+- [x] 2. GPX-Strecke lesen (LeseGpxStrecke) mit Tests, auch für gespeicherte Planungen
+- [x] 3. Ordnernamen prüfen (PruefeOrdnername) mit Tests
+- [x] 4. Verschiebeziel prüfen (PruefeVerschiebeziel) mit Tests
+- [x] 5. Ordnerinhalt sammeln (SammleOrdnerinhalt) mit Tests
+- [x] 6. Ordnerpfade bilden (BildeOrdnerpfade) mit Tests
+- [x] 7. Rechteck um ein Overlay (UmschliesseOverlay) mit Tests
+- [x] 8. Schema um Overlayordner und Overlay erweitern (Schemaversion 4)
+- [x] 9. Streckenpunkte verpacken und entpacken (OverlayPunkte)
+- [x] 10. OverlayordnerTabelle und OverlaysTabelle mit Tests (OverlaysTests)
+- [x] 11. Gemeinsame Overlay-Farbe als Einstellung mit Tests (OverlayfarbeTests)
+- [x] 12. Gemeinsamer Overlay-Stand (Overlaybestand), geladen in LadeDatenbank
+- [x] 13. Farben und Overlay-Ebene (Overlaydarstellung)
+- [x] 14. Overlay-Ebene im Tourdetail und in der Mehrtagestour
+- [x] 15. Overlay-Ebene in der Tourenplanung
+- [x] 16. Baumknoten mit dreistufigem Kontrollkästchen (Overlayknoten)
+- [x] 17. OverlaysViewModel: Baum, Ein-/Ausschalten, GPX hinzufügen, Hinweise
+- [x] 18. OverlaysViewModel: Ordner anlegen, umbenennen, löschen; Overlay umbenennen, löschen
+- [x] 19. OverlaysViewModel: Verschieben nach…, eigene Farbe, ganze Strecke zeigen
+- [x] 20. Fenster „Overlays“ (XAML und Code-Behind)
+- [x] 21. Menüeintrag „Tourenplanung → Overlays…“, nur ein Fenster gleichzeitig
+- [x] 22. Gemeinsame Overlay-Farbe in den Einstellungen
+- [x] 23. Bauen ohne Warnungen und alle Tests grün
+- [x] 24. Manuelle Prüfungen aus dem Plan

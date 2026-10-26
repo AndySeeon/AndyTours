@@ -22,6 +22,8 @@ namespace AndyTours.App.Views;
 /// Bindungen bekommt:
 /// <list type="bullet">
 /// <item>unten die Kartenausschnitte der gewählten Kartenart, mit Zwischenspeicher (<see cref="Kartenebenen"/>),</item>
+/// <item>darüber die eingeschalteten Overlays (<see cref="Overlaydarstellung"/>); sie folgen jeder Änderung in der
+/// Overlay-Verwaltung sofort (<see cref="Overlaybestand"/>),</item>
 /// <item>darüber die Strecke als einfarbige Linie; bei einer Mehrtagestour eine Linie je Etappe, deren Farben
 /// reihum wechseln, sodass benachbarte Etappen sich unterscheiden,</item>
 /// <item>oben Start (grüner Kreis) und Ziel (rotes Quadrat) der ganzen Tour, bei einer Mehrtagestour dazu ein kleiner
@@ -87,11 +89,27 @@ public partial class TourdetailFenster : Window
             _streckenkarte.GanzeStreckeAngefordert += (_, _) => ZeigeGanzeStrecke();
             _streckenkarte.StreckeGeaendert += (_, _) => ZeichneStrecke();
             Kartenabruf.Fehlgeschlagen += LadefehlerGemeldet;
+            Overlaybestand.Geaendert += OverlaysGeaendert;
+            Overlaybestand.GanzesOverlayAngefordert += GanzesOverlayAngefordert;
             Closed += (_, _) =>
             {
                 Kartenabruf.Fehlgeschlagen -= LadefehlerGemeldet;
+                Overlaybestand.Geaendert -= OverlaysGeaendert;
+                Overlaybestand.GanzesOverlayAngefordert -= GanzesOverlayAngefordert;
                 Karte.Map.Dispose();
             };
+        }
+    }
+
+    /// <summary>
+    /// Schaltfläche „Overlays…“: öffnet die Overlay-Verwaltung über den Befehl des Hauptfensters (dasselbe Fenster wie
+    /// „Tourenplanung → Overlays…“; es gehört zum Hauptfenster und bleibt offen, wenn dieses Fenster geschlossen wird).
+    /// </summary>
+    private void OverlaysOeffnen_Click(object sender, RoutedEventArgs e)
+    {
+        if (Application.Current.MainWindow?.DataContext is HauptfensterViewModel hauptfenster)
+        {
+            hauptfenster.OverlaysOeffnenCommand.Execute(null);
         }
     }
 
@@ -104,6 +122,12 @@ public partial class TourdetailFenster : Window
     /// </remarks>
     private void LadefehlerGemeldet(object? sender, EventArgs e) =>
         Dispatcher.BeginInvoke(_streckenkarte.MeldeLadefehler);
+
+    /// <summary>Die eingeschalteten Overlays oder ihre Farben haben sich geändert: Overlay-Ebene neu füllen.</summary>
+    private void OverlaysGeaendert(object? sender, EventArgs e) => Overlaydarstellung.Fuelle(Karte.Map);
+
+    /// <summary>Doppelklick auf ein Overlay in der Verwaltung: dessen ganze Strecke zeigen.</summary>
+    private void GanzesOverlayAngefordert(object? sender, Overlay overlay) => Overlaydarstellung.ZeigeGanz(Karte.Map, overlay);
 
     /// <summary>
     /// Baut die Karte auf: Kartenebene, eine Linie je Strecke, Zeichen für Start, Ziel und Etappenwechsel, Ausschnitt
@@ -119,11 +143,14 @@ public partial class TourdetailFenster : Window
 
         karte.Layers.Add(Kartenebene(_streckenkarte.Kartenart));
 
+        // Overlays direkt über den Kartenausschnitten, damit sie die eigene Strecke nicht verdecken
+        karte.Layers.Add(Overlaydarstellung.ErzeugeEbene());
         karte.Layers.Add(new MemoryLayer(Streckenebene) { Style = null });
         karte.Layers.Add(new MemoryLayer(Zeichenebene) { Style = null });
         FuelleEbenen(karte);
 
         Karte.Map = karte;
+        Overlaydarstellung.Fuelle(karte);
 
         // Mapsui merkt sich den Aufruf, bis die Karte ihre Größe kennt (die Karteikarte ist anfangs nicht sichtbar)
         ZeigeGanzeStrecke();

@@ -2,7 +2,8 @@
   Fenster „Tour planen“ (Menü „Tourenplanung → Tour planen…“): neue Strecke per Mausklick auf der Karte planen.
 
   Aufbau von oben nach unten:
-    1. Leiste: Fahrprofil, „Öffnen…“, „Speichern…“, „Letzten Punkt entfernen“, „Alles löschen“; rechts Länge,
+    1. Leiste: Fahrprofil, „Öffnen…“, „Speichern…“, „Letzten Punkt entfernen“, „Alles löschen“,
+       „Overlays…“ (öffnet die Overlay-Verwaltung); rechts Länge,
        Höhenmeter und „Strecke wird ermittelt …“, solange der Routingdienst rechnet
     2. Unten: Bedienhinweis und ggf. ein roter Hinweis (z. B. Routingdienst nicht erreichbar)
     3. Karte (OpenStreetMap) mit Strecke, Abbiegepunkten und Wegpunkten; Lizenzhinweis unten rechts
@@ -44,6 +45,7 @@
                 <Button Content="_Speichern…" MinWidth="90" Padding="8,3" Margin="6,0,0,0" Command="{Binding SpeichernCommand}" />
                 <Button Content="_Letzten Punkt entfernen" Padding="8,3" Margin="16,0,0,0" Command="{Binding LetztenPunktEntfernenCommand}" />
                 <Button Content="_Alles löschen" Padding="8,3" Margin="6,0,0,0" Command="{Binding AllesLoeschenCommand}" />
+                <Button Content="O_verlays…" Padding="8,3" Margin="16,0,0,0" Click="OverlaysOeffnen_Click" />
             </StackPanel>
         </DockPanel>
 

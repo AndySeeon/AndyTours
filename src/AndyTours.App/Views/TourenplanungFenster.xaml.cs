@@ -23,6 +23,7 @@ namespace AndyTours.App.Views;
 /// Ebenen der Karte von unten nach oben (siehe <c>docs/adr/0003-kartenbibliothek.md</c>):
 /// <list type="bullet">
 /// <item>Kartenausschnitte von OpenStreetMap (<see cref="Kartenebenen"/>),</item>
+/// <item>die eingeschalteten Overlays (<see cref="Overlaydarstellung"/>, <see cref="Overlaybestand"/>),</item>
 /// <item>die Strecke: ermittelte Teilstücke durchgezogen, Luftlinien und noch offene Teilstücke gestrichelt,</item>
 /// <item>die Vorschau beim Ziehen (gestrichelt zur Maus),</item>
 /// <item>die Abbiegepunkte als kleine orange Punkte,</item>
@@ -115,9 +116,13 @@ public partial class TourenplanungFenster : Window
         Karte.PreviewMouseMove += MausBewegt;
         Karte.PreviewMouseLeftButtonUp += LinksLosgelassen;
         Karte.PreviewMouseRightButtonUp += RechtsLosgelassen;
+        Overlaybestand.Geaendert += OverlaysGeaendert;
+        Overlaybestand.GanzesOverlayAngefordert += GanzesOverlayAngefordert;
         Closing += FensterSchliesst;
         Closed += (_, _) =>
         {
+            Overlaybestand.Geaendert -= OverlaysGeaendert;
+            Overlaybestand.GanzesOverlayAngefordert -= GanzesOverlayAngefordert;
             _viewModel.BeendeErmittlung();
             Karte.Map.Dispose();
         };
@@ -132,17 +137,39 @@ public partial class TourenplanungFenster : Window
         karte.Widgets.Clear();
         karte.Navigator.RotationLock = true;
         karte.Layers.Add(Kartenebenen.Erzeuge(Kartenart.OpenStreetMap));
+
+        // Overlays direkt über den Kartenausschnitten, damit sie Strecke, Abbiege- und Wegpunkte nicht verdecken
+        karte.Layers.Add(Overlaydarstellung.ErzeugeEbene());
         foreach (string name in new[] { Streckenebene, Vorschauebene, Abbiegeebene, Wegpunktebene })
         {
             karte.Layers.Add(new MemoryLayer(name) { Style = null });
         }
 
         Karte.Map = karte;
+        Overlaydarstellung.Fuelle(karte);
         Zeichne();
 
         // Mapsui merkt sich den Aufruf, bis die Karte ihre Größe kennt
         karte.Navigator.ZoomToBox(Rechteck(_viewModel.StartSuedWest, _viewModel.StartNordOst, 0), MBoxFit.Fit);
     }
+
+    /// <summary>
+    /// Schaltfläche „Overlays…“: öffnet die Overlay-Verwaltung über den Befehl des Hauptfensters (dasselbe Fenster wie
+    /// „Tourenplanung → Overlays…“; es gehört zum Hauptfenster und bleibt offen, wenn dieses Fenster geschlossen wird).
+    /// </summary>
+    private void OverlaysOeffnen_Click(object sender, RoutedEventArgs e)
+    {
+        if (Application.Current.MainWindow?.DataContext is HauptfensterViewModel hauptfenster)
+        {
+            hauptfenster.OverlaysOeffnenCommand.Execute(null);
+        }
+    }
+
+    /// <summary>Die eingeschalteten Overlays oder ihre Farben haben sich geändert: Overlay-Ebene neu füllen.</summary>
+    private void OverlaysGeaendert(object? sender, EventArgs e) => Overlaydarstellung.Fuelle(Karte.Map);
+
+    /// <summary>Doppelklick auf ein Overlay in der Verwaltung: dessen ganze Strecke zeigen.</summary>
+    private void GanzesOverlayAngefordert(object? sender, Overlay overlay) => Overlaydarstellung.ZeigeGanz(Karte.Map, overlay);
 
     /// <summary>Zeichnet Strecke, Abbiegepunkte und Wegpunkte neu.</summary>
     private void Zeichne()

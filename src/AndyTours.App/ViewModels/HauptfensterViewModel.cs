@@ -305,6 +305,9 @@ public partial class HauptfensterViewModel : ObservableObject
         _trainingsbereiche = trainingsbereiche;
         _taetigkeiten = taetigkeiten;
         Datenordner = ordner;
+
+        // Die Overlays gehören zum Datenbestand: nach Start, Wechsel oder Wiederherstellung die Karten neu versorgen
+        Overlaybestand.Laden(ordner);
         Spaltenanordnung = anordnung;
         AusgeblendeteSpalten = ausgeblendet;
         GemerkteFensterposition = fenster;

@@ -20,7 +20,7 @@ namespace AndyTours.Daten;
 public static class ErstelleSchema
 {
     /// <summary>Aktuelle Version des Datenbankschemas.</summary>
-    public const int Schemaversion = 3;
+    public const int Schemaversion = 4;
 
     /// <summary>
     /// Führt die CREATE-Anweisungen aus. Vorhandene Tabellen und Daten bleiben unverändert.
@@ -168,6 +168,26 @@ public static class ErstelleSchema
             CREATE TABLE IF NOT EXISTS Einstellung (
                 Schluessel  TEXT    PRIMARY KEY,
                 Wert        TEXT    NOT NULL
+            );
+
+            -- Ordner der Overlay-Verwaltung (seit Schemaversion 4); ElternId NULL = oberste Ebene. Wird ein Ordner
+            -- gelöscht, verschwinden seine Unterordner mit (und über die Tabelle Overlay auch deren Overlays).
+            CREATE TABLE IF NOT EXISTS Overlayordner (
+                Id        INTEGER PRIMARY KEY,
+                ElternId  INTEGER REFERENCES Overlayordner(Id) ON DELETE CASCADE,
+                Name      TEXT    NOT NULL
+            );
+
+            -- Overlays: gespeicherte Strecken, die zusätzlich auf den Karten eingeblendet werden (seit Schemaversion 4).
+            -- OrdnerId NULL = oberste Ebene; Farbe NULL = gemeinsame Overlay-Farbe, sonst der Name der Farbe;
+            -- Punkte als Binärwert (siehe OverlayPunkte).
+            CREATE TABLE IF NOT EXISTS Overlay (
+                Id             INTEGER PRIMARY KEY,
+                OrdnerId       INTEGER REFERENCES Overlayordner(Id) ON DELETE CASCADE,
+                Name           TEXT    NOT NULL,
+                Farbe          TEXT,
+                Eingeschaltet  INTEGER NOT NULL,
+                Punkte         BLOB    NOT NULL
             );
 
             PRAGMA user_version = {Schemaversion};

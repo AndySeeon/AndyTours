@@ -57,6 +57,9 @@ public static class Einstellungsschluessel
     /// <summary>Zugangsschlüssel für openrouteservice. Geheim: nie im Klartext anzeigen oder protokollieren.</summary>
     public const string RoutingOpenrouteserviceSchluessel = "Routing.OpenrouteserviceSchluessel";
 
+    /// <summary>Gemeinsame Farbe der Overlays ohne eigene Farbe, z. B. „Violett“.</summary>
+    public const string OverlayFarbe = "Overlay.Farbe";
+
     /// <summary>
     /// Schlüssel einer in den Einstellungen gepflegten Auswahlliste, z. B. „Auswahlliste.Trainingsbereich“;
     /// der Wert enthält die Einträge in der Reihenfolge des Benutzers, einen je Zeile.
