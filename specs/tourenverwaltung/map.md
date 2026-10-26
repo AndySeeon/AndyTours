@@ -20,6 +20,7 @@
 - Synchronisierung mit Garmin Connect (kein offizieller Zugang für Einzelnutzer)
 - Anhänge einer Einheit öffnen (Aufzeichnung, Dokumentation)
 - Werte einer Einheit aus ihrer Aufzeichnung neu übernehmen (der Garmin-Import übernimmt sie bereits beim Anlegen)
+- Bildergalerie mit Geotagging (Fotos einer Einheit zuordnen und auf der Strecke verorten)
 
 ## Funktionen
 In Umsetzungsreihenfolge.
@@ -123,6 +124,3 @@ In Umsetzungsreihenfolge.
 - `courses-uebertragen` — Geplante oder gefahrene Strecken lassen sich als Course auf den Garmin Edge 1040 übertragen.
   - Abhängig von: `garmin-import`, `tourenplanung-karte`
   - Status: done → [032-courses-uebertragen](032-courses-uebertragen/spec.md)
-- `bildergalerie` — Fotos lassen sich einer Einheit zuordnen, als Galerie anzeigen und über die Aufnahmezeit auf der Strecke verorten.
-  - Abhängig von: `streckenkarte`
-  - Status: open
