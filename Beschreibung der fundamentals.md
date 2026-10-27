@@ -1,6 +1,6 @@
 ﻿# AndyTours – vollständige Projektbeschreibung
 
-Stand: 27.10.2026 · Version 1.0.0 (Commit `8c6856c`) · 33 Funktionen umgesetzt, 1062 Tests grün, 0 Analyzer-Warnungen
+Stand: 27.10.2026 · Version 1.0.1 (Commit `0312424`) · 35 Funktionen umgesetzt, 1078 Tests grün, 0 Analyzer-Warnungen
 
 Diese Datei fasst alles zusammen, was im Lauf des Projekts entschieden wurde. Sie enthält den ursprünglichen Auftrag,
 alle Antworten auf Rückfragen, die Auswahl der Funktionen (umgesetzt und gestrichen), Technik, Struktur, Konventionen,
@@ -49,17 +49,23 @@ Der Arbeitsname war zuerst „RadlDB“ und wurde in „AndyTours“ geändert (
 6. `/sdd-verify`
 7. „Committe NNN Titel“
 
-Ein Skill startet nie selbst den nächsten.
+Ein Skill startet nie selbst den nächsten. Nach bestandenem `/sdd-verify` setzt der Skill den Eintrag in der Map auf `done`.
+Wünsche, die der Benutzer bei der manuellen Prüfung äußert, werden sofort umgesetzt und als „Auf Wunsch des Benutzers
+ergänzt“ bzw. „Nach … ergänzt“ unter `## Entscheidungen` im Plan festgehalten; wirken sie über die Funktion hinaus,
+zusätzlich als ADR (z. B. 0008) und in `docs/tech.md`. Ändert sich ein Kriterium, wird auch `spec.md` angepasst.
 
 ### Regeln für die Antworten
 - Immer Deutsch mit korrekten Umlauten.
-- Auswahlmöglichkeiten in Rückfragen nummerieren (z. B. V1/V2, K1/K2) und die Empfehlung kennzeichnen.
+- Auswahlmöglichkeiten in Rückfragen nummerieren (z. B. A1/A2, K1/K2, je Frage ein eigener Buchstabe) und die Empfehlung kennzeichnen.
 - Jede Antwort endet mit der nächsten erwarteten Anweisung als kopierbarem Codeblock.
 
 ### Commits
 - Nur auf ausdrückliche Bitte.
 - Nachricht „NNN Titel“ (z. B. „017 Garmin-Import“), darunter `Co-Authored-By: Claude …`.
-- `sdd-workflow-beispiel.*` nie mitcommitten.
+- `sdd-workflow-beispiel.*` nie mitcommitten (auch nicht das Löschen der Datei).
+- „so starten wir von vorn.txt“ (persönliche Notiz des Benutzers für den Neustart) nie mitcommitten.
+- Versionswechsel als eigener Commit „Version x.y.z“ (nur `Directory.Build.props`); das Installationsprogramm wird danach neu gebaut, aber nicht versioniert.
+- Änderungen an dieser Beschreibung als eigener Commit, z. B. „Projektbeschreibung 1.0.1“.
 
 ### Daten und Sicherheit
 - `Daten/` (BikeXperience-Altdaten) und `AppDaten/` (Entwicklungs-Datenordner) werden nie versioniert und nur lesend ausgewertet.
@@ -67,6 +73,9 @@ Ein Skill startet nie selbst den nächsten.
 - Dropbox-Schlüssel und WebAccess-Zugangsdaten aus `bikexperience.ini` werden nicht übernommen. Geheimwerte werden nie im Klartext ausgegeben.
 - Der openrouteservice-Zugangsschlüssel wird nie angezeigt (nur maskiert) und nie protokolliert.
 - Eine laufende App des Benutzers wird nicht beendet. Es wird keine zweite Instanz auf dieselbe Datenbank gestartet.
+  Läuft sie beim Bauen, wird in einen Ausgabeordner im Arbeitsbereich von Claude gebaut oder der Benutzer gebeten, sie zu schließen.
+- Eine selbst gestartete Instanz (für Bildschirmfotos) wird vor dem Bauen wieder geschlossen; offene Dialoge (z. B. Einstellungen)
+  zuerst, sonst beendet sich die App nicht und der Build scheitert an gesperrten Dateien.
 - Installationstests laufen nur mit einem Test-Datenordner, möglichst in der Windows-Sandbox. Die Merkdatei `%APPDATA%\AndyTours\datenordner.txt` wird dabei nicht unbedacht geändert.
 - `bikeXperience.exe` (fremde Software) liegt nicht im Repository.
 
@@ -105,13 +114,18 @@ Ein Skill startet nie selbst den nächsten.
   - `Mapsui.Wpf` 5.1.0, nur App (ADR 0003)
   - Tests: `xunit` 2.9.3, `xunit.runner.visualstudio` 3.1.4, `Microsoft.NET.Test.Sdk` 17.14.1, `coverlet.collector` 6.0.4
 - Routing (Tourenplanung): BRouter (voreingestellt) oder openrouteservice (ADR 0004).
+- Erscheinungsbild: eingebautes Fluent-Design von WPF, immer hell (`ThemeMode="Light"` in `App.xaml`, ADR 0006). Die Meldung
+  `WPF0001` (experimentelle Schnittstelle) ist im App-Projekt per `NoWarn` abgeschaltet.
+- Kontrastfarben auf dem Fluent-Design (Karteikarten, Hauptmenü, weiße Felder und Listen), app-weit in `App.xaml` (ADR 0008).
+- Skalierung der Oberfläche: zentrale Vergrößerung des Fensterinhalts in Stufen 100–200 % (ADR 0007).
 
 ### `Directory.Build.props` (gilt für alle Projekte)
 - `LangVersion latest`, `Nullable enable`, `ImplicitUsings enable`
 - `GenerateDocumentationFile true`, `NoWarn CS1591`
 - `AnalysisLevel latest-recommended`, `EnforceCodeStyleInBuild true`
-- `Version 1.0.0`: die einzige Stelle der Versionsnummer, gültig für App, Umwandlungsprogramm und Setup
-- `Product AndyTours`, `Authors Andreas Hensel`, `Company AndyTours`, `NeutralLanguage de-DE`
+- `Version 1.0.1`: die einzige Stelle der Versionsnummer, gültig für App, Umwandlungsprogramm, Setup und „Über AndyTours“
+  (Versionen: 1.0.0 mit 033, 1.0.1 nach 034/035)
+- `Product AndyTours`, `Authors Andreas Hensel`, `Company AndyTours`, `Copyright © Andreas Hensel` (Autor in der exe und in „Über AndyTours“), `NeutralLanguage de-DE`
 
 ### `.editorconfig`
 - Grundeinstellungen: `utf-8-bom`, `crlf`, abschließende Leerzeile, 4 Leerzeichen.
@@ -132,6 +146,9 @@ Ein Skill startet nie selbst den nächsten.
     2. App self-contained für win-x64 nach `bin\App` veröffentlichen.
     3. Umwandlungsprogramm self-contained als einzelne Datei nach `bin\Werkzeug` veröffentlichen.
     4. `ISCC.exe` mit `/DAppVersion /DAppQuelle /DWerkzeugQuelle /O bin\Setup` auf `AndyTours.iss` aufrufen.
+  - Aufruf immer so, ohne `-ExecutionPolicy Bypass` (vom Benutzer nicht freigegeben).
+- Programmicon neu erzeugen (nur nach Änderung von `Programmicon.xaml`): `powershell tools/AndyTours.Programmicon/Erstelle-Programmicon.ps1`
+- Hinweis: Nach Änderungen an `App.xaml` (Stile, Ressourcen) ggf. `dotnet build AndyTours.slnx --no-incremental`, damit sicher neu übersetzt wird.
 
 ## 6. Struktur und Konventionen
 
@@ -139,9 +156,13 @@ Ein Skill startet nie selbst den nächsten.
 - `src/AndyTours.Core/`: Datenmodell (`Modell/`) und Fachfunktionen (`Berechnungen/`), ohne Oberfläche und Datenbank.
 - `src/AndyTours.Daten/`: SQLite-Datenbank (Schema, Lesen, Schreiben, `Datenordner/`, `Datensicherung/`). Verweist auf Core.
 - `src/AndyTours.Import/`: FIT-Dateien einlesen (`Garmin/`) und BikeXperience-Altdaten lesen (`Altdaten/`). Verweist auf Core.
-- `src/AndyTours.App/`: WPF-Oberfläche mit `Views/`, `ViewModels/` und `Funktionen/`. Verweist auf Core, Daten und Import.
+- `src/AndyTours.App/`: WPF-Oberfläche mit `Views/`, `ViewModels/`, `Funktionen/` und `Ressourcen/`. Verweist auf Core, Daten und Import.
+- `src/AndyTours.App/Ressourcen/`: Programmicon als Vektorzeichnung `Programmicon.xaml` (einzige Quelle des Motivs, große Fassung
+  `ProgrammiconGross` und kleine `ProgrammiconKlein` für 16–24 px) und die daraus erzeugte `AndyTours.ico` (im Repository), auch für
+  Umwandlungs- und Installationsprogramm.
 - `tools/AndyTours.Altdatenuebernahme/`: Kommandozeilenprogramm für die einmalige Umwandlung der BikeXperience-Daten.
 - `tools/AndyTours.Installation/`: Inno-Setup-Skript `AndyTours.iss` und Bauskript `Erstelle-Installation.ps1`.
+- `tools/AndyTours.Programmicon/`: Skript `Erstelle-Programmicon.ps1`, erzeugt `AndyTours.ico` aus `Programmicon.xaml`.
 - `tests/AndyTours.Tests/`: Unit-Tests (xUnit).
 - `Daten/`: BikeXperience-Altdaten, nicht versioniert.
 - `AppDaten/`: Datenordner der Entwicklung (Debug-Build), nicht versioniert.
@@ -160,6 +181,11 @@ Ein Skill startet nie selbst den nächsten.
 - Die Datenbank speichert nur relative Pfade zu den Aufzeichnungen.
 - Einstellungen, die zum Datenbestand gehören, liegen in der Tabelle `Einstellung` (Schlüssel/Wert mit Bereichsvorsilbe, z. B. `Sicherung.Intervall`).
 - Unter `%APPDATA%\AndyTours` liegt nur die Merkdatei `datenordner.txt`.
+- Feste Schlüssel (`Einstellungsschluessel`): `Sicherung.Ordner`, `Sicherung.Intervall`, `Sicherung.Hoechstzahl`,
+  `Sicherung.StartsSeitSicherung`, `Einheitentabelle.AusgeblendeteSpalten`, `Einheitentabelle.Spalten`, `Hauptfenster.Position`,
+  `Hauptfenster.Karteikarte`, `Aktivitaeten.Reihenfolge`, `GpxExport.Ordner`, `Tourenplanung.Profil`, `Tourenplanung.Ausschnitt`,
+  `Tourenplanung.Ordner`, `Routing.Dienst`, `Routing.BRouterAdresse`, `Routing.OpenrouteserviceSchluessel`, `Overlay.Farbe`,
+  `Darstellung.Groesse` (Stufe der Oberfläche als Prozentzahl 100/110/125/150/175/200, jeder andere Wert ergibt 100); dazu die Auswahllisten.
 
 ### Regeln für den Code
 Ausführlich in `docs/Konventionen.md`, wörtlich in Abschnitt 11 dieser Datei.
@@ -171,6 +197,30 @@ Ausführlich in `docs/Konventionen.md`, wörtlich in Abschnitt 11 dieser Datei.
 - Bezeichner sind deutsch ohne Umlaute; Oberfläche und Kommentare stehen mit Umlauten.
 - Fachfunktionen bekommen Unit-Tests.
 - Equipment-Namen werden immer über `EquipmentAnzeigename.Bilden` gebildet (Zusatz „(ausgemustert)“) und über `EquipmentAnzeigename.Passt` verglichen.
+- Modelle, ViewModels und Fenster: je eine Klasse pro Datei, ohne eigene Fachlogik.
+- Fenster nutzen Standardsteuerelemente ohne eigene Vorlagen; eigene Farben nur für fachliche Hervorhebungen (ADR 0006).
+- Eigene Stile für Steuerelemente bauen auf dem Fluent-Stil auf (`BasedOn="{StaticResource {x:Type …}}"`), sonst fällt das
+  Steuerelement auf das klassische Aussehen zurück; ausgenommen sind `Border` und `ContentPresenter` (kein Fluent-Stil).
+- Eigene Vorlagen gibt es nur zwei, beide app-weit in `App.xaml`:
+  - der Zellstil für Tabellen (baut auf `DefaultDataGridCellStyle` auf, stellt den Inhalt senkrecht mittig und übernimmt die
+    Hintergrundfarbe der Zelle für fachliche Farben); eigene Zellstile der Ansichten bauen mit
+    `BasedOn="{StaticResource {x:Type DataGridCell}}"` darauf auf;
+  - der Reiterstil für Karteikarten (baut auf dem Fluent-Reiter auf; eigene Vorlage, weil Fluent den gewählten Reiter fest weiß animiert).
+- Ausnahme bei den Farben, app-weit in `App.xaml` (ADR 0008): Karteikarten haben eine hellgraue Seite, mit der der gewählte
+  Reiter (deutlicher Rahmen, halbfette Beschriftung) eine Fläche bildet; nicht gewählte Reiter und die Hauptmenüpunkte sind dunkler
+  grau, beim Darüberfahren bzw. geöffnet noch etwas dunkler (auch die Einträge aufklappender Menüs); Eingabe-, Auswahl- und
+  Datumsfelder sowie Listen sind deckend weiß, Listen mit feinem Rahmen. `Label` haben app-weit den Innenabstand `5,5,12,5`.
+- Jedes Fenster meldet sich nach `InitializeComponent` bei `Oberflaechenskalierung` an; Dialoge haben unten eine feste
+  Schaltflächenleiste und darüber rollbaren Inhalt (`DockPanel`, Leiste unten angedockt, `ScrollViewer` mit dem Inhalt);
+  Kartensteuerelemente werden mit `Oberflaechenskalierung.Ausnehmen` ausgenommen (ADR 0007).
+- Technische Stolpersteine des Fluent-Designs (gelernt bei 034/035):
+  - App-Ressourcen mit den Fluent-Schlüsseln (z. B. `TextControlBackground`, `ComboBoxBackground`, `ListBoxBackground`,
+    `MenuBarItemBackgroundSelected`) überschreiben Fluent-Farben, die per `DynamicResource` verwendet werden, nicht aber
+    Zustandsanimationen (VisualStateManager) – deshalb die eigene Reitervorlage.
+  - Ein `<StaticResource>`-Element in `Style.Resources` führt beim Start zu einer `XamlParseException`; stattdessen
+    `Color`-Ressourcen mit eigenem `SolidColorBrush` verwenden.
+  - `FontWeight` am `TabItem` vererbt sich auf den ganzen Inhalt der Karteikarte; die halbfette Beschriftung kommt deshalb über
+    eine `HeaderTemplate` mit `DataTrigger` auf `TabItem.IsSelected`.
 
 ## 7. Funktionsauswahl: was umgesetzt und was gestrichen wurde
 
@@ -259,20 +309,39 @@ gelöscht. Spätere Änderungen sind unten vermerkt.
 - Mehrjahresdiagramm (`mehrjahresdiagramm`) ist in 015 Jahresfortschritt aufgegangen
 - FIT-Dateien aus einem Ordner importieren (Menü „Datei → FIT-Dateien importieren…“) ergänzend zum Garmin-Import
 - Kein eigener Map-Eintrag: Hauptfenster merkt sich Größe, Position und Karteikarte; Spaltenauswahl und -anordnung bleiben erhalten (006)
+- `erscheinungsbild-und-icon` (034): modernes, helles Windows-11-Erscheinungsbild (Fluent) und Programmicon, „Über AndyTours“ als eigenes Fenster
+- `oberflaeche-skalieren` (035): Größe der Oberfläche 100–200 %; dabei die Einstellungen in Karteikarten gegliedert und Kontrastfarben (ADR 0008) ergänzt
+- Nach 034: Die Auswahl „Tätigkeit“ im Wartungs- und Alarmfenster ist nach der bisherigen Häufigkeit geordnet (021, 022)
+- Stand nach 035: Die Map enthält 36 Einträge, alle `done`; offene Funktionen gibt es nicht.
 
-## 8. Bedienoberfläche (Stand 1.0.0)
+## 8. Bedienoberfläche (Stand 1.0.1)
 
 ### Menüs
 - **Datei:** Vom Garmin importieren… · FIT-Dateien importieren… · Beenden
 - **Einheit:** Neue Einheit… (Strg+N) · Bearbeiten… · Kopieren… · Tourdetail… · Kategorien zuordnen… · Aktivität ändern… · Equipment ändern… · Löschen (Entf)
 - **Tourenplanung:** Tour planen… · Overlays…
 - **Extras:** Persönliche Daten… · Saisonziele… · Equipment-Einsatz… · Einstellungen… · Sicherung wiederherstellen…
-- **Hilfe:** Über AndyTours
+- **Hilfe:** Über AndyTours (eigenes Fenster mit großem Icon, Name, Version und Autor; schließt mit OK, Enter oder Esc)
 
 ### Fenster
 - **Karteikarten des Hauptfensters:** Aktuell · Trainingseinheiten · Wartung (Titel zeigt Alarme an)
-- **Einstellungen:** Datenordner · Datensicherung · Routing (Tourenplanung) · Overlays · Auswahllisten (Trainingsbereich, Aktivitäten, Kategorien, Equipments)
+- **Einstellungen** (seit 035 in Karteikarten, Fenster 640 × 600, jede Karteikarte rollt für sich, „Schließen“ unten fest):
+  - Allgemein: Datenordner (mit Hinweis in der Entwicklungsversion) · Darstellung („Größe der Oberfläche“)
+  - Datensicherung
+  - Tourenplanung: Routing · Overlays
+  - Auswahllisten: Trainingsbereich, Aktivität, Kategorie, Equipment, Tätigkeit (Liste fest 300 hoch)
 - **Tourdetail:** Höhenprofil · Karte
+- **Dialoge:** unten feste Schaltflächenleiste, darüber rollbarer Inhalt; höchstens so groß wie der Arbeitsbereich des Bildschirms.
+
+### Erscheinungsbild
+- Fluent-Design von Windows 11, immer hell, Akzentfarbe von Windows; Meldungsfenster bleiben Windows-Standard.
+- Karteikarten: hellgraue Seite `#F0F2F5` mit Rahmen `#8F98A3`; gewählter Reiter in Seitenfarbe mit gleichem Rahmen und halbfetter
+  Beschriftung; nicht gewählte Reiter `#DCE1E7`, beim Darüberfahren `#CDD4DC`.
+- Hauptmenüpunkte wie nicht gewählte Reiter; hervorgehobene Menüpunkte (auch aufklappende Menüs, Kontextmenüs) `#CDD4DC`.
+- Eingabe-, Auswahl- und Datumsfelder deckend weiß, Listen weiß mit feinem Rahmen.
+- Programmicon: stilisiertes Fahrrad mit orangem Rahmen und dunklen Rädern vor grünen Bergen mit weißen Gipfeln und blauem Himmel
+  auf abgerundetem Quadrat.
+- Größe der Oberfläche in den Einstellungen wählbar (100/110/125/150/175/200 %), sofort wirksam; Karten bleiben in Originalgröße.
 
 ## 9. Altdaten (BikeXperience 6.0.4)
 
@@ -605,6 +674,60 @@ Wir bauen das Installations- und Deinstallationsprogramm von AndyTours mit Inno 
 #### Alternativen
 - WiX/MSI: lässt sich in `dotnet build` einbinden, aber eigene Seiten mit Rückfragen sind deutlich aufwendiger.
 - Eigenes C#-Programm: volle Kontrolle, aber Eintrag unter „Apps“, Selbstlöschen des Deinstallationsprogramms und Erkennen einer laufenden App müssten selbst gebaut werden.
+
+### 0006 · Grundlage der Oberfläche
+Teilweise ersetzt durch [0008](docs/adr/0008-kontrastfarben-der-oberflaeche.md) (eigene Farben und Reitervorlage für mehr Kontrast)
+
+#### Entscheidung
+AndyTours verwendet das in WPF (.NET 10) eingebaute Fluent-Design. Es wird anwendungsweit an einer Stelle eingeschaltet (`ThemeMode="Light"` in `App.xaml`) und gilt für alle Fenster. Die App ist immer hell, einen dunklen Modus gibt es nicht. Künftige Fenster nutzen die Standardsteuerelemente ohne eigene Vorlagen; eigene Farben werden nur für fachliche Hervorhebungen gesetzt (Bestwerte, Alarmzustände, Fehler, Hinweise). Die Meldung `WPF0001` (experimentelle Schnittstelle) wird im App-Projekt gezielt abgeschaltet.
+
+#### Warum
+Das Design gehört zu .NET 10: kein neues Paket, keine Lizenzfrage. Es bringt das Windows-11-Aussehen mit abgerundeten Steuerelementen und der Akzentfarbe von Windows, ohne eigene Stile pflegen zu müssen, und wird mit einer Zeile für alle Fenster eingeschaltet – auch neue Fenster sehen ohne Zutun passend aus. Nur hell, weil Diagramme, Karten und die fachlichen Farben (rote Bestwerte, rote und orange Alarmzeilen) für hellen Hintergrund gemacht sind; ein dunkler Modus hätte sie alle verdoppelt. Dass die Schnittstelle noch als experimentell gekennzeichnet ist und sich in einer späteren .NET-Version ändern kann, nehmen wir in Kauf; betroffen wäre nur die eine Stelle in `App.xaml`.
+
+#### Alternativen
+- Eigene Stile auf dem klassischen WPF-Aussehen: volle Kontrolle und nichts Experimentelles, aber viel XAML, das für jedes Steuerelement selbst gepflegt werden muss.
+- Fremde Bibliothek (z. B. WPF-UI): sehr modern und ausgereift, aber eine zusätzliche Abhängigkeit mit eigenen Steuerelementen und eigenem Versionswechsel.
+- Das Fluent-Wörterbuch `Fluent.Light.xaml` direkt in `App.xaml` einbinden statt `ThemeMode`: ebenfalls hell und eingebaut, aber nicht der vorgesehene Weg; bleibt als Ausweg, falls sich `ThemeMode` ändert.
+
+### 0007 · Skalierung der Oberfläche
+
+#### Entscheidung
+Die Oberfläche wird zentral über eine gemeinsame Vergrößerung des Fensterinhalts skaliert (eine `ScaleTransform` als `LayoutTransform`, gesteuert von `Oberflaechenskalierung`). Verbindlich für alle Fenster, auch künftige:
+- Jedes Fenster meldet sich nach `InitializeComponent` bei `Oberflaechenskalierung` an; feste Fenstergrößen werden dabei mit der Stufe umgerechnet, das Hauptfenster behält seine gemerkte Größe und Position.
+- Jeder Dialog hat unten eine feste Schaltflächenleiste und darüber einen rollbaren Inhalt und wird höchstens so groß wie der Arbeitsbereich des Bildschirms.
+- Kartensteuerelemente (Mapsui) werden mit `Oberflaechenskalierung.Ausnehmen` ausgenommen; das Kartenbild bleibt in Originalgröße, alles um die Karte herum wächst mit.
+
+Die Stufe gehört zum Datenbestand und steht in der Tabelle `Einstellung`. Die Entscheidung ergänzt [0006](docs/adr/0006-grundlage-der-oberflaeche.md).
+
+#### Warum
+- Eine einzige Stelle vergrößert alle Fenster gleichmäßig – Schrift, Felder, Abstände, Tabellen und feste Breiten – und wechselt die Stufe sofort, ohne Neustart.
+- Gespeicherte Spaltenbreiten, Fensterpositionen und Kartenausschnitte bleiben in Einheiten von 100 % und stimmen deshalb in jeder Stufe.
+- Die feste Schaltflächenleiste mit rollbarem Inhalt hält Dialoge auch bei 200 % auf kleineren Bildschirmen bedienbar.
+- Karten werden ausgenommen, weil Mapsui ein Bitmap zeichnet, das vergrößert grob und unscharf würde und weniger Kartenausschnitt zeigte; die Kacheln bringen ihre Beschriftung ohnehin in fester Größe mit.
+
+#### Alternativen
+- Nur die Schriftgröße erhöhen: einfach, aber Felder, Abstände und feste Breiten wachsen nicht mit, Texte würden abgeschnitten.
+- Die Windows-Skalierung nutzen: vorhanden, wirkt aber auf alle Programme statt nur auf AndyTours und lässt sich nicht aus der App heraus einstellen.
+- Skalierung in jedem Fenster selbst per Bindung im XAML: kein Anmelden nötig, aber feste Fenstergrößen, aufklappende Elemente und die Kartenausnahme müssten in jedem Fenster einzeln gelöst werden.
+- Karten mitvergrößern: einheitlicher, aber das Kartenbild wird unscharf und zeigt weniger Ausschnitt.
+
+### 0008 · Kontrastfarben der Oberfläche
+
+#### Entscheidung
+Auf dem Fluent-Design (ADR 0006) setzt AndyTours app-weit in `App.xaml` eigene Farben für mehr Kontrast. Sie gelten für alle Fenster, auch künftige:
+- Karteikarten: Die Seite ist hellgrau (`#F0F2F5`) und rundum grau gerahmt (`#8F98A3`). Der gewählte Reiter hat die Farbe der Seite, denselben Rahmen und eine halbfette Beschriftung und bildet mit der Seite eine Fläche. Nicht gewählte Reiter sind dunkler grau (`#DCE1E7`), beim Darüberfahren noch etwas dunkler (`#CDD4DC`).
+- Hauptmenüpunkte („Datei“, „Einheit“ …) haben die Farben der nicht gewählten Reiter. Hervorgehobene Menüpunkte, auch in aufklappenden Menüs und Kontextmenüs, sind dunkler grau (`#CDD4DC`).
+- Eingabe-, Auswahl- und Datumsfelder sind deckend weiß. Listen sind weiß mit feinem Rahmen.
+
+Der Reiter bekommt dafür eine eigene, schlichte Vorlage in Fluent-Form (Rahmen oben und seitlich, oben abgerundet). Alles andere ändert nur Eigenschaften und Farbressourcen der Fluent-Stile.
+
+#### Warum
+Im Fluent-Design sind Reiter und Hauptmenüpunkte durchsichtig und ohne Rahmen, sodass sie vor dem Hintergrund kaum erkennbar sind. Eingabefelder sind halb durchsichtig weiß und Listen grau, auf grauem Grund wirken sie selbst grau und blass. Der Benutzer wollte eine graue Seite mit weißen Feldern und Listen darin. Den gewählten Reiter färbt die Fluent-Vorlage über eine Zustandsanimation fest weiß; das lässt sich weder über Eigenschaften noch über Ressourcen ändern, deshalb die eigene Vorlage.
+
+#### Alternativen
+- Fluent unverändert lassen: keine eigenen Farben, aber Reiter und Menüpunkte bleiben kaum erkennbar.
+- Weiße Seite mit weißem Reiter: ausprobiert und verworfen, weil Seite, Reiter und Felder ineinander verschwimmen und die graue Liste blass wirkt.
+- Gewählten Reiter in Fluent-Weiß auf grauer Seite lassen: ohne eigene Vorlage, aber Reiter und Seite bilden keine Fläche.
 
 ## 13. Funktionen im Einzelnen (Spezifikationen und Planentscheidungen)
 
@@ -1402,7 +1525,7 @@ Die Karteikarte „Wartung“ zeigt alle Wartungen der Räder. Der Benutzer erfa
 ##### Erfassen, ändern, löschen
 - Wenn der Benutzer über der Tabelle oder im Kontextmenü der Tabelle „Neue Wartung…“ wählt, dann öffnet sich ein Fenster mit Datum (vorbelegt mit heute), Rad, Tätigkeit und Kommentar.
 - Wenn oben ein Rad gewählt ist und der Benutzer eine neue Wartung anlegt, dann ist dieses Rad vorgewählt.
-- Wenn der Benutzer im Wartungsfenster die Tätigkeit wählt, dann bietet die Auswahl die Einträge der Liste „Tätigkeit“ in deren Reihenfolge an; andere Tätigkeiten lassen sich dort nicht eingeben.
+- Wenn der Benutzer im Wartungsfenster die Tätigkeit wählt, dann bietet die Auswahl die Einträge der Liste „Tätigkeit“ nach ihrer bisherigen Häufigkeit in den Wartungen aller Räder an, die häufigste zuerst, bei Gleichstand in der Reihenfolge der Liste; andere Tätigkeiten lassen sich dort nicht eingeben.
 - Wenn der Benutzer mit „OK“ bestätigt, dann erscheint die Wartung sofort in der Tabelle und bleibt nach einem Neustart erhalten.
 - Wenn der Benutzer doppelt auf eine Wartung klickt oder „Bearbeiten…“ wählt, dann öffnet sich dasselbe Fenster mit ihren Werten; Änderungen erscheinen nach „OK“ in der Tabelle, „Abbrechen“ verwirft sie.
 - Wenn der Benutzer eine oder mehrere Wartungen markiert und „Löschen“ wählt oder Entf drückt, dann erscheint eine Rückfrage mit der Anzahl, und erst nach „Ja“ werden sie gelöscht.
@@ -1436,6 +1559,7 @@ Die Karteikarte „Wartung“ zeigt alle Wartungen der Räder. Der Benutzer erfa
 - Bei der Umsetzung ergänzt: Steht in einer vorhandenen Wartung eine Tätigkeit nur in anderer Groß-/Kleinschreibung in der Liste, wird der Listeneintrag gewählt; fehlt sie ganz, bleibt sie im Wartungsfenster als erster Eintrag wählbar (wie ein ausgemustertes Rad).
 - Auf Wunsch des Benutzers ergänzt: Solange die Karteikarte „Wartung“ gewählt ist, nennt die Statusleiste die Anzahl der Wartungen in der Datenbank (z. B. „86 Wartungen in der Datenbank“) statt der Einheiten.
 - Auf Wunsch des Benutzers ergänzt: In der Radauswahl über der Tabelle und im Wartungsfenster stehen ausgemusterte Räder am Ende der Liste, mit dem Zusatz „(ausgemustert)“; die Spalte „Rad“ der Tabelle zeigt weiter nur den Namen.
+- Nach 034 auf Wunsch des Benutzers geändert: Die Auswahl „Tätigkeit“ bietet die Einträge der Liste „Tätigkeit“ nach ihrer bisherigen Häufigkeit in den durchgeführten Wartungen aller Räder an, die häufigste zuerst, bei Gleichstand (auch bei nie verwendeten) in der Reihenfolge der Liste; freie Eingabe gibt es nicht. Umgesetzt in `Core/Berechnungen/OrdneTaetigkeitenNachHaeufigkeit.cs` (Tests `OrdneTaetigkeitenNachHaeufigkeitTests`), gezählt wie `ZaehleTaetigkeit` (ohne Groß-/Kleinschreibung, ohne Randleerzeichen). Antworten: A1 „Beide nach Häufigkeit“ (Wartungs- und Alarmfenster gleich), B1 „Über alle Räder“ (nicht je Rad).
 
 ### 022 – Wartungsalarme
 
@@ -1457,7 +1581,7 @@ Für ein Rad lässt sich ein Alarm einrichten, der nach einer bestimmten Kilomet
 - Wenn es keine Alarme gibt, dann steht statt der Alarmliste „Keine Alarme eingerichtet.“
 
 ##### Anlegen, ändern, löschen
-- Wenn der Benutzer „Neuer Alarm…“ wählt, dann öffnet sich ein Fenster mit Rad, Tätigkeit (aus der Liste „Tätigkeit“, ohne freie Eingabe) und Intervall in km; ist oben ein Rad gewählt, ist es vorgewählt.
+- Wenn der Benutzer „Neuer Alarm…“ wählt, dann öffnet sich ein Fenster mit Rad, Tätigkeit (aus der Liste „Tätigkeit“, ohne freie Eingabe, geordnet wie im Wartungsfenster nach bisheriger Häufigkeit) und Intervall in km; ist oben ein Rad gewählt, ist es vorgewählt.
 - Wenn der Benutzer mit „OK“ bestätigt, dann erscheint der Alarm sofort in der Liste und bleibt nach einem Neustart erhalten.
 - Wenn der Benutzer einen Alarm doppelt anklickt oder „Bearbeiten…“ wählt, dann öffnet sich dasselbe Fenster mit seinen Werten; Änderungen erscheinen nach „OK“, „Abbrechen“ verwirft sie.
 - Wenn der Benutzer einen oder mehrere Alarme markiert und „Löschen“ wählt oder Entf drückt, dann erscheint eine Rückfrage mit der Anzahl, und erst nach „Ja“ werden sie gelöscht.
@@ -1490,6 +1614,7 @@ Für ein Rad lässt sich ein Alarm einrichten, der nach einer bestimmten Kilomet
 - Nach Prüfung 2 ergänzt: Markierte fällige und bald fällige Alarme zeigen eine kräftigere Fassung ihrer Farbe statt der Markierungsfarbe des Systems, damit die Farbe auch bei einem einzigen (nach dem Speichern markierten) Alarm sichtbar bleibt.
 - Bei der Umsetzung ergänzt: Das Intervall wird ohne Tausenderpunkt eingegeben („3000“), wie die übrigen ganzen Zahlen der App; angezeigt wird es mit Tausenderpunkt.
 - Bei der Umsetzung ergänzt: Der Text „32 Wartungen und 1 Alarm“ für Rückfrage und Löschsperre entsteht an einer Stelle (`AuswahllistenViewModel.BeschreibeTaetigkeitsverwendung`).
+- Nach 034 auf Wunsch des Benutzers geändert: Die Auswahl „Tätigkeit“ im Alarmfenster ist wie im Wartungsfenster nach der bisherigen Häufigkeit in den Wartungen aller Räder geordnet (`OrdneTaetigkeitenNachHaeufigkeit`, siehe Plan 021); Alarme zählen dabei nicht mit. Antworten A1 „Beide nach Häufigkeit“, B1 „Über alle Räder“.
 
 ### 023 – Haltbarkeit der Teile
 
@@ -1959,3 +2084,102 @@ Ein Installationsprogramm richtet AndyTours auf dem Rechner ein und legt den Dat
 - Der Kartenspeicher (`%LOCALAPPDATA%\AndyTours`) und die Merkdatei (`%APPDATA%\AndyTours`) gelten als „Einstellungen der App außerhalb des Datenordners“. Sie stehen im Protokoll und werden beim Deinstallieren entfernt.
 - An der App ändert sich nichts: Den Datenordner bekommt sie über die vorhandene Merkdatei.
 - Inno Setup statt WiX/MSI oder eines eigenen C#-Programms; Inno Setup erzeugt das Deinstallationsprogramm selbst, das lesbare Protokoll schreibt der `[Code]`-Teil zusätzlich.
+
+### 034 – Erscheinungsbild und Programmicon
+
+Abhängig von: —
+
+#### Was und warum
+Alle Fenster von AndyTours erhalten das moderne, helle Erscheinungsbild von Windows 11 mit abgerundeten Steuerelementen und der Akzentfarbe von Windows. Dazu bekommt AndyTours ein eigenes Programmicon – ein stilisiertes Fahrrad vor einer Bergsilhouette –, das in Titelleiste, Taskleiste, Explorer, Startmenü, auf dem Desktop, unter „Apps“ und im Installationsprogramm erscheint. Bisher wirkt die Oberfläche veraltet und die App trägt nur das allgemeine Windows-Symbol. Am Verhalten der Funktionen ändert sich nichts; die bisherigen farbigen Hervorhebungen bleiben erkennbar.
+
+#### Kriterien
+
+##### Erscheinungsbild
+- Wenn ein Fenster von AndyTours geöffnet wird, dann zeigt es das moderne Erscheinungsbild von Windows 11: abgerundete Schaltflächen, Eingabefelder und Auswahllisten sowie moderne Menüs, Karteikarten, Tabellen und Bildlaufleisten – in allen Fenstern der App.
+- Wenn Windows auf den dunklen Modus eingestellt ist, dann bleibt AndyTours trotzdem hell.
+- Wenn ein Element markiert, gewählt oder mit der Tastatur angesteuert ist, dann ist es in der Akzentfarbe von Windows deutlich erkennbar.
+- Wenn ein Fenster in seiner Anfangsgröße oder in seiner Mindestgröße geöffnet wird, dann sind alle Beschriftungen, Felder und Schaltflächen vollständig sichtbar, ohne abgeschnittenen Text.
+- Wenn das Hauptfenster mit der gemerkten Größe und Position öffnet, dann zeigt es wie bisher die gemerkten Spaltenbreiten, die Spaltenreihenfolge und die zuletzt gewählte Karteikarte.
+- Wenn die App eine Rückfrage oder einen Hinweis zeigt (z. B. „Änderungen verwerfen?“), dann erscheint wie bisher das Meldungsfenster von Windows.
+
+##### Bestehende Hervorhebungen bleiben erkennbar
+- Wenn die Tabelle der Trainingseinheiten Bestwerte enthält, dann sind diese weiter rot.
+- Wenn Alarme fällig, bald fällig oder ausgeschaltet sind, dann sind ihre Zeilen weiter rot, orange bzw. grau, auch wenn sie markiert sind.
+- Wenn ein Eingabefeld ungültig ist, dann ist es weiter rot markiert, und ein Hinweistext darunter ist weiter rot.
+- Wenn ein Filter gesetzt ist, dann ist „Filter zurücksetzen“ weiter sichtbar hervorgehoben.
+- Wenn das laufende Jahr einen Rekord hält, dann ist dieser auf der Karteikarte „Aktuell“ weiter hervorgehoben.
+- Wenn Diagramme (Jahresfortschritt, Höhenprofil) und Karten angezeigt werden, dann sind sie unverändert lesbar und bedienbar.
+
+##### Bedienung unverändert
+- Wenn der Benutzer die App mit der Tastatur bedient, dann funktionieren Zugriffstasten (unterstrichene Buchstaben), Tastenkürzel, die Tab-Reihenfolge sowie Enter und Esc in den Fenstern wie bisher.
+- Wenn der Benutzer eine Funktion der App aufruft, dann verhält sie sich wie vorher; nur das Aussehen hat sich geändert.
+
+##### Programmicon
+- Wenn AndyTours läuft, dann zeigen die Titelleiste jedes Fensters, die Taskleiste und die Fensterumschaltung mit Alt+Tab das Programmicon: ein stilisiertes Fahrrad mit orangem Rahmen und dunklen Rädern, Lenker und Sattel vor grünen Bergen mit weißen Gipfeln und blauem Himmel auf einem abgerundeten Quadrat.
+- Wenn das Icon klein dargestellt wird (Titelleiste, Taskleiste), dann sind Fahrrad und Berge noch erkennbar.
+- Wenn die Programmdatei von AndyTours im Explorer angezeigt wird, dann trägt sie das Icon.
+- Wenn AndyTours installiert ist, dann tragen die Verknüpfungen im Startmenü und auf dem Desktop sowie der Eintrag in den Windows-Einstellungen unter „Apps“ das Icon.
+- Wenn die Datei des Installationsprogramms im Explorer angezeigt wird oder das Installationsprogramm läuft, dann zeigt es das Icon.
+- Wenn die Datei des Umwandlungsprogramms für die BikeXperience-Daten im Explorer angezeigt wird, dann trägt sie dasselbe Icon.
+
+##### Über AndyTours
+- Wenn der Benutzer „Hilfe → Über AndyTours“ wählt, dann öffnet sich ein eigenes kleines Fenster mit dem Icon in großer Darstellung, dem Namen „AndyTours“, der Versionsnummer und dem Autor.
+- Wenn das Fenster „Über AndyTours“ offen ist, dann schließt es sich mit „OK“, Enter oder Esc.
+
+#### Entscheidungen aus dem Plan
+
+- **Eine Quelle für das Motiv:** Das Icon ist eine Vektorzeichnung in XAML. Sie dient zugleich dem Über-Fenster (scharf in jeder Größe) und als Vorlage für die `.ico`. So gibt es kein zusätzliches Grafikprogramm und kein zweites Motiv, das auseinanderlaufen kann.
+- **Kleine Fassung:** Für 16–24 px gibt es eine vereinfachte Zeichnung (weniger Speichen, kräftigere Linien, ein Berg), damit das Icon in der Titelleiste erkennbar bleibt.
+- **`.ico` im Repository:** Das Skript läuft nur, wenn sich das Motiv ändert. Bauen und Installationsprogramm brauchen es nicht.
+- **Icon der Fenster:** Die Fenster bekommen kein eigenes `Icon`; WPF zeigt dann das Icon der Programmdatei. Dialoge zeigen es so ebenfalls.
+- **Autor:** Er kommt als `Copyright` aus `Directory.Build.props` in die Programmdatei, wie die Version. So steht er auch in den Dateieigenschaften im Explorer.
+- **Meldungsfenster:** bleiben Windows-Standard (Spec, Antwort K1).
+- Nach dem Rundgang ergänzt: Tabellenzellen stellen ihren Inhalt senkrecht mittig. Dafür gibt es app-weit in `App.xaml` einen Zellstil, der auf `DefaultDataGridCellStyle` aufbaut, unter dem Typ `DataGridCell` abgelegt ist (die Zellstile der Ansichten bauen mit `BasedOn="{StaticResource {x:Type DataGridCell}}"` darauf auf) und die Hintergrundfarbe der Zelle übernimmt, damit fachliche Farben auch markiert sichtbar bleiben; Markierung und Fokusrahmen stehen als Stil-Trigger.
+- Nach dem Rundgang ergänzt: Beschriftungen (`Label`) haben app-weit den Innenabstand `5,5,12,5`, weil das Fluent-Label sonst direkt am Feld klebt.
+- `WPF0001` (ThemeMode experimentell) ist im App-Projekt per `NoWarn` unterdrückt, damit der Build ohne Warnungen bleibt.
+- Später (035) ergänzt: eigene Kontrastfarben für Karteikarten, Hauptmenü, Felder und Listen, siehe `docs/adr/0008-kontrastfarben-der-oberflaeche.md`.
+- Grundlage der Oberfläche als verbindliche Regel für alle Fenster: ADR 0006.
+
+### 035 – Oberfläche skalieren
+
+Abhängig von: `erscheinungsbild-und-icon`
+
+#### Was und warum
+Der Benutzer kann in den Einstellungen die ganze Oberfläche von AndyTours einschließlich der Schrift in festen Stufen von 100 % bis 200 % vergrößern. Auf seinem Bildschirm wirkt bisher alles recht klein; mit einer größeren Stufe werden Texte, Felder, Tabellen und Schaltflächen gleichmäßig größer und besser lesbar. Die Wahl wirkt sofort, ohne Neustart, und bleibt mit dem Datenbestand erhalten.
+
+#### Kriterien
+
+- Wenn der Benutzer die Einstellungen öffnet, dann findet er eine Gruppe „Darstellung“ mit der Auswahl „Größe der Oberfläche“ und den Stufen 100 %, 110 %, 125 %, 150 %, 175 % und 200 %.
+- Wenn noch nie eine Größe gewählt wurde, dann ist 100 % eingestellt, und die Oberfläche sieht aus wie bisher.
+- Wenn der Benutzer eine Stufe wählt, dann werden sofort alle offenen Fenster vergrößert bzw. verkleinert – Schrift, Felder, Schaltflächen, Tabellen und Abstände gleichermaßen –, ohne Neustart.
+- Wenn danach ein weiteres Fenster geöffnet wird, dann erscheint es in der gewählten Größe.
+- Wenn der Benutzer AndyTours beendet und wieder startet, dann gilt die zuletzt gewählte Stufe.
+- Wenn der Benutzer einen anderen Datenordner wählt oder eine Sicherung wiederherstellt, dann gilt die dort gespeicherte Stufe, weil die Einstellung zum Datenbestand gehört.
+- Wenn ein Dialog in einer großen Stufe nicht mehr auf den Bildschirm passt, dann wird er höchstens so groß wie der Bildschirm, sein Inhalt lässt sich rollen, und die Schaltflächen wie „OK“, „Abbrechen“ oder „Schließen“ bleiben sichtbar.
+- Wenn das Hauptfenster in einer größeren Stufe angezeigt wird, dann behält es seine gemerkte Größe und Position, und sein Inhalt rollt bei Bedarf.
+- Wenn Diagramme (Jahresfortschritt, Höhenprofil) angezeigt werden, dann wachsen ihre Beschriftungen mit der Stufe mit, und sie bleiben bedienbar.
+- Wenn eine Karte angezeigt wird (Tourdetail, Tourenplanung), dann bleibt das Kartenbild selbst – Kacheln, Strecke, Wegpunkte und Kartenbeschriftungen – in jeder Stufe so groß wie bei 100 %, während die Bedienelemente um die Karte herum (Leisten, Schaltflächen, Regler, Hinweise) und das Fenster mit der Stufe wachsen.
+- Wenn der Benutzer in einer größeren Stufe auf eine Karte klickt, Wegpunkte setzt oder zieht, zoomt oder verschiebt, dann trifft er genau die Stelle unter dem Mauszeiger, wie bei 100 %.
+- Wenn Meldungsfenster von Windows erscheinen (Rückfragen, Hinweise), dann folgen sie der Einstellung von Windows und nicht der Stufe von AndyTours.
+- Wenn eine Stufe gewählt ist, dann wachsen die gemerkten Spaltenbreiten der Tabellen mit, sodass dieselben Inhalte sichtbar bleiben wie bei 100 %.
+- Wenn der Benutzer die Größe ändern will, dann geht das nur über die Einstellungen; es gibt dafür keine Tastenkürzel.
+
+#### Entscheidungen aus dem Plan
+
+- **Speicherung als Prozentzahl:** `Darstellung.Groesse` mit dem Wert `100`…`200`. Nur die sechs Stufen gelten; alles andere ergibt 100. So bleibt ein von Hand veränderter Wert harmlos.
+- **Fenster vor dem Laden der Datenbank** (z. B. „Datenordner nicht erreichbar“) erscheinen in 100 %, weil die Stufe erst mit dem Datenbestand bekannt ist.
+- **Fenstergrößen umrechnen:** Die Größenangaben im XAML bleiben in Einheiten von 100 %. `Anmelden` rechnet Breite, Höhe, Mindest- und Höchstgröße jedes Fensters außer dem Hauptfenster mit der Stufe um und begrenzt sie auf den Arbeitsbereich; eine neue Stufe führt offene Fenster im Verhältnis neu/alt nach. Das ersetzt die ursprünglich geplante „Breite am Inhalt“, weil so kein Dialog umgebaut werden muss und vom Benutzer veränderte Größen erhalten bleiben.
+- **Einstellungen in Karteikarten** (Wunsch des Benutzers bei der Prüfung, das Fenster war zu groß und unübersichtlich): „Allgemein“ (Datenordner mit Hinweis zur Entwicklungsversion, Darstellung), „Datensicherung“, „Tourenplanung“ (Routing, Overlays) und „Auswahllisten“. Feste Höhe 600, damit das Fenster beim Wechsel der Karteikarte nicht springt; jede Karteikarte rollt für sich, „Schließen“ bleibt unten fest. Die Liste der Auswahllisten ist fest 300 hoch.
+- **Kontrastfarben** (Wunsch des Benutzers bei der Prüfung, Reiter und Menüpunkte waren im Fluent-Design kaum erkennbar): graue Karteikartenseite mit gleichfarbigem gewähltem Reiter, dunklere nicht gewählte Reiter und Hauptmenüpunkte, weiße Felder und Listen → decided in docs/adr/0008-kontrastfarben-der-oberflaeche.md
+- Skalierungsverfahren als verbindliche Regel für alle Fenster: ADR 0007.
+- Antworten zur Spec: O1 – die Größe lässt sich nur über die Einstellungen ändern, Tastenkürzel gibt es nicht; P1 – Dialoge, die
+  nicht mehr passen, werden höchstens bildschirmgroß und rollen ihren Inhalt (statt verkleinert zu werden), „OK“, „Abbrechen“ und
+  „Schließen“ bleiben sichtbar; Q1 – gemerkte Spaltenbreiten wachsen mit der Stufe mit.
+- Bei der Umsetzung ergänzt: Aufklappende Elemente (Menüs, Auswahllisten, Kontextmenüs, Tooltips) übernehmen die Vergrößerung
+  von ihrem Element, es ist nichts weiter nötig (bei 150 % geprüft).
+- Bei der Umsetzung ergänzt: Im Hauptfenster rollt die Karteikarte „Aktuell“ (Diagramm mindestens 250 hoch); die Karteikarte
+  „Wartung“ ist mindestens 450 hoch und rollt senkrecht; die Filterleiste der Trainingseinheiten schneidet nichts ab.
+- Bei der Umsetzung ergänzt: Alle Dialoge mit bisheriger `StackPanel`-Wurzel (Alarm, Course, Datenordner nicht erreichbar,
+  Einheit bearbeiten, Equipment bearbeiten, Equipment-Einsatz, Persönliche Daten, Saisonziele, Wartung) haben jetzt unten eine
+  feste Schaltflächenleiste und darüber rollbaren Inhalt; „Fortschritt“ und „Über AndyTours“ blieben unverändert.
+- Rundgang bei 100 %, 150 % und 200 % ohne Befund; Klicktreffer auf der Karte vom Benutzer bestätigt.

@@ -1,4 +1,5 @@
 # 0006 · Grundlage der Oberfläche
+Teilweise ersetzt durch [0008](0008-kontrastfarben-der-oberflaeche.md) (eigene Farben und Reitervorlage für mehr Kontrast)
 
 ## Entscheidung
 AndyTours verwendet das in WPF (.NET 10) eingebaute Fluent-Design. Es wird anwendungsweit an einer Stelle eingeschaltet (`ThemeMode="Light"` in `App.xaml`) und gilt für alle Fenster. Die App ist immer hell, einen dunklen Modus gibt es nicht. Künftige Fenster nutzen die Standardsteuerelemente ohne eigene Vorlagen; eigene Farben werden nur für fachliche Hervorhebungen gesetzt (Bestwerte, Alarmzustände, Fehler, Hinweise). Die Meldung `WPF0001` (experimentelle Schnittstelle) wird im App-Projekt gezielt abgeschaltet.

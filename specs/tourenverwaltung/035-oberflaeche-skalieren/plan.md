@@ -6,14 +6,14 @@ Die gewählte Stufe (100–200 %) steht als Prozentzahl in der Tabelle `Einstell
 Vergrößert wird zentral über eine gemeinsame Vergrößerung des Fensterinhalts (`ScaleTransform` als `LayoutTransform`) (hängt ab von: Skalierungsverfahren und Regel für alle Fenster):
 - **Anmelden:** Jedes Fenster meldet sich nach `InitializeComponent` mit einer Zeile bei `Oberflaechenskalierung` an. Die Klasse
   - setzt die gemeinsame Vergrößerung auf den Inhalt,
-  - rechnet feste Fenstergrößen (`Width`, `Height`, `MinWidth`, `MinHeight`) mit der Stufe um,
+  - rechnet feste Fenstergrößen (`Width`, `Height`, `MinWidth`, `MinHeight`, Höchstgröße) mit der Stufe um,
   - begrenzt das Fenster auf den Arbeitsbereich des Bildschirms.
 - **Ausnahme Hauptfenster:** Es behält seine gemerkte Größe und Position, nur sein Inhalt wird vergrößert.
 - **Sofort wirksam:** Ändert der Benutzer die Stufe, ändert sich nur der Faktor der gemeinsamen Vergrößerung. Alle offenen Fenster folgen sofort, und ihre festen Größen werden im Verhältnis neu/alt nachgeführt.
-- **Aufklappende Elemente:** Menüs, Auswahllisten, Kontextmenüs und Tooltips liegen außerhalb des Fensterinhalts. Sie bekommen dieselbe Vergrößerung beim Öffnen.
+- **Aufklappende Elemente:** Menüs, Auswahllisten, Kontextmenüs und Tooltips übernehmen die Vergrößerung von dem Element, an dem sie aufklappen; dafür ist nichts weiter nötig (im Rundgang geprüft).
 - **Ausnahme Karten:** Das Kartensteuerelement in Tourdetail und Tourenplanung wird mit `Oberflaechenskalierung.Ausnehmen` von der Vergrößerung ausgenommen. Es erhält die Gegenvergrößerung (Kehrwert der Stufe), füllt so den mitgewachsenen Platz und zeichnet das Kartenbild in Originalgröße. Mausklicks treffen dadurch wie bisher. Alles um die Karte herum wächst mit.
 
-Damit Dialoge in großen Stufen auf den Bildschirm passen, bekommen alle Dialoge denselben Aufbau wie schon die Einstellungen: unten fest die Schaltflächenleiste, darüber der Inhalt in einem `ScrollViewer`. Fenster mit `SizeToContent` und fester Breite tragen die Breite künftig am Inhalt statt am Fenster, damit sie mitwächst.
+Damit Dialoge in großen Stufen auf den Bildschirm passen, bekommen alle Dialoge denselben Aufbau wie schon die Einstellungen: unten fest die Schaltflächenleiste, darüber der Inhalt in einem `ScrollViewer`. Die festen Breiten bleiben am Fenster; `Anmelden` rechnet sie um.
 
 Spaltenbreiten, Fensterpositionen und Kartenausschnitte bleiben in den Einheiten von 100 % gespeichert. Durch die Vergrößerung des Inhalts wachsen gemerkte Spaltenbreiten deshalb von selbst mit.
 
@@ -32,6 +32,8 @@ Spaltenbreiten, Fensterpositionen und Kartenausschnitte bleiben in den Einheiten
 - `src/AndyTours.App/Views/AktuellAnsicht.xaml` (ändern) — Inhalt im `ScrollViewer`, damit er im Hauptfenster bei großer Stufe rollt; das Diagramm bekommt eine Mindesthöhe
 - `src/AndyTours.App/Views/WartungenAnsicht.xaml` (ändern) — Inhalt im `ScrollViewer`, so hoch wie der sichtbare Bereich (die Tabellen rollen selbst), mit Mindesthöhe; erst darunter rollt die ganze Ansicht
 - ~~`src/AndyTours.App/Views/EinheitenTabelle.xaml`~~ — entfällt: die Filterleiste bricht bereits um (bei 200 % geprüft)
+- `src/AndyTours.App/App.xaml` (ändern) — Kontrastfarben und Reitervorlage nach ADR 0008
+- `docs/adr/0008-kontrastfarben-der-oberflaeche.md` (neu) — Entscheidung zu den Kontrastfarben
 - `docs/tech.md` (ändern) — Regel für Anmelden, Dialogaufbau und Kartenausnahme; bereits mit ADR 0007 eingetragen, bei der Umsetzung nur abgleichen
 
 ## Abdeckung der Kriterien
@@ -54,6 +56,8 @@ Spaltenbreiten, Fensterpositionen und Kartenausschnitte bleiben in den Einheiten
 - **Speicherung als Prozentzahl:** `Darstellung.Groesse` mit dem Wert `100`…`200`. Nur die sechs Stufen gelten; alles andere ergibt 100. So bleibt ein von Hand veränderter Wert harmlos.
 - **Fenster vor dem Laden der Datenbank** (z. B. „Datenordner nicht erreichbar“) erscheinen in 100 %, weil die Stufe erst mit dem Datenbestand bekannt ist.
 - **Fenstergrößen umrechnen:** Die Größenangaben im XAML bleiben in Einheiten von 100 %. `Anmelden` rechnet Breite, Höhe, Mindest- und Höchstgröße jedes Fensters außer dem Hauptfenster mit der Stufe um und begrenzt sie auf den Arbeitsbereich; eine neue Stufe führt offene Fenster im Verhältnis neu/alt nach. Das ersetzt die ursprünglich geplante „Breite am Inhalt“, weil so kein Dialog umgebaut werden muss und vom Benutzer veränderte Größen erhalten bleiben.
+- **Einstellungen in Karteikarten** (Wunsch des Benutzers bei der Prüfung, das Fenster war zu groß und unübersichtlich): „Allgemein“ (Datenordner mit Hinweis zur Entwicklungsversion, Darstellung), „Datensicherung“, „Tourenplanung“ (Routing, Overlays) und „Auswahllisten“. Feste Höhe 600, damit das Fenster beim Wechsel der Karteikarte nicht springt; jede Karteikarte rollt für sich, „Schließen“ bleibt unten fest. Die Liste der Auswahllisten ist fest 300 hoch.
+- **Kontrastfarben** (Wunsch des Benutzers bei der Prüfung, Reiter und Menüpunkte waren im Fluent-Design kaum erkennbar): graue Karteikartenseite mit gleichfarbigem gewähltem Reiter, dunklere nicht gewählte Reiter und Hauptmenüpunkte, weiße Felder und Listen → decided in docs/adr/0008-kontrastfarben-der-oberflaeche.md
 
 ## Offene Entscheidungen
 - Wird die Oberfläche zentral über eine gemeinsame Vergrößerung des Fensterinhalts skaliert, bei der sich jedes Fenster anmelden, jeder Dialog eine feste Schaltflächenleiste mit rollbarem Inhalt haben und jede Karte ausgenommen werden muss – als verbindliche Regel auch für künftige Fenster? → decided in docs/adr/0007-skalierung-der-oberflaeche.md

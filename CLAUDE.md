@@ -9,6 +9,7 @@ Programmiersprache: C#
 - Plattform: .NET 10 (LTS), App `net10.0-windows10.0.19041.0`, übrige Projekte `net10.0`
 - Oberfläche: WPF mit MVVM (`CommunityToolkit.Mvvm`)
 - Erscheinungsbild: eingebautes Fluent-Design von WPF (hell), siehe `docs/adr/0006-grundlage-der-oberflaeche.md`
+- Kontrastfarben auf dem Fluent-Design (Karteikarten, Hauptmenü, weiße Felder und Listen), siehe `docs/adr/0008-kontrastfarben-der-oberflaeche.md`
 - Skalierung der Oberfläche: zentral über die Vergrößerung des Fensterinhalts, siehe `docs/adr/0007-skalierung-der-oberflaeche.md`
 - Datenhaltung: SQLite über `Microsoft.Data.Sqlite`
 - FIT-Import: `Garmin.FIT.Sdk`

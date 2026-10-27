@@ -70,6 +70,10 @@ Hauptfenster mit allen drei Karteikarten, Einstellungen (alle Bereiche), Neue Ei
 - **Icon der Fenster:** Die Fenster bekommen kein eigenes `Icon`; WPF zeigt dann das Icon der Programmdatei. Dialoge zeigen es so ebenfalls.
 - **Autor:** Er kommt als `Copyright` aus `Directory.Build.props` in die Programmdatei, wie die Version. So steht er auch in den Dateieigenschaften im Explorer.
 - **Meldungsfenster:** bleiben Windows-Standard (Spec, Antwort K1).
+- Nach dem Rundgang ergänzt: Tabellenzellen stellen ihren Inhalt senkrecht mittig. Dafür gibt es app-weit in `App.xaml` einen Zellstil, der auf `DefaultDataGridCellStyle` aufbaut, unter dem Typ `DataGridCell` abgelegt ist (die Zellstile der Ansichten bauen mit `BasedOn="{StaticResource {x:Type DataGridCell}}"` darauf auf) und die Hintergrundfarbe der Zelle übernimmt, damit fachliche Farben auch markiert sichtbar bleiben; Markierung und Fokusrahmen stehen als Stil-Trigger.
+- Nach dem Rundgang ergänzt: Beschriftungen (`Label`) haben app-weit den Innenabstand `5,5,12,5`, weil das Fluent-Label sonst direkt am Feld klebt.
+- `WPF0001` (ThemeMode experimentell) ist im App-Projekt per `NoWarn` unterdrückt, damit der Build ohne Warnungen bleibt.
+- Später (035) ergänzt: eigene Kontrastfarben für Karteikarten, Hauptmenü, Felder und Listen, siehe `docs/adr/0008-kontrastfarben-der-oberflaeche.md`.
 
 ## Offene Entscheidungen
 - Wird das eingebaute Fluent-Design (`ThemeMode`, in .NET 10 noch als experimentell gekennzeichnet) die verbindliche Grundlage der Oberfläche, nach der sich auch künftige Fenster richten? → decided in docs/adr/0006-grundlage-der-oberflaeche.md

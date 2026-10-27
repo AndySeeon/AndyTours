@@ -141,6 +141,7 @@ Testbefehl: `dotnet test AndyTours.slnx`
 - Nach Prüfung 2 ergänzt: Markierte fällige und bald fällige Alarme zeigen eine kräftigere Fassung ihrer Farbe statt der Markierungsfarbe des Systems, damit die Farbe auch bei einem einzigen (nach dem Speichern markierten) Alarm sichtbar bleibt.
 - Bei der Umsetzung ergänzt: Das Intervall wird ohne Tausenderpunkt eingegeben („3000“), wie die übrigen ganzen Zahlen der App; angezeigt wird es mit Tausenderpunkt.
 - Bei der Umsetzung ergänzt: Der Text „32 Wartungen und 1 Alarm“ für Rückfrage und Löschsperre entsteht an einer Stelle (`AuswahllistenViewModel.BeschreibeTaetigkeitsverwendung`).
+- Nach 034 auf Wunsch des Benutzers geändert: Die Auswahl „Tätigkeit“ im Alarmfenster ist wie im Wartungsfenster nach der bisherigen Häufigkeit in den Wartungen aller Räder geordnet (`OrdneTaetigkeitenNachHaeufigkeit`, siehe Plan 021); Alarme zählen dabei nicht mit. Antworten A1 „Beide nach Häufigkeit“, B1 „Über alle Räder“.
 
 ## Risiken
 - Die Karteikarte „Wartung“ teilt sich künftig in zwei Listen; die Alarmliste braucht eine begrenzte Höhe, damit die Wartungstabelle sichtbar bleibt.
