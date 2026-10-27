@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Windows;
 using AndyTours.App.ViewModels;
+using AndyTours.App.Funktionen;
 
 namespace AndyTours.App.Views;
 
@@ -20,6 +21,7 @@ public partial class FortschrittsFenster : Window
     public FortschrittsFenster(FortschrittsViewModel viewModel)
     {
         InitializeComponent();
+        Oberflaechenskalierung.Anmelden(this);
         DataContext = viewModel;
     }
 

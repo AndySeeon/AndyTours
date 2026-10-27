@@ -18,13 +18,11 @@
         WindowStartupLocation="CenterScreen"
         ShowInTaskbar="True">
 
-    <StackPanel Margin="16">
-
-        <!-- 1. Meldungstext -->
-        <TextBlock x:Name="Meldung" TextWrapping="Wrap" Margin="0,0,0,16" />
-
+    <!-- Reicht die Höhe des Bildschirms nicht (große Oberfläche), rollt der Inhalt;
+         die Schaltflächen bleiben unten immer sichtbar -->
+    <DockPanel>
         <!-- 2. Schaltflächen -->
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="16,0,16,16">
             <Button Content="_Erneut versuchen" IsDefault="True" MinWidth="120" Padding="8,3" Margin="0,0,8,0"
                     Click="ErneutVersuchen_Click" />
             <Button Content="_Anderen Ordner wählen…" MinWidth="120" Padding="8,3" Margin="0,0,8,0"
@@ -33,5 +31,11 @@
                     Click="Beenden_Click" />
         </StackPanel>
 
-    </StackPanel>
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="16,16,16,0">
+                <!-- 1. Meldungstext -->
+                <TextBlock x:Name="Meldung" TextWrapping="Wrap" Margin="0,0,0,16" />
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
 </Window>

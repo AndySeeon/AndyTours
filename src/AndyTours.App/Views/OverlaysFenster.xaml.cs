@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using AndyTours.App.ViewModels;
+using AndyTours.App.Funktionen;
 
 namespace AndyTours.App.Views;
 
@@ -26,6 +27,7 @@ public partial class OverlaysFenster : Window
     public OverlaysFenster(OverlaysViewModel viewModel)
     {
         InitializeComponent();
+        Oberflaechenskalierung.Anmelden(this);
         DataContext = viewModel;
         _viewModel = viewModel;
         _viewModel.NameBearbeiten += (_, _) => Dispatcher.BeginInvoke(() =>

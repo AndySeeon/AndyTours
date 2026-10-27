@@ -56,56 +56,64 @@
         </Style>
     </Window.Resources>
 
-    <StackPanel Margin="16">
-        <!-- 1. Datum, Rad, Tätigkeit -->
-        <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
-
-            <TextBlock Grid.Row="0" Text="Datum:" Style="{StaticResource Beschriftung}" />
-            <!-- 130 px: Platz für das ganze Datum und die Löschschaltfläche (×), die das Fluent-Eingabefeld beim Bearbeiten zeigt -->
-            <TextBox Grid.Row="0" Grid.Column="1" x:Name="DatumFeld" Width="130" HorizontalAlignment="Left"
-                     Text="{Binding Datum, UpdateSourceTrigger=PropertyChanged}" Tag="{Binding [Datum]}" Style="{StaticResource Eingabe}" />
-
-            <TextBlock Grid.Row="1" Text="Rad:" Style="{StaticResource Beschriftung}" />
-            <Border Grid.Row="1" Grid.Column="1" Tag="{Binding [Rad]}" Style="{StaticResource Fehlerrahmen}">
-                <ComboBox ItemsSource="{Binding Raeder}" SelectedItem="{Binding Rad}" DisplayMemberPath="Name" />
-            </Border>
-
-            <TextBlock Grid.Row="2" Text="Tätigkeit:" Style="{StaticResource Beschriftung}" />
-            <Border Grid.Row="2" Grid.Column="1" Tag="{Binding [Taetigkeit]}" Style="{StaticResource Fehlerrahmen}">
-                <!-- IsEditable bleibt aus: nur Einträge der Liste „Tätigkeit“ sind wählbar -->
-                <ComboBox ItemsSource="{Binding Taetigkeiten}" SelectedItem="{Binding Taetigkeit}" IsEditable="False" />
-            </Border>
-        </Grid>
-
-        <!-- 2. Kommentar -->
-        <TextBlock Text="Kommentar:" Margin="0,12,0,4" />
-        <TextBox Text="{Binding Kommentar, UpdateSourceTrigger=PropertyChanged}" Height="80"
-                 AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" />
-
-        <!-- 3. Hinweis und Schaltflächen -->
-        <TextBlock Text="{Binding Hinweis}" Foreground="#FFB00000" TextWrapping="Wrap" Margin="0,8,0,0">
-            <TextBlock.Style>
-                <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
-                    <Style.Triggers>
-                        <DataTrigger Binding="{Binding Hinweis}" Value="">
-                            <Setter Property="Visibility" Value="Collapsed" />
-                        </DataTrigger>
-                    </Style.Triggers>
-                </Style>
-            </TextBlock.Style>
-        </TextBlock>
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+    <!-- Reicht die Höhe des Bildschirms nicht (große Oberfläche), rollt der Inhalt;
+         die Schaltflächen bleiben unten immer sichtbar -->
+    <DockPanel>
+        <!-- Schaltflächen -->
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="16,16,16,16">
             <Button Content="OK" MinWidth="90" Padding="8,3" IsDefault="True" Command="{Binding SpeichernCommand}" />
             <Button Content="Abbrechen" MinWidth="90" Padding="8,3" Margin="8,0,0,0" IsCancel="True" />
         </StackPanel>
-    </StackPanel>
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="16,16,16,0">
+                <!-- 1. Datum, Rad, Tätigkeit -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Text="Datum:" Style="{StaticResource Beschriftung}" />
+                    <!-- 130 px: Platz für das ganze Datum und die Löschschaltfläche (×), die das Fluent-Eingabefeld beim Bearbeiten zeigt -->
+                    <TextBox Grid.Row="0" Grid.Column="1" x:Name="DatumFeld" Width="130" HorizontalAlignment="Left"
+                             Text="{Binding Datum, UpdateSourceTrigger=PropertyChanged}" Tag="{Binding [Datum]}" Style="{StaticResource Eingabe}" />
+
+                    <TextBlock Grid.Row="1" Text="Rad:" Style="{StaticResource Beschriftung}" />
+                    <Border Grid.Row="1" Grid.Column="1" Tag="{Binding [Rad]}" Style="{StaticResource Fehlerrahmen}">
+                        <ComboBox ItemsSource="{Binding Raeder}" SelectedItem="{Binding Rad}" DisplayMemberPath="Name" />
+                    </Border>
+
+                    <TextBlock Grid.Row="2" Text="Tätigkeit:" Style="{StaticResource Beschriftung}" />
+                    <Border Grid.Row="2" Grid.Column="1" Tag="{Binding [Taetigkeit]}" Style="{StaticResource Fehlerrahmen}">
+                        <!-- IsEditable bleibt aus: nur Einträge der Liste „Tätigkeit“ sind wählbar -->
+                        <ComboBox ItemsSource="{Binding Taetigkeiten}" SelectedItem="{Binding Taetigkeit}" IsEditable="False" />
+                    </Border>
+                </Grid>
+
+                <!-- 2. Kommentar -->
+                <TextBlock Text="Kommentar:" Margin="0,12,0,4" />
+                <TextBox Text="{Binding Kommentar, UpdateSourceTrigger=PropertyChanged}" Height="80"
+                         AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" />
+
+                <!-- 3. Hinweis -->
+                <TextBlock Text="{Binding Hinweis}" Foreground="#FFB00000" TextWrapping="Wrap" Margin="0,8,0,0">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Hinweis}" Value="">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
 </Window>

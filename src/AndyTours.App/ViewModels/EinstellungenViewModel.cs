@@ -79,6 +79,7 @@ public partial class EinstellungenViewModel : ObservableObject
         ZeigeSicherungseinstellungen();
         ZeigeRoutingeinstellungen();
         ZeigeOverlayfarbe();
+        ZeigeOberflaechengroesse();
     }
 
     /// <summary>
@@ -141,6 +142,7 @@ public partial class EinstellungenViewModel : ObservableObject
             ZeigeSicherungseinstellungen();
             ZeigeRoutingeinstellungen();
             ZeigeOverlayfarbe();
+            ZeigeOberflaechengroesse();
             SchluesselNeuGelesen?.Invoke(this, EventArgs.Empty);
         }
     }
@@ -410,6 +412,54 @@ public partial class EinstellungenViewModel : ObservableObject
         try
         {
             Overlayfarbe = Overlayfarben.First(e => e.Farbe == Overlaybestand.Farbe);
+        }
+        finally
+        {
+            _wirdAngezeigt = false;
+        }
+    }
+
+    /// <summary>Die wählbaren Stufen der Oberflächengröße in Prozent (Anzeige „100 %“ … „200 %“).</summary>
+    public IReadOnlyList<int> Oberflaechenstufen { get; } = OberflaechengroesseEinstellung.Stufen;
+
+    /// <summary>Die gewählte Größe der Oberfläche in Prozent (Auswahlfeld der Gruppe „Darstellung“).</summary>
+    [ObservableProperty]
+    private int _oberflaechengroesse = OberflaechengroesseEinstellung.Standard;
+
+    /// <summary>
+    /// Wird bei der Wahl einer Stufe aufgerufen: sofort speichern und alle offenen Fenster vergrößern bzw.
+    /// verkleinern (Spezifikation 035).
+    /// </summary>
+    partial void OnOberflaechengroesseChanged(int value)
+    {
+        if (_wirdAngezeigt)
+        {
+            return;
+        }
+
+        try
+        {
+            using SqliteConnection verbindung = OeffneDatenbank.Ausfuehren(Datenbankdatei);
+            OberflaechengroesseEinstellung.Speichern(verbindung, value);
+            Oberflaechenskalierung.Setze(value);
+        }
+        catch (Exception fehler) when (fehler is SqliteException or IOException or UnauthorizedAccessException)
+        {
+            MessageBox.Show($"Die Einstellung konnte nicht gespeichert werden:\n\n{fehler.Message}",
+                "Einstellungen", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    /// <summary>
+    /// Zeigt die Größe der Oberfläche des aktuellen Datenordners an (sie ist beim Laden des Datenordners bereits
+    /// gesetzt, siehe <see cref="Oberflaechenskalierung"/>).
+    /// </summary>
+    private void ZeigeOberflaechengroesse()
+    {
+        _wirdAngezeigt = true;
+        try
+        {
+            Oberflaechengroesse = (int)Math.Round(Oberflaechenskalierung.Faktor * 100);
         }
         finally
         {

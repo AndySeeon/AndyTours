@@ -79,6 +79,9 @@ public partial class TourdetailFenster : Window
     public TourdetailFenster(TourdetailViewModel viewModel)
     {
         InitializeComponent();
+        Oberflaechenskalierung.Anmelden(this);
+        // Das Kartenbild bleibt in jeder Stufe so groß wie bei 100 %; nur die Bedienelemente um die Karte wachsen mit
+        Oberflaechenskalierung.Ausnehmen(Karte);
         DataContext = viewModel;
         _streckenkarte = viewModel.Streckenkarte;
 

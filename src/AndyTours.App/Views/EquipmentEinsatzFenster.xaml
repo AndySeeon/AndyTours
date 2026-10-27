@@ -31,53 +31,57 @@
         </Style>
     </Window.Resources>
 
-    <StackPanel Margin="16">
-
-        <!-- 1. Tabelle bzw. Hinweis -->
-        <DataGrid x:Name="Tabelle" ItemsSource="{Binding Zeilen}" MaxHeight="480"
-                  Visibility="{Binding HatZeilen, Converter={StaticResource SichtbarWennWahr}}"
-                  AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" CanUserDeleteRows="False"
-                  CanUserReorderColumns="False" CanUserResizeRows="False"
-                  HeadersVisibility="Column" SelectionMode="Single"
-                  GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#FFE0E0E0"
-                  Sorting="Tabelle_Sorting">
-            <!-- Zeile „Summe“ fett -->
-            <DataGrid.RowStyle>
-                <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
-                    <Style.Triggers>
-                        <DataTrigger Binding="{Binding IstSumme}" Value="True">
-                            <Setter Property="FontWeight" Value="Bold" />
-                        </DataTrigger>
-                    </Style.Triggers>
-                </Style>
-            </DataGrid.RowStyle>
-            <DataGrid.Columns>
-                <DataGridTextColumn x:Name="SpalteEquipment" Header="Equipment" Binding="{Binding Name, Mode=OneWay}" Width="*" />
-                <DataGridTextColumn x:Name="SpalteVorherKm" Header="vorher (km)" Width="110"
-                                    Binding="{Binding VorherKm, Mode=OneWay, StringFormat='N0'}" ElementStyle="{StaticResource Zahl}" />
-                <DataGridTextColumn x:Name="SpalteGesamtKm" Header="Gesamt (km)" Width="110" SortDirection="Descending"
-                                    Binding="{Binding GesamtKm, Mode=OneWay, StringFormat='N0'}" ElementStyle="{StaticResource Zahl}" />
-                <DataGridTextColumn x:Name="SpalteGesamtHm" Header="Gesamt (hm)" Width="110"
-                                    Binding="{Binding GesamtHm, Mode=OneWay, StringFormat='N0'}" ElementStyle="{StaticResource Zahl}" />
-            </DataGrid.Columns>
-        </DataGrid>
-        <TextBlock Text="Keine Einheiten vorhanden." Foreground="Gray" Margin="0,4,0,0">
-            <TextBlock.Style>
-                <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
-                    <Setter Property="Visibility" Value="Collapsed" />
-                    <Style.Triggers>
-                        <DataTrigger Binding="{Binding HatZeilen}" Value="False">
-                            <Setter Property="Visibility" Value="Visible" />
-                        </DataTrigger>
-                    </Style.Triggers>
-                </Style>
-            </TextBlock.Style>
-        </TextBlock>
-
+    <!-- Reicht die Höhe des Bildschirms nicht (große Oberfläche), rollt der Inhalt;
+         die Schaltflächen bleiben unten immer sichtbar -->
+    <DockPanel>
         <!-- 2. Schaltfläche -->
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="16,12,16,16">
             <Button Content="Schließen" IsCancel="True" IsDefault="True" MinWidth="90" Padding="8,3" />
         </StackPanel>
 
-    </StackPanel>
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="16,16,16,0">
+                <!-- 1. Tabelle bzw. Hinweis -->
+                <DataGrid x:Name="Tabelle" ItemsSource="{Binding Zeilen}" MaxHeight="480"
+                          Visibility="{Binding HatZeilen, Converter={StaticResource SichtbarWennWahr}}"
+                          AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" CanUserDeleteRows="False"
+                          CanUserReorderColumns="False" CanUserResizeRows="False"
+                          HeadersVisibility="Column" SelectionMode="Single"
+                          GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#FFE0E0E0"
+                          Sorting="Tabelle_Sorting">
+                    <!-- Zeile „Summe“ fett -->
+                    <DataGrid.RowStyle>
+                        <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IstSumme}" Value="True">
+                                    <Setter Property="FontWeight" Value="Bold" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </DataGrid.RowStyle>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn x:Name="SpalteEquipment" Header="Equipment" Binding="{Binding Name, Mode=OneWay}" Width="*" />
+                        <DataGridTextColumn x:Name="SpalteVorherKm" Header="vorher (km)" Width="110"
+                                            Binding="{Binding VorherKm, Mode=OneWay, StringFormat='N0'}" ElementStyle="{StaticResource Zahl}" />
+                        <DataGridTextColumn x:Name="SpalteGesamtKm" Header="Gesamt (km)" Width="110" SortDirection="Descending"
+                                            Binding="{Binding GesamtKm, Mode=OneWay, StringFormat='N0'}" ElementStyle="{StaticResource Zahl}" />
+                        <DataGridTextColumn x:Name="SpalteGesamtHm" Header="Gesamt (hm)" Width="110"
+                                            Binding="{Binding GesamtHm, Mode=OneWay, StringFormat='N0'}" ElementStyle="{StaticResource Zahl}" />
+                    </DataGrid.Columns>
+                </DataGrid>
+                <TextBlock Text="Keine Einheiten vorhanden." Foreground="Gray" Margin="0,4,0,0">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HatZeilen}" Value="False">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
 </Window>

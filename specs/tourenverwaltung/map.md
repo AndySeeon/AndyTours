@@ -132,4 +132,4 @@ In Umsetzungsreihenfolge.
   - Status: done → [034-erscheinungsbild-und-icon](034-erscheinungsbild-und-icon/spec.md)
 - `oberflaeche-skalieren` — Der Benutzer kann in den Einstellungen die ganze Oberfläche einschließlich der Schrift in festen Stufen von 100 % bis 200 % vergrößern; die Wahl wirkt sofort und bleibt erhalten.
   - Abhängig von: `erscheinungsbild-und-icon`
-  - Status: open
+  - Status: done → [035-oberflaeche-skalieren](035-oberflaeche-skalieren/spec.md)

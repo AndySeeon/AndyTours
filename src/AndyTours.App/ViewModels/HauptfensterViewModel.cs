@@ -289,6 +289,7 @@ public partial class HauptfensterViewModel : ObservableObject
         int? karteikarte;
         List<string> trainingsbereiche;
         List<string> taetigkeiten;
+        int oberflaechengroesse;
         using (SqliteConnection verbindung = OeffneDatenbank.Ausfuehren(Path.Combine(ordner, DatenordnerInhalt.Datenbankdatei)))
         {
             geladen = DatenbestandTabellen.Laden(verbindung);
@@ -299,6 +300,7 @@ public partial class HauptfensterViewModel : ObservableObject
             anordnung = SpaltenanordnungEinstellung.Laden(verbindung);
             fenster = FensterpositionEinstellung.Laden(verbindung);
             karteikarte = KarteikarteEinstellung.Laden(verbindung);
+            oberflaechengroesse = OberflaechengroesseEinstellung.Laden(verbindung);
         }
 
         _bestand = geladen;
@@ -312,6 +314,10 @@ public partial class HauptfensterViewModel : ObservableObject
         AusgeblendeteSpalten = ausgeblendet;
         GemerkteFensterposition = fenster;
         GemerkteKarteikarte = karteikarte;
+
+        // Die Größe der Oberfläche gehört zum Datenbestand: Start, Wechsel und Wiederherstellung übernehmen sie;
+        // offene Fenster folgen sofort (Spezifikation 035)
+        Oberflaechenskalierung.Setze(oberflaechengroesse);
 
         // Jahresliste: „alle Jahre“, dann alle Jahre mit Einheiten und immer das aktuelle Jahr, das neueste zuerst
         int aktuellesJahr = DateTime.Today.Year;

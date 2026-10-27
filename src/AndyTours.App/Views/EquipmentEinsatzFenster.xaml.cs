@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using AndyTours.App.ViewModels;
 using AndyTours.Core.Modell;
+using AndyTours.App.Funktionen;
 
 namespace AndyTours.App.Views;
 
@@ -24,6 +25,7 @@ public partial class EquipmentEinsatzFenster : Window
     public EquipmentEinsatzFenster(EquipmentEinsatzViewModel viewModel)
     {
         InitializeComponent();
+        Oberflaechenskalierung.Anmelden(this);
         DataContext = viewModel;
     }
 

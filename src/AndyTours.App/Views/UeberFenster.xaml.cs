@@ -1,5 +1,6 @@
 using System.Windows;
 using AndyTours.App.ViewModels;
+using AndyTours.App.Funktionen;
 
 namespace AndyTours.App.Views;
 
@@ -19,6 +20,7 @@ public partial class UeberFenster : Window
     public UeberFenster(UeberViewModel viewModel)
     {
         InitializeComponent();
+        Oberflaechenskalierung.Anmelden(this);
         DataContext = viewModel;
     }
 

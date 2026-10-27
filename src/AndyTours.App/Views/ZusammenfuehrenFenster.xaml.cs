@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Input;
 using AndyTours.App.ViewModels;
+using AndyTours.App.Funktionen;
 
 namespace AndyTours.App.Views;
 
@@ -25,6 +26,7 @@ public partial class ZusammenfuehrenFenster : Window
     public ZusammenfuehrenFenster(ZusammenfuehrenViewModel viewModel)
     {
         InitializeComponent();
+        Oberflaechenskalierung.Anmelden(this);
         _viewModel = viewModel;
         DataContext = viewModel;
         viewModel.Gewaehlt += (_, _) => DialogResult = true;

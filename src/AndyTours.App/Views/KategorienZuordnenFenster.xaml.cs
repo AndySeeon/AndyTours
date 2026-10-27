@@ -1,5 +1,6 @@
 using System.Windows;
 using AndyTours.App.ViewModels;
+using AndyTours.App.Funktionen;
 
 namespace AndyTours.App.Views;
 
@@ -20,6 +21,7 @@ public partial class KategorienZuordnenFenster : Window
     public KategorienZuordnenFenster(KategorienZuordnenViewModel viewModel)
     {
         InitializeComponent();
+        Oberflaechenskalierung.Anmelden(this);
         DataContext = viewModel;
         viewModel.Bestaetigt += (_, _) => DialogResult = true;
 

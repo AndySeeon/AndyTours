@@ -1,7 +1,7 @@
 <!--
   Ansicht „Aktuell“ (Inhalt der gleichnamigen Karteikarte im Hauptfenster): Bestleistungen und Jahresfortschritt.
 
-  Aufbau von oben nach unten (DockPanel):
+  Aufbau von oben nach unten (DockPanel in einem ScrollViewer, der bei großer Oberfläche rollt):
     1. Bestleistungen in zwei Spalten: links die Jahresrekorde (Kilometer, Anzahl, Höhenmeter, Fahrzeit mit
        Rekordjahr), rechts die Einzelrekorde (Wert, Datum und Name der Einheit). Je Zeile drei Spalten:
        Bezeichnung, Wert (rechtsbündig), Herkunft. Rekorde des laufenden Jahres fett in der Linienfarbe des
@@ -57,67 +57,73 @@
         </DataTemplate>
     </UserControl.Resources>
 
-    <DockPanel Margin="12">
+    <!-- Reicht der Platz nicht (große Oberfläche, kleines Fenster), rollt die Ansicht. Ist mehr Platz da, füllt das
+         Diagramm den Rest wie bisher, weil der ScrollViewer seinen Inhalt mindestens so groß wie den sichtbaren
+         Bereich anordnet -->
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Focusable="False">
+        <DockPanel Margin="12">
 
-        <!-- 1. Bestleistungen -->
-        <Grid DockPanel.Dock="Top" DataContext="{Binding Bestleistungen}" Margin="0,0,0,12"
-              Visibility="{Binding HatEinheiten, Converter={StaticResource SichtbarWennWahr}}">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <StackPanel Grid.Column="0" Margin="0,0,40,0">
-                <TextBlock Text="Jahresrekorde" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,4" />
-                <ItemsControl ItemsSource="{Binding Jahresrekorde}" ItemTemplate="{StaticResource Bestleistungszeile}"
-                              Grid.IsSharedSizeScope="True" Focusable="False" />
-            </StackPanel>
-            <StackPanel Grid.Column="1">
-                <TextBlock Text="Einzelrekorde" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,4" />
-                <ItemsControl ItemsSource="{Binding Einzelrekorde}" ItemTemplate="{StaticResource Bestleistungszeile}"
-                              Grid.IsSharedSizeScope="True" Focusable="False">
-                    <ItemsControl.ItemContainerStyle>
-                        <Style TargetType="ContentPresenter">
-                            <Setter Property="Cursor" Value="Hand" />
-                            <Setter Property="ToolTip" Value="Doppelklick öffnet die Einheit" />
-                        </Style>
-                    </ItemsControl.ItemContainerStyle>
-                </ItemsControl>
-            </StackPanel>
-        </Grid>
-
-        <!-- 2. bis 4.: Jahresfortschritt -->
-        <DockPanel DataContext="{Binding Jahresfortschritt}">
-
-            <!-- 2. Überschrift -->
-            <TextBlock DockPanel.Dock="Top" Text="{Binding Ueberschrift}" FontSize="18" FontWeight="SemiBold" />
-
-            <!-- 3. Kennzahlen des laufenden Jahres -->
-            <StackPanel DockPanel.Dock="Top" Margin="0,6,0,8">
-                <TextBlock Text="{Binding Stand}" FontSize="14" />
-                <TextBlock Text="{Binding Ausblick}" FontSize="14" Foreground="DimGray" />
-            </StackPanel>
-
-            <Grid>
-                <!-- Hinweis bei leerer Auswahl -->
-                <TextBlock Text="Keine Einheiten in dieser Auswahl." HorizontalAlignment="Center" VerticalAlignment="Center"
-                           FontSize="16" Foreground="Gray">
-                    <TextBlock.Style>
-                        <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
-                            <Setter Property="Visibility" Value="Collapsed" />
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding HatEinheiten}" Value="False">
-                                    <Setter Property="Visibility" Value="Visible" />
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </TextBlock.Style>
-                </TextBlock>
-
-                <!-- 4. Diagramm; ein Klick schaltet den Wert weiter -->
-                <oxy:PlotView x:Name="Diagramm" Model="{Binding Diagramm}" Cursor="Hand"
-                              PreviewMouseLeftButtonUp="Diagramm_Geklickt"
-                              Visibility="{Binding HatEinheiten, Converter={StaticResource SichtbarWennWahr}}" />
+            <!-- 1. Bestleistungen -->
+            <Grid DockPanel.Dock="Top" DataContext="{Binding Bestleistungen}" Margin="0,0,0,12"
+                  Visibility="{Binding HatEinheiten, Converter={StaticResource SichtbarWennWahr}}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Margin="0,0,40,0">
+                    <TextBlock Text="Jahresrekorde" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,4" />
+                    <ItemsControl ItemsSource="{Binding Jahresrekorde}" ItemTemplate="{StaticResource Bestleistungszeile}"
+                                  Grid.IsSharedSizeScope="True" Focusable="False" />
+                </StackPanel>
+                <StackPanel Grid.Column="1">
+                    <TextBlock Text="Einzelrekorde" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,4" />
+                    <ItemsControl ItemsSource="{Binding Einzelrekorde}" ItemTemplate="{StaticResource Bestleistungszeile}"
+                                  Grid.IsSharedSizeScope="True" Focusable="False">
+                        <ItemsControl.ItemContainerStyle>
+                            <Style TargetType="ContentPresenter">
+                                <Setter Property="Cursor" Value="Hand" />
+                                <Setter Property="ToolTip" Value="Doppelklick öffnet die Einheit" />
+                            </Style>
+                        </ItemsControl.ItemContainerStyle>
+                    </ItemsControl>
+                </StackPanel>
             </Grid>
+
+            <!-- 2. bis 4.: Jahresfortschritt -->
+            <DockPanel DataContext="{Binding Jahresfortschritt}">
+
+                <!-- 2. Überschrift -->
+                <TextBlock DockPanel.Dock="Top" Text="{Binding Ueberschrift}" FontSize="18" FontWeight="SemiBold" />
+
+                <!-- 3. Kennzahlen des laufenden Jahres -->
+                <StackPanel DockPanel.Dock="Top" Margin="0,6,0,8">
+                    <TextBlock Text="{Binding Stand}" FontSize="14" />
+                    <TextBlock Text="{Binding Ausblick}" FontSize="14" Foreground="DimGray" />
+                </StackPanel>
+
+                <!-- Mindesthöhe, damit das Diagramm bei großer Oberfläche nicht verschwindet; darunter rollt die Ansicht -->
+                <Grid MinHeight="250">
+                    <!-- Hinweis bei leerer Auswahl -->
+                    <TextBlock Text="Keine Einheiten in dieser Auswahl." HorizontalAlignment="Center" VerticalAlignment="Center"
+                               FontSize="16" Foreground="Gray">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding HatEinheiten}" Value="False">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+
+                    <!-- 4. Diagramm; ein Klick schaltet den Wert weiter -->
+                    <oxy:PlotView x:Name="Diagramm" Model="{Binding Diagramm}" Cursor="Hand"
+                                  PreviewMouseLeftButtonUp="Diagramm_Geklickt"
+                                  Visibility="{Binding HatEinheiten, Converter={StaticResource SichtbarWennWahr}}" />
+                </Grid>
+            </DockPanel>
         </DockPanel>
-    </DockPanel>
+    </ScrollViewer>
 </UserControl>

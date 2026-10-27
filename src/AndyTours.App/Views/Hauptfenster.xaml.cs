@@ -3,6 +3,7 @@ using System.Windows;
 using AndyTours.App.ViewModels;
 using AndyTours.Core.Berechnungen;
 using AndyTours.Core.Modell;
+using AndyTours.App.Funktionen;
 
 namespace AndyTours.App.Views;
 
@@ -29,6 +30,8 @@ public partial class Hauptfenster : Window
     public Hauptfenster(HauptfensterViewModel viewModel)
     {
         InitializeComponent();
+        // Nur der Inhalt wächst mit der Größe der Oberfläche; das Fenster behält seine gemerkte Größe und Position
+        Oberflaechenskalierung.Anmelden(this, groesseUmrechnen: false);
         _viewModel = viewModel;
         DataContext = viewModel;
 

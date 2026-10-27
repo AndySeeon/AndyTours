@@ -71,6 +71,124 @@
                 </Style.Triggers>
             </Style>
 
+            <!-- Farben der Karteikarten (Reiter und Seite), gemeinsam für die Stile unten:
+                 - Seite: hellgrau; der gewählte Reiter hat dieselbe Farbe und bildet mit ihr eine Fläche,
+                 - nicht gewählter Reiter: dunkleres Grau, beim Darüberfahren noch etwas dunkler,
+                 - Rahmen um Seite und gewählten Reiter: deutliches Grau. -->
+            <SolidColorBrush x:Key="KarteikarteSeite" Color="#FFF0F2F5" />
+            <SolidColorBrush x:Key="KarteikarteReiter" Color="#FFDCE1E7" />
+            <SolidColorBrush x:Key="KarteikarteReiterDarueber" Color="#FFCDD4DC" />
+            <SolidColorBrush x:Key="KarteikarteRahmen" Color="#FF8F98A3" />
+
+            <!-- Reiter (Karteikarten) aller Fenster: Das Fluent-Design zeichnet nicht gewählte Reiter durchsichtig
+                 ohne Rahmen und den gewählten nur mit einem sehr hellen Rahmen, sodass die Reiter vor dem
+                 Hintergrund kaum erkennbar sind. Dieser Stil baut auf dem Fluent-Reiter auf (Fokusrahmen, Tastatur)
+                 und erhöht den Kontrast: nicht gewählte Reiter dunkler grau, der gewählte in der Farbe der Seite mit
+                 deutlichem Rahmen und halbfetter Beschriftung.
+                 Eigene Vorlage, weil die Fluent-Vorlage den gewählten Reiter über eine Zustandsanimation fest weiß
+                 färbt, was sich weder über Eigenschaften noch über Ressourcen ändern lässt. Die Vorlage bildet die
+                 Fluent-Form nach: Rahmen oben und seitlich, oben abgerundete Ecken, Mindesthöhe 32. -->
+            <Style TargetType="TabItem" BasedOn="{StaticResource {x:Type TabItem}}">
+                <Setter Property="Background" Value="{StaticResource KarteikarteReiter}" />
+                <Setter Property="BorderBrush" Value="#FFC2C9D1" />
+                <!-- Etwas Luft um die Beschriftung, damit die Reiter als Flächen erkennbar sind -->
+                <Setter Property="Padding" Value="10,4" />
+                <Setter Property="Margin" Value="0,0,2,0" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="TabItem">
+                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="1,1,1,0" CornerRadius="6,6,0,0" MinHeight="32" SnapsToDevicePixels="True">
+                                <ContentPresenter ContentSource="Header" RecognizesAccessKey="True" Margin="{TemplateBinding Padding}"
+                                                  HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+                <!-- Halbfett nur die Beschriftung des gewählten Reiters: Am Reiter selbst gesetzt, würde die Schrift
+                     auf den ganzen Inhalt der Karteikarte vererbt -->
+                <Setter Property="HeaderTemplate">
+                    <Setter.Value>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding}">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=TabItem}}" Value="True">
+                                                <Setter Property="FontWeight" Value="SemiBold" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </DataTemplate>
+                    </Setter.Value>
+                </Setter>
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" Value="{StaticResource KarteikarteReiterDarueber}" />
+                    </Trigger>
+                    <!-- Der gewählte Reiter ragt 1 px nach unten und überdeckt so die obere Rahmenlinie der Seite:
+                         Reiter und Seite bilden eine Fläche -->
+                    <Trigger Property="IsSelected" Value="True">
+                        <Setter Property="Background" Value="{StaticResource KarteikarteSeite}" />
+                        <Setter Property="BorderBrush" Value="{StaticResource KarteikarteRahmen}" />
+                        <Setter Property="Margin" Value="0,0,2,-1" />
+                        <Setter Property="Panel.ZIndex" Value="1" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
+            <!-- Seite der Karteikarten: Fluent zeichnet sie durchsichtig auf dem Fensterhintergrund mit nur einer
+                 feinen Linie oben. Die Seite ist deshalb hellgrau wie der gewählte Reiter und rundum mit dessen
+                 Rahmenfarbe umrandet; die weißen Eingabefelder und Listen (unten) heben sich davon ab. -->
+            <Style TargetType="TabControl" BasedOn="{StaticResource {x:Type TabControl}}">
+                <Setter Property="Background" Value="{StaticResource KarteikarteSeite}" />
+                <Setter Property="BorderBrush" Value="{StaticResource KarteikarteRahmen}" />
+                <Setter Property="BorderThickness" Value="1" />
+            </Style>
+
+            <!-- Eingabefelder, Auswahlfelder und Datumsfelder: Fluent füllt sie halb durchsichtig weiß, sodass sie
+                 auf grauem Grund selbst grau und blass wirken. Die Fluent-Farben für den Normalzustand werden hier
+                 durch deckendes Weiß ersetzt, beim Darüberfahren durch ein sehr helles Grau; gesperrte Felder
+                 bleiben wie bei Fluent. Die Fluent-Vorlagen lesen diese Farben über ihre Ressourcenschlüssel. -->
+            <SolidColorBrush x:Key="TextControlBackground" Color="White" />
+            <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="#FFF7F8FA" />
+            <SolidColorBrush x:Key="ComboBoxBackground" Color="White" />
+            <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="#FFF7F8FA" />
+            <SolidColorBrush x:Key="ComboBoxBackgroundPressed" Color="#FFF0F2F5" />
+            <SolidColorBrush x:Key="DatePickerBackground" Color="White" />
+            <SolidColorBrush x:Key="DatePickerBackgroundPointerOver" Color="#FFF7F8FA" />
+
+            <!-- Listen: Fluent zeichnet sie grau ohne Rahmen, wodurch die Einträge blass wirken. Weiß mit feinem
+                 Rahmen wie die Eingabefelder. -->
+            <SolidColorBrush x:Key="ListBoxBackground" Color="White" />
+            <Style TargetType="ListBox" BasedOn="{StaticResource {x:Type ListBox}}">
+                <Setter Property="BorderBrush" Value="#FFC2C9D1" />
+                <Setter Property="BorderThickness" Value="1" />
+            </Style>
+
+            <!-- Hauptmenü: Fluent zeichnet die Hauptmenüpunkte („Datei“, „Einheit“ …) durchsichtig ohne Rahmen, sodass
+                 sie wie die Reiter kaum erkennbar sind. Sie bekommen deshalb die Farben der nicht gewählten Reiter:
+                 hellgraue Fläche mit feinem Rahmen. Die Fluent-Vorlage bleibt (nur Farben über Eigenschaften). -->
+            <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
+                <Style.Triggers>
+                    <Trigger Property="Role" Value="TopLevelHeader">
+                        <Setter Property="Background" Value="{StaticResource KarteikarteReiter}" />
+                        <Setter Property="BorderBrush" Value="#FFC2C9D1" />
+                    </Trigger>
+                    <Trigger Property="Role" Value="TopLevelItem">
+                        <Setter Property="Background" Value="{StaticResource KarteikarteReiter}" />
+                        <Setter Property="BorderBrush" Value="#FFC2C9D1" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
+            <!-- Hervorgehobener Menüpunkt (Maus darüber, Menü offen, Tastatur), im Hauptmenü und in den aufklappenden
+                 Menüs: Die Fluent-Vorlagen lesen die Farbe über diesen Schlüssel. Wie der Reiter beim Darüberfahren
+                 etwas dunkler grau statt des kaum sichtbaren Fluent-Graus. -->
+            <SolidColorBrush x:Key="MenuBarItemBackgroundSelected" Color="#FFCDD4DC" />
+
             <!-- Tabellen: wie Fluent, aber mit dem Zellstil oben (Fluent setzt sonst seinen eigenen Zellstil ein) -->
             <Style TargetType="DataGrid" BasedOn="{StaticResource {x:Type DataGrid}}">
                 <Setter Property="CellStyle" Value="{StaticResource {x:Type DataGridCell}}" />

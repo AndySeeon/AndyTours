@@ -26,62 +26,66 @@
         <BooleanToVisibilityConverter x:Key="SichtbarWennWahr" />
     </Window.Resources>
 
-    <StackPanel Margin="16">
-
-        <!-- 1. Erklärung -->
-        <TextBlock TextWrapping="Wrap" Margin="0,0,0,10"
-                   Text="Der Course wird in den Ordner für neue Dateien des Edge gelegt. Nach dem Trennen vom Computer erscheint er auf dem Edge unter „Courses“." />
-
-        <!-- 2. Namen -->
-        <ItemsControl ItemsSource="{Binding Zeilen}" IsEnabled="{Binding IstBereit}">
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <Grid Margin="0,0,0,6">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="110" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Text="{Binding Bezeichnung, StringFormat='{}{0}:'}" VerticalAlignment="Center" />
-                        <TextBox Grid.Column="1" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Padding="2" />
-                    </Grid>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
-
-        <!-- 3. Fahrprofil -->
-        <Grid Margin="0,6,0,0" Visibility="{Binding HatGefahreneStrecke, Converter={StaticResource SichtbarWennWahr}}">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="110" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-            <Label Content="_Fahrprofil:" Target="{Binding ElementName=ProfilAuswahl}" Padding="0" VerticalAlignment="Center" />
-            <ComboBox x:Name="ProfilAuswahl" Grid.Column="1" ItemsSource="{Binding Fahrprofile}" DisplayMemberPath="Value"
-                      SelectedValuePath="Key" SelectedValue="{Binding Profil}" />
-        </Grid>
-        <TextBlock Margin="110,4,0,0" TextWrapping="Wrap" Foreground="Gray"
-                   Visibility="{Binding HatGefahreneStrecke, Converter={StaticResource SichtbarWennWahr}}"
-                   Text="Mit diesem Profil ermittelt der Routingdienst die Abbiegungen der gefahrenen Strecke; die Linie bleibt, wie sie gefahren wurde." />
-
-        <!-- 4. Gerät -->
-        <Grid Margin="0,10,0,0" Visibility="{Binding HatMehrereZiele, Converter={StaticResource SichtbarWennWahr}}">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="110" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-            <Label Content="_Gerät:" Target="{Binding ElementName=GeraeteAuswahl}" Padding="0" VerticalAlignment="Center" />
-            <ComboBox x:Name="GeraeteAuswahl" Grid.Column="1" ItemsSource="{Binding Ziele}" DisplayMemberPath="Geraet"
-                      SelectedItem="{Binding Ziel}" />
-        </Grid>
-
-        <!-- 5. Hinweis und Zustand -->
-        <TextBlock Text="{Binding Hinweis}" Foreground="Firebrick" TextWrapping="Wrap" Margin="0,10,0,0" />
-        <TextBlock Text="{Binding Zustand}" Foreground="Gray" TextWrapping="Wrap" />
-
+    <!-- Reicht die Höhe des Bildschirms nicht (große Oberfläche), rollt der Inhalt;
+         die Schaltflächen bleiben unten immer sichtbar -->
+    <DockPanel>
         <!-- 6. Schaltflächen -->
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="16,12,16,16">
             <Button Content="_Übertragen" IsDefault="True" MinWidth="90" Padding="8,3" Margin="0,0,8,0" Command="{Binding UebertragenCommand}" />
             <Button Content="_Abbrechen" IsCancel="True" MinWidth="90" Padding="8,3" />
         </StackPanel>
 
-    </StackPanel>
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="16,16,16,0">
+                <!-- 1. Erklärung -->
+                <TextBlock TextWrapping="Wrap" Margin="0,0,0,10"
+                           Text="Der Course wird in den Ordner für neue Dateien des Edge gelegt. Nach dem Trennen vom Computer erscheint er auf dem Edge unter „Courses“." />
+
+                <!-- 2. Namen -->
+                <ItemsControl ItemsSource="{Binding Zeilen}" IsEnabled="{Binding IstBereit}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="110" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="{Binding Bezeichnung, StringFormat='{}{0}:'}" VerticalAlignment="Center" />
+                                <TextBox Grid.Column="1" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Padding="2" />
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- 3. Fahrprofil -->
+                <Grid Margin="0,6,0,0" Visibility="{Binding HatGefahreneStrecke, Converter={StaticResource SichtbarWennWahr}}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="110" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Label Content="_Fahrprofil:" Target="{Binding ElementName=ProfilAuswahl}" Padding="0" VerticalAlignment="Center" />
+                    <ComboBox x:Name="ProfilAuswahl" Grid.Column="1" ItemsSource="{Binding Fahrprofile}" DisplayMemberPath="Value"
+                              SelectedValuePath="Key" SelectedValue="{Binding Profil}" />
+                </Grid>
+                <TextBlock Margin="110,4,0,0" TextWrapping="Wrap" Foreground="Gray"
+                           Visibility="{Binding HatGefahreneStrecke, Converter={StaticResource SichtbarWennWahr}}"
+                           Text="Mit diesem Profil ermittelt der Routingdienst die Abbiegungen der gefahrenen Strecke; die Linie bleibt, wie sie gefahren wurde." />
+
+                <!-- 4. Gerät -->
+                <Grid Margin="0,10,0,0" Visibility="{Binding HatMehrereZiele, Converter={StaticResource SichtbarWennWahr}}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="110" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Label Content="_Gerät:" Target="{Binding ElementName=GeraeteAuswahl}" Padding="0" VerticalAlignment="Center" />
+                    <ComboBox x:Name="GeraeteAuswahl" Grid.Column="1" ItemsSource="{Binding Ziele}" DisplayMemberPath="Geraet"
+                              SelectedItem="{Binding Ziel}" />
+                </Grid>
+
+                <!-- 5. Hinweis und Zustand -->
+                <TextBlock Text="{Binding Hinweis}" Foreground="Firebrick" TextWrapping="Wrap" Margin="0,10,0,0" />
+                <TextBlock Text="{Binding Zustand}" Foreground="Gray" TextWrapping="Wrap" />
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
 </Window>

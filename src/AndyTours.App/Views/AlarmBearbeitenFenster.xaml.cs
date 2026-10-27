@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Windows;
 using AndyTours.App.ViewModels;
+using AndyTours.App.Funktionen;
 
 namespace AndyTours.App.Views;
 
@@ -25,6 +26,7 @@ public partial class AlarmBearbeitenFenster : Window
     public AlarmBearbeitenFenster(AlarmBearbeitenViewModel viewModel)
     {
         InitializeComponent();
+        Oberflaechenskalierung.Anmelden(this);
         _viewModel = viewModel;
         DataContext = viewModel;
         viewModel.SchliessenAngefordert += (_, _) => DialogResult = true;

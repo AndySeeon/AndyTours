@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Input;
 using AndyTours.App.ViewModels;
+using AndyTours.App.Funktionen;
 
 namespace AndyTours.App.Views;
 
@@ -22,6 +23,7 @@ public partial class EinstellungenFenster : Window
     public EinstellungenFenster(EinstellungenViewModel viewModel)
     {
         InitializeComponent();
+        Oberflaechenskalierung.Anmelden(this);
         DataContext = viewModel;
 
         // Gespeicherten Zugangsschlüssel maskiert anzeigen; nach einem Ordnerwechsel den des neuen Datenordners

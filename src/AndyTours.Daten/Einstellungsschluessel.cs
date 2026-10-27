@@ -60,6 +60,9 @@ public static class Einstellungsschluessel
     /// <summary>Gemeinsame Farbe der Overlays ohne eigene Farbe, z. B. „Violett“.</summary>
     public const string OverlayFarbe = "Overlay.Farbe";
 
+    /// <summary>Größe der Oberfläche in Prozent, z. B. „125“ (Einstellungen, Gruppe „Darstellung“).</summary>
+    public const string DarstellungGroesse = "Darstellung.Groesse";
+
     /// <summary>
     /// Schlüssel einer in den Einstellungen gepflegten Auswahlliste, z. B. „Auswahlliste.Trainingsbereich“;
     /// der Wert enthält die Einträge in der Reihenfolge des Benutzers, einen je Zeile.

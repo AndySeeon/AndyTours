@@ -67,158 +67,165 @@
 
     <!-- Die Fensterbreite ergibt sich aus den beiden Gruppen; die linke hat eine feste Breite und der
          Kommentar folgt der Breite der Gruppen, damit langer Text das Fenster nicht verbreitert -->
-    <StackPanel Margin="16">
-        <Grid x:Name="Felder">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="16" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-
-            <!-- 1. Allgemein -->
-            <GroupBox Grid.Column="0" Header="Allgemein" Padding="8" Width="360">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-
-                    <TextBlock Grid.Row="0" Text="Datum:" Style="{StaticResource Beschriftung}" />
-                    <!-- 130 px: Platz für das ganze Datum und die Löschschaltfläche (×), die das Fluent-Eingabefeld beim Bearbeiten zeigt -->
-                    <TextBox Grid.Row="0" Grid.Column="1" x:Name="DatumFeld" Width="130" HorizontalAlignment="Left"
-                             Text="{Binding Datum, UpdateSourceTrigger=PropertyChanged}" Tag="{Binding [Datum]}" Style="{StaticResource Eingabe}" />
-
-                    <TextBlock Grid.Row="1" Text="Startzeit:" Style="{StaticResource Beschriftung}" />
-                    <!-- 80 px: Platz für die Uhrzeit und die Löschschaltfläche (×), die das Fluent-Eingabefeld beim Bearbeiten zeigt -->
-                    <TextBox Grid.Row="1" Grid.Column="1" Width="80" HorizontalAlignment="Left"
-                             Text="{Binding Startzeit, UpdateSourceTrigger=PropertyChanged}" Tag="{Binding [Startzeit]}" Style="{StaticResource Eingabe}" />
-
-                    <TextBlock Grid.Row="2" Text="Name:" Style="{StaticResource Beschriftung}" />
-                    <TextBox Grid.Row="2" Grid.Column="1"
-                             Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Tag="{Binding [Name]}" Style="{StaticResource Eingabe}" />
-
-                    <TextBlock Grid.Row="3" Text="Aktivität:" Style="{StaticResource Beschriftung}" />
-                    <Border Grid.Row="3" Grid.Column="1" Tag="{Binding [Aktivitaet]}" Style="{StaticResource Fehlerrahmen}">
-                        <ComboBox ItemsSource="{Binding Aktivitaeten}" SelectedItem="{Binding Aktivitaet}" DisplayMemberPath="Name" />
-                    </Border>
-
-                    <TextBlock Grid.Row="4" Text="Equipment:" Style="{StaticResource Beschriftung}" />
-                    <ComboBox Grid.Row="4" Grid.Column="1" Margin="0,3"
-                              ItemsSource="{Binding Equipments}" SelectedItem="{Binding Equipment}" DisplayMemberPath="Name" />
-
-                    <TextBlock Grid.Row="5" Text="Trainingsbereich:" Style="{StaticResource Beschriftung}" />
-                    <ComboBox Grid.Row="5" Grid.Column="1" Margin="0,3" Width="100" HorizontalAlignment="Left"
-                              ItemsSource="{Binding Trainingsbereiche}" SelectedItem="{Binding Trainingsbereich}" />
-
-                    <TextBlock Grid.Row="6" Text="Kategorien:" Style="{StaticResource Beschriftung}" VerticalAlignment="Top" />
-                    <!-- Fluent-Listeneinträge sind hoch; mit geringerem Innenabstand passen mehr Kategorien
-                         ohne Bildlauf in die Liste -->
-                    <ListBox Grid.Row="6" Grid.Column="1" Margin="0,3" Height="170" ItemsSource="{Binding Kategorien}">
-                        <ListBox.ItemContainerStyle>
-                            <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
-                                <Setter Property="Padding" Value="8,0" />
-                                <Setter Property="MinHeight" Value="0" />
-                            </Style>
-                        </ListBox.ItemContainerStyle>
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <CheckBox Content="{Binding Name}" IsChecked="{Binding IstGewaehlt}" />
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
-                </Grid>
-            </GroupBox>
-
-            <!-- 2. Werte -->
-            <GroupBox Grid.Column="2" Header="Werte" Padding="8">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="90" />
-                        <ColumnDefinition Width="16" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="70" />
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-
-                    <!-- linke Spalte: Strecke, Zeit, Geschwindigkeit, Höhen -->
-                    <TextBlock Grid.Row="0" Text="Distanz (km):" Style="{StaticResource Beschriftung}" />
-                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Distanz, UpdateSourceTrigger=PropertyChanged}" Tag="{Binding [Distanz]}" Style="{StaticResource Zahl}" />
-
-                    <TextBlock Grid.Row="1" Text="Höhenmeter:" Style="{StaticResource Beschriftung}" />
-                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Hoehenmeter, UpdateSourceTrigger=PropertyChanged}" Tag="{Binding [Hoehenmeter]}" Style="{StaticResource Zahl}" />
-
-                    <TextBlock Grid.Row="2" Text="Fahrzeit (h:mm):" ToolTip="Stunden und Minuten, z. B. 3:45; Sekunden freiwillig (3:45:12)" Style="{StaticResource Beschriftung}" />
-                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Fahrzeit, UpdateSourceTrigger=PropertyChanged}" Tag="{Binding [Fahrzeit]}" Style="{StaticResource Zahl}" />
-
-                    <TextBlock Grid.Row="3" Text="Ø km/h:" Style="{StaticResource Beschriftung}" />
-                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding DurchschnittKmhText}" TextAlignment="Right" VerticalAlignment="Center"
-                               Padding="0,0,4,0" Foreground="Gray" ToolTip="Berechnet aus Distanz und Fahrzeit" />
-
-                    <TextBlock Grid.Row="4" Text="max km/h:" Style="{StaticResource Beschriftung}" />
-                    <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding MaxKmh, UpdateSourceTrigger=PropertyChanged}" Tag="{Binding [MaxKmh]}" Style="{StaticResource Zahl}" />
-
-                    <TextBlock Grid.Row="5" Text="Starthöhe (m):" Style="{StaticResource Beschriftung}" />
-                    <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding StartHoehe, UpdateSourceTrigger=PropertyChanged}" Tag="{Binding [StartHoehe]}" Style="{StaticResource Zahl}" />
-
-                    <TextBlock Grid.Row="6" Text="Maximalhöhe (m):" Style="{StaticResource Beschriftung}" />
-                    <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding MaxHoehe, UpdateSourceTrigger=PropertyChanged}" Tag="{Binding [MaxHoehe]}" Style="{StaticResource Zahl}" />
-
-                    <TextBlock Grid.Row="7" Text="Temperatur (°C):" Style="{StaticResource Beschriftung}" />
-                    <TextBox Grid.Row="7" Grid.Column="1" Text="{Binding Temperatur, UpdateSourceTrigger=PropertyChanged}" Tag="{Binding [Temperatur]}" Style="{StaticResource Zahl}" />
-
-                    <!-- rechte Spalte: Puls, Trittfrequenz, Leistung, Körper -->
-                    <TextBlock Grid.Row="0" Grid.Column="3" Text="Ø Puls:" Style="{StaticResource Beschriftung}" />
-                    <TextBox Grid.Row="0" Grid.Column="4" Text="{Binding PulsDurchschnitt, UpdateSourceTrigger=PropertyChanged}" Tag="{Binding [PulsDurchschnitt]}" Style="{StaticResource Zahl}" />
-
-                    <TextBlock Grid.Row="1" Grid.Column="3" Text="max Puls:" Style="{StaticResource Beschriftung}" />
-                    <TextBox Grid.Row="1" Grid.Column="4" Text="{Binding PulsMax, UpdateSourceTrigger=PropertyChanged}" Tag="{Binding [PulsMax]}" Style="{StaticResource Zahl}" />
-
-                    <TextBlock Grid.Row="2" Grid.Column="3" Text="min Puls:" Style="{StaticResource Beschriftung}" />
-                    <TextBox Grid.Row="2" Grid.Column="4" Text="{Binding PulsMin, UpdateSourceTrigger=PropertyChanged}" Tag="{Binding [PulsMin]}" Style="{StaticResource Zahl}" />
-
-                    <TextBlock Grid.Row="3" Grid.Column="3" Text="Erholungspuls:" Style="{StaticResource Beschriftung}" />
-                    <TextBox Grid.Row="3" Grid.Column="4" Text="{Binding Erholungspuls, UpdateSourceTrigger=PropertyChanged}" Tag="{Binding [Erholungspuls]}" Style="{StaticResource Zahl}" />
-
-                    <TextBlock Grid.Row="4" Grid.Column="3" Text="Trittfrequenz:" Style="{StaticResource Beschriftung}" />
-                    <TextBox Grid.Row="4" Grid.Column="4" Text="{Binding Trittfrequenz, UpdateSourceTrigger=PropertyChanged}" Tag="{Binding [Trittfrequenz]}" Style="{StaticResource Zahl}" />
-
-                    <TextBlock Grid.Row="5" Grid.Column="3" Text="Leistung (W):" Style="{StaticResource Beschriftung}" />
-                    <TextBox Grid.Row="5" Grid.Column="4" Text="{Binding Leistung, UpdateSourceTrigger=PropertyChanged}" Tag="{Binding [Leistung]}" Style="{StaticResource Zahl}" />
-
-                    <TextBlock Grid.Row="6" Grid.Column="3" Text="Gewicht (kg):" Style="{StaticResource Beschriftung}" />
-                    <TextBox Grid.Row="6" Grid.Column="4" Text="{Binding Koerpergewicht, UpdateSourceTrigger=PropertyChanged}" Tag="{Binding [Koerpergewicht]}" Style="{StaticResource Zahl}" />
-                </Grid>
-            </GroupBox>
-        </Grid>
-
-        <!-- 3. Kommentar und Schaltflächen -->
-        <TextBlock Text="Kommentar:" Margin="0,12,0,4" />
-        <TextBox Text="{Binding Kommentar, UpdateSourceTrigger=PropertyChanged}" Height="80"
-                 Width="{Binding ActualWidth, ElementName=Felder}" HorizontalAlignment="Left"
-                 AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" />
-
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+    <!-- Reicht die Höhe des Bildschirms nicht (große Oberfläche), rollt der Inhalt;
+         die Schaltflächen bleiben unten immer sichtbar -->
+    <DockPanel>
+        <!-- Schaltflächen -->
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="16,16,16,16">
             <Button Content="_Speichern" MinWidth="90" Padding="8,3" IsDefault="True" Command="{Binding SpeichernCommand}" />
             <Button Content="Abbrechen" MinWidth="90" Padding="8,3" Margin="8,0,0,0" IsCancel="True" />
         </StackPanel>
-    </StackPanel>
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="16,16,16,0">
+                <Grid x:Name="Felder">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="16" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- 1. Allgemein -->
+                    <GroupBox Grid.Column="0" Header="Allgemein" Padding="8" Width="360">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Text="Datum:" Style="{StaticResource Beschriftung}" />
+                            <!-- 130 px: Platz für das ganze Datum und die Löschschaltfläche (×), die das Fluent-Eingabefeld beim Bearbeiten zeigt -->
+                            <TextBox Grid.Row="0" Grid.Column="1" x:Name="DatumFeld" Width="130" HorizontalAlignment="Left"
+                                     Text="{Binding Datum, UpdateSourceTrigger=PropertyChanged}" Tag="{Binding [Datum]}" Style="{StaticResource Eingabe}" />
+
+                            <TextBlock Grid.Row="1" Text="Startzeit:" Style="{StaticResource Beschriftung}" />
+                            <!-- 80 px: Platz für die Uhrzeit und die Löschschaltfläche (×), die das Fluent-Eingabefeld beim Bearbeiten zeigt -->
+                            <TextBox Grid.Row="1" Grid.Column="1" Width="80" HorizontalAlignment="Left"
+                                     Text="{Binding Startzeit, UpdateSourceTrigger=PropertyChanged}" Tag="{Binding [Startzeit]}" Style="{StaticResource Eingabe}" />
+
+                            <TextBlock Grid.Row="2" Text="Name:" Style="{StaticResource Beschriftung}" />
+                            <TextBox Grid.Row="2" Grid.Column="1"
+                                     Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Tag="{Binding [Name]}" Style="{StaticResource Eingabe}" />
+
+                            <TextBlock Grid.Row="3" Text="Aktivität:" Style="{StaticResource Beschriftung}" />
+                            <Border Grid.Row="3" Grid.Column="1" Tag="{Binding [Aktivitaet]}" Style="{StaticResource Fehlerrahmen}">
+                                <ComboBox ItemsSource="{Binding Aktivitaeten}" SelectedItem="{Binding Aktivitaet}" DisplayMemberPath="Name" />
+                            </Border>
+
+                            <TextBlock Grid.Row="4" Text="Equipment:" Style="{StaticResource Beschriftung}" />
+                            <ComboBox Grid.Row="4" Grid.Column="1" Margin="0,3"
+                                      ItemsSource="{Binding Equipments}" SelectedItem="{Binding Equipment}" DisplayMemberPath="Name" />
+
+                            <TextBlock Grid.Row="5" Text="Trainingsbereich:" Style="{StaticResource Beschriftung}" />
+                            <ComboBox Grid.Row="5" Grid.Column="1" Margin="0,3" Width="100" HorizontalAlignment="Left"
+                                      ItemsSource="{Binding Trainingsbereiche}" SelectedItem="{Binding Trainingsbereich}" />
+
+                            <TextBlock Grid.Row="6" Text="Kategorien:" Style="{StaticResource Beschriftung}" VerticalAlignment="Top" />
+                            <!-- Fluent-Listeneinträge sind hoch; mit geringerem Innenabstand passen mehr Kategorien
+                                 ohne Bildlauf in die Liste -->
+                            <ListBox Grid.Row="6" Grid.Column="1" Margin="0,3" Height="170" ItemsSource="{Binding Kategorien}">
+                                <ListBox.ItemContainerStyle>
+                                    <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+                                        <Setter Property="Padding" Value="8,0" />
+                                        <Setter Property="MinHeight" Value="0" />
+                                    </Style>
+                                </ListBox.ItemContainerStyle>
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <CheckBox Content="{Binding Name}" IsChecked="{Binding IstGewaehlt}" />
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </Grid>
+                    </GroupBox>
+
+                    <!-- 2. Werte -->
+                    <GroupBox Grid.Column="2" Header="Werte" Padding="8">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="90" />
+                                <ColumnDefinition Width="16" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="70" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <!-- linke Spalte: Strecke, Zeit, Geschwindigkeit, Höhen -->
+                            <TextBlock Grid.Row="0" Text="Distanz (km):" Style="{StaticResource Beschriftung}" />
+                            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Distanz, UpdateSourceTrigger=PropertyChanged}" Tag="{Binding [Distanz]}" Style="{StaticResource Zahl}" />
+
+                            <TextBlock Grid.Row="1" Text="Höhenmeter:" Style="{StaticResource Beschriftung}" />
+                            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Hoehenmeter, UpdateSourceTrigger=PropertyChanged}" Tag="{Binding [Hoehenmeter]}" Style="{StaticResource Zahl}" />
+
+                            <TextBlock Grid.Row="2" Text="Fahrzeit (h:mm):" ToolTip="Stunden und Minuten, z. B. 3:45; Sekunden freiwillig (3:45:12)" Style="{StaticResource Beschriftung}" />
+                            <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Fahrzeit, UpdateSourceTrigger=PropertyChanged}" Tag="{Binding [Fahrzeit]}" Style="{StaticResource Zahl}" />
+
+                            <TextBlock Grid.Row="3" Text="Ø km/h:" Style="{StaticResource Beschriftung}" />
+                            <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding DurchschnittKmhText}" TextAlignment="Right" VerticalAlignment="Center"
+                                       Padding="0,0,4,0" Foreground="Gray" ToolTip="Berechnet aus Distanz und Fahrzeit" />
+
+                            <TextBlock Grid.Row="4" Text="max km/h:" Style="{StaticResource Beschriftung}" />
+                            <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding MaxKmh, UpdateSourceTrigger=PropertyChanged}" Tag="{Binding [MaxKmh]}" Style="{StaticResource Zahl}" />
+
+                            <TextBlock Grid.Row="5" Text="Starthöhe (m):" Style="{StaticResource Beschriftung}" />
+                            <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding StartHoehe, UpdateSourceTrigger=PropertyChanged}" Tag="{Binding [StartHoehe]}" Style="{StaticResource Zahl}" />
+
+                            <TextBlock Grid.Row="6" Text="Maximalhöhe (m):" Style="{StaticResource Beschriftung}" />
+                            <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding MaxHoehe, UpdateSourceTrigger=PropertyChanged}" Tag="{Binding [MaxHoehe]}" Style="{StaticResource Zahl}" />
+
+                            <TextBlock Grid.Row="7" Text="Temperatur (°C):" Style="{StaticResource Beschriftung}" />
+                            <TextBox Grid.Row="7" Grid.Column="1" Text="{Binding Temperatur, UpdateSourceTrigger=PropertyChanged}" Tag="{Binding [Temperatur]}" Style="{StaticResource Zahl}" />
+
+                            <!-- rechte Spalte: Puls, Trittfrequenz, Leistung, Körper -->
+                            <TextBlock Grid.Row="0" Grid.Column="3" Text="Ø Puls:" Style="{StaticResource Beschriftung}" />
+                            <TextBox Grid.Row="0" Grid.Column="4" Text="{Binding PulsDurchschnitt, UpdateSourceTrigger=PropertyChanged}" Tag="{Binding [PulsDurchschnitt]}" Style="{StaticResource Zahl}" />
+
+                            <TextBlock Grid.Row="1" Grid.Column="3" Text="max Puls:" Style="{StaticResource Beschriftung}" />
+                            <TextBox Grid.Row="1" Grid.Column="4" Text="{Binding PulsMax, UpdateSourceTrigger=PropertyChanged}" Tag="{Binding [PulsMax]}" Style="{StaticResource Zahl}" />
+
+                            <TextBlock Grid.Row="2" Grid.Column="3" Text="min Puls:" Style="{StaticResource Beschriftung}" />
+                            <TextBox Grid.Row="2" Grid.Column="4" Text="{Binding PulsMin, UpdateSourceTrigger=PropertyChanged}" Tag="{Binding [PulsMin]}" Style="{StaticResource Zahl}" />
+
+                            <TextBlock Grid.Row="3" Grid.Column="3" Text="Erholungspuls:" Style="{StaticResource Beschriftung}" />
+                            <TextBox Grid.Row="3" Grid.Column="4" Text="{Binding Erholungspuls, UpdateSourceTrigger=PropertyChanged}" Tag="{Binding [Erholungspuls]}" Style="{StaticResource Zahl}" />
+
+                            <TextBlock Grid.Row="4" Grid.Column="3" Text="Trittfrequenz:" Style="{StaticResource Beschriftung}" />
+                            <TextBox Grid.Row="4" Grid.Column="4" Text="{Binding Trittfrequenz, UpdateSourceTrigger=PropertyChanged}" Tag="{Binding [Trittfrequenz]}" Style="{StaticResource Zahl}" />
+
+                            <TextBlock Grid.Row="5" Grid.Column="3" Text="Leistung (W):" Style="{StaticResource Beschriftung}" />
+                            <TextBox Grid.Row="5" Grid.Column="4" Text="{Binding Leistung, UpdateSourceTrigger=PropertyChanged}" Tag="{Binding [Leistung]}" Style="{StaticResource Zahl}" />
+
+                            <TextBlock Grid.Row="6" Grid.Column="3" Text="Gewicht (kg):" Style="{StaticResource Beschriftung}" />
+                            <TextBox Grid.Row="6" Grid.Column="4" Text="{Binding Koerpergewicht, UpdateSourceTrigger=PropertyChanged}" Tag="{Binding [Koerpergewicht]}" Style="{StaticResource Zahl}" />
+                        </Grid>
+                    </GroupBox>
+                </Grid>
+
+                <!-- 3. Kommentar -->
+                <TextBlock Text="Kommentar:" Margin="0,12,0,4" />
+                <TextBox Text="{Binding Kommentar, UpdateSourceTrigger=PropertyChanged}" Height="80"
+                         Width="{Binding ActualWidth, ElementName=Felder}" HorizontalAlignment="Left"
+                         AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" />
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
 </Window>

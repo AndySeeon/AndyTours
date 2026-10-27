@@ -1,5 +1,6 @@
 using System.Windows;
 using AndyTours.App.ViewModels;
+using AndyTours.App.Funktionen;
 
 namespace AndyTours.App.Views;
 
@@ -19,6 +20,7 @@ public partial class CourseUebertragenFenster : Window
     public CourseUebertragenFenster(CourseUebertragenViewModel viewModel)
     {
         InitializeComponent();
+        Oberflaechenskalierung.Anmelden(this);
         DataContext = viewModel;
         viewModel.Fertig += (_, _) => Close();
         Closed += (_, _) => viewModel.Abbrechen();

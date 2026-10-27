@@ -1,5 +1,6 @@
 using System.Windows;
 using AndyTours.App.ViewModels;
+using AndyTours.App.Funktionen;
 
 namespace AndyTours.App.Views;
 
@@ -21,6 +22,7 @@ public partial class GarminImportFenster : Window
     public GarminImportFenster(GarminImportViewModel viewModel)
     {
         InitializeComponent();
+        Oberflaechenskalierung.Anmelden(this);
         DataContext = viewModel;
         SpalteGeraet.Visibility = viewModel.MehrereGeraete ? Visibility.Visible : Visibility.Collapsed;
         viewModel.Bestaetigt += (_, _) => DialogResult = true;

@@ -1,4 +1,5 @@
 using System.Windows;
+using AndyTours.App.Funktionen;
 
 namespace AndyTours.App.Views;
 
@@ -32,6 +33,7 @@ public partial class DatenordnerNichtErreichbarFenster : Window
     public DatenordnerNichtErreichbarFenster(string meldung)
     {
         InitializeComponent();
+        Oberflaechenskalierung.Anmelden(this);
         Meldung.Text = meldung;
     }
 
