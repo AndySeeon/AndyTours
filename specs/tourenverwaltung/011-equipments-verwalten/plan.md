@@ -1,0 +1,134 @@
+# Plan: 011 – Equipments verwalten
+
+## Vorgehen
+Die Gruppe „Auswahllisten“ aus 009/010 bekommt die Liste „Equipment“. Weil ein Equipment mehrere Felder hat, öffnen „Hinzufügen“ und „Bearbeiten…“ ein eigenes Fenster „Equipment“; das Eingabefeld und „Umbenennen“ sind bei dieser Liste ausgeblendet.
+
+- **Core:** reine Fachfunktionen auf dem Datenbestand im Speicher.
+  - Die Eingaben des Fensters prüfen und in ein Equipment umwandeln.
+  - Das Speichern vorbereiten: Ein Standard gilt nur einmal je Aktivität, und Ausgemustertes ist nie Standard.
+  - Das wirksame Standard-Equipment einer Aktivität ermitteln (Standard und nicht ausgemustert).
+  - Die Equipments zusammenstellen, die eine Einheit anbieten soll.
+  - Die Kategorie zur Standardkategorie eines Equipments finden.
+  - Verwendungen zählen und die Löschsperre ermitteln.
+- **Daten:** `EquipmentsTabelle` bekommt Einfügen, Ändern und Löschen.
+- **App:**
+  - Das Hauptfenster setzt die neuen Speicher-Methoden um, schreibt in einer Transaktion und ändert erst nach Erfolg den Speicher.
+  - Danach aktualisiert es Tabelle, Filter (Namenswechsel wie bei Kategorien) und Summen.
+  - „Neue Einheit“ belegt das Standard-Equipment samt Standardkategorie vor.
+  - Das Bearbeitungsfenster der Einheit stellt die Equipment-Liste beim Aktivitätswechsel neu zusammen und hakt beim Equipmentwechsel dessen Standardkategorie an.
+
+## Dateien
+- `src/AndyTours.Core/Modell/Auswahlliste.cs` (ändern) — Wert `Equipment`
+- `src/AndyTours.Core/Modell/Equipmenteingaben.cs` (neu) — Texte der Felder des Equipment-Fensters (Name, Aktivität, Standardkategorie, Anschaffungsdatum, Anfangskilometer, Standard, ausgemustert)
+- `src/AndyTours.Core/Berechnungen/EquipmentEingaben.cs` (neu) — `AlsEingaben(equipment)` und `AlsEquipment(eingaben, basis, bestand)`. Prüft Name (über `PruefeAuswahleintrag`), Datum und Kilometer ab 0 und liefert das Equipment oder den Hinweistext.
+- `src/AndyTours.Core/Berechnungen/UebernimmEquipment.cs` (neu) — setzt ein geändertes oder neues Equipment in den Bestand ein. Beim Ausmustern fällt der Standard weg, ein anderer Standard derselben Aktivität wird entfernt. Liefert die Equipments, deren Standard sich geändert hat.
+- `src/AndyTours.Core/Berechnungen/ErmittleStandardEquipment.cs` (neu) — Standard-Equipment einer Aktivität (Standard und nicht ausgemustert) oder `null`
+- `src/AndyTours.Core/Berechnungen/ErmittleEquipmentauswahl.cs` (neu) — Einträge für eine Einheit: „(kein)“, die nicht ausgemusterten Equipments der Aktivität und die ohne Aktivität, alphabetisch, dazu das bisherige Equipment der Einheit
+- `src/AndyTours.Core/Berechnungen/FindeStandardkategorie.cs` (neu) — Id der Kategorie, die beim Equipment als Standardkategorie eingetragen ist (Vergleich mit Trim, ohne Groß-/Kleinschreibung), sonst `null`
+- `src/AndyTours.Core/Berechnungen/ErmittleEingabelisten.cs` (ändern) — Equipments über `ErmittleEquipmentauswahl`
+- `src/AndyTours.Core/Berechnungen/ErstelleNeueEinheit.cs` (ändern) — Standard-Equipment der Aktivität vorbelegen und seine Standardkategorie zusätzlich anhaken
+- `src/AndyTours.Core/Berechnungen/ZaehleVerwendung.cs` (ändern) — `Equipment(bestand, id)` liefert `(Einheiten, Wartungen)`
+- `src/AndyTours.Core/Berechnungen/ErmittleLoeschsperre.cs` (ändern) — `Equipment(bestand, id)` mit einem Hinweis, der das Ausmustern empfiehlt
+- `src/AndyTours.Daten/EquipmentsTabelle.cs` (ändern) — `Einfuegen` (liefert die Id), `Aendern` (alle Felder eines Equipments), `Loeschen`
+- `src/AndyTours.App/ViewModels/EquipmentBearbeitenViewModel.cs` (neu) — Felder, Listen für Aktivität und Standardkategorie, Hinweis, „OK“ nur bei gültigen Eingaben; „Standard“ ist nicht wählbar, solange „ausgemustert“ gesetzt oder keine Aktivität gewählt ist
+- `src/AndyTours.App/Views/EquipmentBearbeitenFenster.xaml` (neu) — Fenster „Equipment“ mit den Feldern, „OK“ und „Abbrechen“
+- `src/AndyTours.App/Views/EquipmentBearbeitenFenster.xaml.cs` (neu) — schließt das Fenster nach dem Speichern
+- `src/AndyTours.App/ViewModels/IAuswahllistenSpeicher.cs` (ändern) — `BearbeiteEquipment(string? name)`: öffnet das Fenster für ein neues oder vorhandenes Equipment und liefert den gespeicherten Namen
+- `src/AndyTours.App/ViewModels/AuswahllistenViewModel.cs` (ändern)
+  - Bezeichnung „Equipment“
+  - Eigenschaft `IstEquipmentliste`
+  - „Hinzufügen“ und neuer Befehl „Bearbeiten…“ führen bei dieser Liste über `BearbeiteEquipment`
+  - Nach oben/unten und Zusammenführen sind gesperrt
+- `src/AndyTours.App/ViewModels/HauptfensterViewModel.Equipments.cs` (neu) — Lesen der Liste mit Zusätzen „(Standard)“ und „(ausgemustert)“, Fenster öffnen, Speichern bzw. Löschen in einer Transaktion, danach Filter und Summen aktualisieren
+- `src/AndyTours.App/ViewModels/HauptfensterViewModel.Auswahllisten.cs` (ändern) — Fälle `Auswahlliste.Equipment` in Lesen, Zählen, Löschsperre und Löschen
+- `src/AndyTours.App/ViewModels/HauptfensterViewModel.Einheiten.cs` (ändern) — dem Bearbeitungsfenster die Funktionen für die Equipment-Liste je Aktivität, das Standard-Equipment und die Standardkategorie mitgeben
+- `src/AndyTours.App/ViewModels/EinheitBearbeitenViewModel.cs` (ändern)
+  - Equipment-Liste beim Aktivitätswechsel neu zusammenstellen; bei einer neuen Einheit das Standard-Equipment der neuen Aktivität wählen
+  - Beim Equipmentwechsel die Standardkategorie anhaken
+- `src/AndyTours.App/ViewModels/EinheitenfilterViewModel.cs` (ändern) — `ErsetzeEquipment(alt, neu)` nach dem Muster von `ErsetzeKategorie`
+- `src/AndyTours.App/Views/EinheitBearbeitenFenster.xaml` (ändern) — die Equipment-Liste folgt der neu zusammengestellten Liste
+- `src/AndyTours.App/Views/EinstellungenFenster.xaml` (ändern) — Schaltfläche „_Bearbeiten…“ (nur bei „Equipment“); Eingabefeld und „Umbenennen“ bei „Equipment“ ausgeblendet; Kopfkommentar
+- `tests/AndyTours.Tests/Berechnungen/EquipmentEingabenTests.cs` (neu)
+- `tests/AndyTours.Tests/Berechnungen/UebernimmEquipmentTests.cs` (neu)
+- `tests/AndyTours.Tests/Berechnungen/EquipmentauswahlTests.cs` (neu) — `ErmittleStandardEquipment`, `ErmittleEquipmentauswahl`, `FindeStandardkategorie`
+- `tests/AndyTours.Tests/Berechnungen/ErmittleEingabelistenTests.cs` (ändern) — Auswahl je Aktivität
+- `tests/AndyTours.Tests/Berechnungen/NeueUndKopierteEinheitTests.cs` (ändern) — Standard-Equipment und dessen Standardkategorie
+- `tests/AndyTours.Tests/Berechnungen/ZaehleVerwendungTests.cs` (ändern) — Equipment
+- `tests/AndyTours.Tests/Berechnungen/ErmittleLoeschsperreTests.cs` (ändern) — Equipment
+- `tests/AndyTours.Tests/Berechnungen/Auswahlbestand.cs` (ändern) — Wartungen und weitere Equipments im Hilfsbestand
+- `tests/AndyTours.Tests/Daten/EquipmentsTests.cs` (neu) — Einfügen, Ändern, Löschen, Rollback ohne Commit, Fremdschlüssel bei Wartungen
+
+## Abdeckung der Kriterien
+- Wenn der Benutzer in den Einstellungen unter „Auswahllisten“ die Liste wählt, dann findet er auch „Equipment“.
+  - Umgesetzt: `AuswahllistenViewModel.Bezeichnungen`, `Auswahlliste.Equipment`
+  - Geprüft: manuell – Liste aufklappen.
+- Wenn die Liste „Equipment“ gewählt ist, dann zeigt sie alle Equipments alphabetisch mit ihrer Aktivität, die ausgemusterten am Ende der Liste, ausgemusterte mit dem Zusatz „(ausgemustert)“ und Standard-Equipments mit dem Zusatz „(Standard)“.
+  - Umgesetzt: Lesen in `HauptfensterViewModel.Equipments`, z. B. „SL Road SL – Bike (Standard)“; „(Standard)“ nur bei wirksamem Standard über `ErmittleStandardEquipment`
+  - Geprüft: `EquipmentauswahlTests`; manuell – Liste ansehen, „Namur“ ohne „(Standard)“.
+- Wenn der Benutzer bei „Equipment“ „Hinzufügen“ oder für ein markiertes Equipment „Bearbeiten…“ wählt, dann öffnet sich ein Fenster mit Name, Aktivität, Standardkategorie, Anschaffungsdatum, Anfangskilometer, Standard und ausgemustert.
+  - Umgesetzt: `AuswahllistenViewModel`, `EquipmentBearbeitenFenster`, `EquipmentBearbeitenViewModel`
+  - Geprüft: manuell – beide Wege öffnen, Felder vorhanden und beim Bearbeiten vorbelegt.
+- Wenn der Benutzer im Fenster „OK“ wählt, dann ist das Equipment sofort gespeichert und im Bearbeitungsfenster der Einheiten, in der Tabellenzelle und, sobald Einheiten es verwenden, im Filter wählbar.
+  - Umgesetzt: `EquipmentsTabelle.Einfuegen`/`Aendern`, `UebernimmEquipment`, Speichern im Hauptfenster
+  - Geprüft: `EquipmentsTests`, `UebernimmEquipmentTests`; manuell – „Gravel-Rad“ (Bike) anlegen, im Bearbeitungsfenster und in der Zelle einer Bike-Einheit finden, zuordnen, im Filter finden, Neustart.
+- Wenn der Name leer ist oder es ihn schon gibt (ohne Unterschied zwischen Groß- und Kleinschreibung; Leerzeichen am Anfang und Ende werden entfernt), dann wird nicht gespeichert, und ein Hinweis nennt den Grund.
+  - Umgesetzt: `EquipmentEingaben.AlsEquipment` mit `PruefeAuswahleintrag` (eigener Name beim Bearbeiten ausgenommen)
+  - Geprüft: `EquipmentEingabenTests`; manuell – „ felt “ anlegen.
+- Wenn das Anschaffungsdatum kein gültiges Datum ist oder die Anfangskilometer keine Zahl von 0 an sind, dann wird nicht gespeichert, und ein Hinweis nennt den Grund.
+  - Umgesetzt: `EquipmentEingaben.AlsEquipment` mit `Eingabetext.LeseDatum`/`LeseZahl`; leere Felder sind erlaubt (kein Datum bzw. 0 km)
+  - Geprüft: `EquipmentEingabenTests`; manuell – „31.02.2020“ und „-5“.
+- Wenn der Benutzer ein Equipment umbenennt, dann zeigen Tabelle, Filter und Auswahllisten sofort den neuen Namen, und die Einheiten behalten ihre Zuordnung.
+  - Umgesetzt: Zuordnung über die Id; nach dem Speichern `Filter.ErsetzeEquipment` und `AktualisiereSummen`
+  - Geprüft: `EquipmentsTests`; manuell – Filter auf „FELT“, umbenennen in „Felt Rennrad“, Filter und Tabelle zeigen den neuen Namen.
+- Wenn der Benutzer im Fenster „Abbrechen“ wählt, dann bleibt alles unverändert.
+  - Umgesetzt: Gespeichert wird nur bei „OK“; das Fenster arbeitet auf Texten, nicht auf dem Bestand.
+  - Geprüft: manuell – Felder ändern, „Abbrechen“, erneut öffnen.
+- Wenn der Benutzer ein Equipment als Standard kennzeichnet, dann ist es das einzige Standard-Equipment seiner Aktivität; ein bisheriges Standard-Equipment derselben Aktivität verliert die Kennzeichnung.
+  - Umgesetzt: `UebernimmEquipment`; alle betroffenen Equipments in einer Transaktion über `EquipmentsTabelle.Aendern`
+  - Geprüft: `UebernimmEquipmentTests`, `EquipmentsTests`; manuell – zwei Bike-Equipments nacheinander zum Standard machen.
+- Wenn ein Equipment ausgemustert ist, dann ist es nicht Standard: Beim Ausmustern fällt die Kennzeichnung weg, und ein ausgemustertes Equipment lässt sich nicht als Standard kennzeichnen.
+  - Umgesetzt: `UebernimmEquipment`; „Standard“ im Fenster nicht wählbar, solange „ausgemustert“ gesetzt ist
+  - Geprüft: `UebernimmEquipmentTests`; manuell – Standard-Equipment ausmustern.
+- Wenn ein ausgemustertes Equipment aus dem bisherigen Bestand noch als Standard gekennzeichnet ist, dann wird es weder als Standard angezeigt noch vorbelegt.
+  - Umgesetzt: `ErmittleStandardEquipment` (nur nicht ausgemusterte), Lesen der Liste
+  - Geprüft: `EquipmentauswahlTests`, `NeueUndKopierteEinheitTests`; manuell – „Namur“.
+- Wenn der Benutzer „Neue Einheit“ wählt, dann ist das Standard-Equipment der Aktivität vorbelegt; gibt es keines, dann ist kein Equipment gewählt.
+  - Umgesetzt: `ErstelleNeueEinheit`
+  - Geprüft: `NeueUndKopierteEinheitTests`; manuell – „Neue Einheit“ mit und ohne Standard-Equipment.
+- Wenn der Benutzer im Bearbeitungsfenster einer Einheit das Equipment aufklappt, dann stehen dort nur die nicht ausgemusterten Equipments der gewählten Aktivität, Equipments ohne Aktivität und das Equipment, das die Einheit bereits hat.
+  - Umgesetzt: `ErmittleEquipmentauswahl`, `ErmittleEingabelisten`, `EinheitBearbeitenViewModel` (neu zusammengestellt beim Aktivitätswechsel)
+  - Geprüft: `EquipmentauswahlTests`, `ErmittleEingabelistenTests`; manuell – Bike-Einheit ohne Laufschuhe, Aktivität auf „Laufen“ stellen.
+- Wenn der Benutzer bei einer neuen Einheit die Aktivität wechselt, dann ist das Standard-Equipment der neuen Aktivität gewählt, bzw. kein Equipment, wenn es keines gibt.
+  - Umgesetzt: `EinheitBearbeitenViewModel` mit `ErmittleStandardEquipment` (nur bei neuen Einheiten und Kopien)
+  - Geprüft: manuell – „Neue Einheit“, Aktivität wechseln.
+- Wenn der Benutzer bei einer Einheit ein Equipment mit Standardkategorie wählt, dann wird diese Kategorie zusätzlich angehakt; schon angehakte Kategorien bleiben angehakt.
+  - Umgesetzt: `FindeStandardkategorie`; `EinheitBearbeitenViewModel` beim Equipmentwechsel; `ErstelleNeueEinheit` bei der Vorbelegung
+  - Geprüft: `EquipmentauswahlTests`, `NeueUndKopierteEinheitTests`; manuell – „SL Road SL“ (Standardkategorie „Arbeit“) wählen.
+- Wenn ein Equipment ausgemustert ist, dann behalten die Einheiten, die es verwenden, die Zuordnung, und Tabelle und Filter zeigen es weiter an.
+  - Umgesetzt: Ausmustern ändert keine Einheit; Tabelle und Filter lesen alle Equipments.
+  - Geprüft: `EquipmentsTests`; manuell – „FELT“ ist ausgemustert und weiter in Tabelle und Filter.
+- Wenn der Benutzer die Kennzeichnung „ausgemustert“ wieder entfernt, dann wird das Equipment wieder angeboten.
+  - Umgesetzt: `ErmittleEquipmentauswahl`
+  - Geprüft: `EquipmentauswahlTests`; manuell – „FELT“ reaktivieren, im Bearbeitungsfenster einer Bike-Einheit finden.
+- Wenn der Benutzer ein Equipment löschen will, das Einheiten verwenden oder zu dem Wartungen erfasst sind, dann ist das nicht möglich, und ein Hinweis nennt die Anzahl der Einheiten bzw. Wartungen und empfiehlt, es stattdessen auszumustern.
+  - Umgesetzt: `ZaehleVerwendung.Equipment`, `ErmittleLoeschsperre.Equipment`
+  - Geprüft: `ErmittleLoeschsperreTests`; manuell – „Genius/Bike“ löschen.
+- Wenn ein Equipment von keiner Einheit verwendet wird und keine Wartungen hat, dann verschwindet es mit „Löschen“ ohne Rückfrage.
+  - Umgesetzt: `EquipmentsTabelle.Loeschen`, Löschen im Hauptfenster
+  - Geprüft: `EquipmentsTests`; manuell – eben angelegtes „Gravel-Rad“ löschen.
+- Wenn das Speichern fehlschlägt (z. B. Datenordner nicht erreichbar), dann erscheint eine Fehlermeldung, und Equipments und Einheiten bleiben beim vorherigen Stand.
+  - Umgesetzt: alle Schreibvorgänge über `SchreibeInTransaktion`; der Speicher wird erst nach Erfolg geändert, das Fenster bleibt bei einem Fehler offen.
+  - Geprüft: `EquipmentsTests` (Rollback); der Fehlerweg ist derselbe wie bei 009 und wurde dort mit gesperrter Datenbank manuell geprüft.
+
+## Entscheidungen
+- **Equipment-Fenster:** Ein eigenes Fenster statt Eingabefeld, weil ein Equipment mehrere Felder hat. Bei der Liste „Equipment“ sind Eingabefeld und „Umbenennen“ ausgeblendet; „Bearbeiten…“ und ein Doppelklick auf eine Zeile öffnen das Fenster.
+- **Liste in der Tabellenzelle:** Die Auswahl je Aktivität gilt auch für die Equipment-Zelle, weil sie dieselbe Liste wie das Bearbeitungsfenster nutzt.
+- **Standard nur mit Aktivität:** „Standard“ ist nur bei einem Equipment mit Aktivität wählbar, weil der Standard je Aktivität gilt.
+- **Altbestand bleibt unverändert:** Der Standard von „Namur“ wird nicht bereinigt. Wirksam ist der Standard nur bei nicht ausgemusterten Equipments. Beim nächsten Speichern eines Equipments derselben Aktivität entfernt `UebernimmEquipment` die alte Kennzeichnung.
+- **Standardkategorie:** Auswahl aus den vorhandenen Kategorien plus „(keine)“. Gespeichert wird weiter der Name, wie bisher und wie es die Umbenennung aus 010 erwartet.
+- **Aktivität:** Auswahl aus den Aktivitäten plus „(keine)“ für Equipments ohne Aktivität.
+- **Sortierung:** Zuerst die nicht ausgemusterten, dann die ausgemusterten Equipments, jeweils alphabetisch (Wunsch nach der manuellen Prüfung).
+
+## Risiken
+- Die Equipment-Auswahlliste im Bearbeitungsfenster wird beim Aktivitätswechsel ausgetauscht. Die gewählte Zeile muss dabei erhalten bleiben bzw. gezielt gesetzt werden, sonst verliert die Oberfläche die Wahl (wie bei der Werkzeugleiste in 010).
+- Das Anhaken der Standardkategorie darf nur bei einem Wechsel des Equipments durch den Benutzer geschehen, nicht beim Öffnen einer vorhandenen Einheit. Sonst gilt die Einheit sofort als geändert.

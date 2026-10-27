@@ -1,0 +1,247 @@
+<!--
+  Ansicht der Karteikarte „Wartung“ im Hauptfenster.
+
+  Aufbau:
+    1. Oben: Equipment-Auswahl („Alle Equipments“, dann die Equipments im Einsatz der oben im Hauptfenster
+       gewählten Aktivität alphabetisch, bei „alle Aktivitäten“ die der Hauptaktivität); sie gilt für beide
+       Bereiche. „Alle Equipments“ zeigt die Einträge aller Equipments dieser Aktivität, auch der ausgemusterten
+    2. Bereich „Alarme“ (begrenzte Höhe, damit die Wartungen sichtbar bleiben): Schaltflächen „Neuer Alarm…“,
+       „Bearbeiten…“ und „Löschen“, darunter die Alarmliste mit Rad, Tätigkeit, Intervall, gefahrenen und
+       verbleibenden km. Fällige Alarme sind rot, bald fällige orange, ausgeschaltete grau. Rechtsklick öffnet
+       das Menü mit zusätzlich „Ein-/Ausschalten“. Ohne Zeilen der Hinweis „Keine Alarme eingerichtet.“
+       (bzw. „Keine Alarme für dieses Rad.“)
+    3. Bereich „Wartungen“: Schaltflächen „Neue Wartung…“, „Bearbeiten…“ und „Löschen“, darunter die Tabelle
+       mit Datum, Rad, km-Stand, km und Tagen seit der letzten gleichartigen Wartung (gleiche Tätigkeit am selben Rad),
+       Tätigkeit und Kommentar, die neueste oben. Ohne Zeilen der Hinweis
+       „Noch keine Wartungen erfasst.“ (bzw. „Keine Wartungen für dieses Rad.“)
+
+  In beiden Listen: Klick auf eine Überschrift sortiert, ein zweiter Klick kehrt die Reihenfolge um; die Werte
+  sind typisiert (Datum, Zahl), das deutsche Format entsteht über Language="de-DE" und StringFormat.
+  Doppelklick öffnet das Bearbeitungsfenster, Entf löscht die markierten Einträge (nach Rückfrage).
+  „Bearbeiten…“ ist nur bei genau einem markierten Eintrag wählbar, „Löschen“ bei mindestens einem.
+
+  Datenquelle ist das HauptfensterViewModel (vom Hauptfenster geerbt); die Markierungen meldet das
+  Code-Behind an das ViewModel.
+-->
+<UserControl x:Class="AndyTours.App.Views.WartungenAnsicht"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:modell="clr-namespace:AndyTours.Core.Modell;assembly=AndyTours.Core"
+             Language="de-DE">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="SichtbarWennWahr" />
+
+        <!-- Zahlen rechtsbündig -->
+        <Style x:Key="Zahl" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+            <Setter Property="TextAlignment" Value="Right" />
+            <Setter Property="Padding" Value="4,0" />
+        </Style>
+
+        <!-- Schaltflächen der Leisten über den Listen -->
+        <Style x:Key="Leistenknopf" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="MinWidth" Value="90" />
+            <Setter Property="Padding" Value="8,2" />
+            <Setter Property="Margin" Value="0,0,8,0" />
+        </Style>
+
+        <!-- Hinweis statt einer leeren Liste -->
+        <Style x:Key="Leerhinweis" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Foreground" Value="Gray" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Margin" Value="0,12" />
+        </Style>
+
+        <!-- Gemeinsame Einstellungen beider Listen -->
+        <Style x:Key="Liste" TargetType="DataGrid" BasedOn="{StaticResource {x:Type DataGrid}}">
+            <Setter Property="AutoGenerateColumns" Value="False" />
+            <Setter Property="IsReadOnly" Value="True" />
+            <Setter Property="CanUserAddRows" Value="False" />
+            <Setter Property="CanUserDeleteRows" Value="False" />
+            <Setter Property="HeadersVisibility" Value="Column" />
+            <Setter Property="GridLinesVisibility" Value="Horizontal" />
+            <Setter Property="HorizontalGridLinesBrush" Value="#FFE0E0E0" />
+            <Setter Property="SelectionMode" Value="Extended" />
+            <Setter Property="ColumnHeaderStyle">
+                <Setter.Value>
+                    <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+                        <Setter Property="Padding" Value="4,2" />
+                    </Style>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <DockPanel>
+        <!-- 1. Equipment-Auswahl für beide Bereiche -->
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="6">
+            <TextBlock Text="Equipment:" VerticalAlignment="Center" Margin="0,0,6,0" />
+            <ComboBox Width="220" ItemsSource="{Binding Wartungsraeder}" SelectedItem="{Binding GewaehltesWartungsrad}"
+                      DisplayMemberPath="Name" />
+        </StackPanel>
+
+        <!-- 2. Alarme -->
+        <GroupBox DockPanel.Dock="Top" Header="Alarme" Margin="4,0,4,4" Padding="4">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,2,0,4">
+                    <Button Content="Neuer _Alarm…" Command="{Binding NeuerAlarmCommand}" Style="{StaticResource Leistenknopf}" />
+                    <Button Content="Bearbeiten…" Command="{Binding AlarmBearbeitenCommand}" Style="{StaticResource Leistenknopf}" />
+                    <Button Content="Löschen" Command="{Binding AlarmeLoeschenCommand}" Style="{StaticResource Leistenknopf}" />
+                </StackPanel>
+                <Grid>
+                    <TextBlock Text="{Binding Alarmhinweis}">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock" BasedOn="{StaticResource Leerhinweis}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding HatAlarmzeilen}" Value="True">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+
+                    <DataGrid x:Name="AlarmTabelle"
+                              Style="{StaticResource Liste}"
+                              ItemsSource="{Binding Alarmzeilen}"
+                              Visibility="{Binding HatAlarmzeilen, Converter={StaticResource SichtbarWennWahr}}"
+                              MaxHeight="200"
+                              SelectionChanged="AlarmTabelle_SelectionChanged"
+                              PreviewKeyDown="AlarmTabelle_PreviewKeyDown"
+                              PreviewMouseRightButtonDown="Liste_PreviewMouseRightButtonDown">
+                        <DataGrid.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Neuer _Alarm…" Command="{Binding NeuerAlarmCommand}" />
+                                <MenuItem Header="_Bearbeiten…" Command="{Binding AlarmBearbeitenCommand}" />
+                                <MenuItem Header="_Ein-/Ausschalten" Command="{Binding AlarmeEinAusschaltenCommand}" />
+                                <Separator />
+                                <MenuItem Header="_Löschen" Command="{Binding AlarmeLoeschenCommand}" InputGestureText="Entf" />
+                            </ContextMenu>
+                        </DataGrid.ContextMenu>
+                        <!-- Zeilenfarbe je Zustand; Doppelklick öffnet das Alarmfenster -->
+                        <DataGrid.RowStyle>
+                            <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
+                                <EventSetter Event="MouseDoubleClick" Handler="Alarmzeile_MouseDoubleClick" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Zustand}" Value="{x:Static modell:Alarmzustand.Faellig}">
+                                        <Setter Property="Background" Value="#FFFFD0D0" />
+                                        <Setter Property="Foreground" Value="#FFB00000" />
+                                        <Setter Property="FontWeight" Value="SemiBold" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Zustand}" Value="{x:Static modell:Alarmzustand.BaldFaellig}">
+                                        <Setter Property="Background" Value="#FFFFE6C0" />
+                                        <Setter Property="Foreground" Value="#FF9A5000" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Zustand}" Value="{x:Static modell:Alarmzustand.Ausgeschaltet}">
+                                        <Setter Property="Foreground" Value="Gray" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGrid.RowStyle>
+                        <!-- Markierte Zellen: Die Markierungsfarbe des Systems würde die Farbe des Zustands überdecken (bei
+                             einem einzigen, nach dem Speichern markierten Alarm bliebe nur der leere Rest der Zeile farbig).
+                             Fällige und bald fällige Zeilen zeigen markiert deshalb eine kräftigere Fassung ihrer Farbe. -->
+                        <DataGrid.CellStyle>
+                            <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
+                                <Style.Triggers>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding IsSelected, RelativeSource={RelativeSource Self}}" Value="True" />
+                                            <Condition Binding="{Binding Zustand}" Value="{x:Static modell:Alarmzustand.Faellig}" />
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Background" Value="#FFF4A0A0" />
+                                        <Setter Property="BorderBrush" Value="#FFF4A0A0" />
+                                        <Setter Property="Foreground" Value="#FF800000" />
+                                    </MultiDataTrigger>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding IsSelected, RelativeSource={RelativeSource Self}}" Value="True" />
+                                            <Condition Binding="{Binding Zustand}" Value="{x:Static modell:Alarmzustand.BaldFaellig}" />
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Background" Value="#FFFFC870" />
+                                        <Setter Property="BorderBrush" Value="#FFFFC870" />
+                                        <Setter Property="Foreground" Value="#FF703A00" />
+                                    </MultiDataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGrid.CellStyle>
+                        <!-- Spaltenbreiten passen sich Kopf und Inhalt an (Fluent-Schrift ist größer; Spezifikation 034) -->
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Rad" Binding="{Binding Rad, Mode=OneWay}" SortMemberPath="Rad" Width="Auto" />
+                            <DataGridTextColumn Header="Tätigkeit" Binding="{Binding Taetigkeit, Mode=OneWay}" SortMemberPath="Taetigkeit" Width="Auto" />
+                            <DataGridTextColumn Header="Alle (km)" Binding="{Binding IntervallKm, Mode=OneWay, StringFormat='N0'}"
+                                                SortMemberPath="IntervallKm" ElementStyle="{StaticResource Zahl}" Width="Auto" />
+                            <DataGridTextColumn Header="Gefahren (km)" Binding="{Binding GefahrenKm, Mode=OneWay, StringFormat='N0'}"
+                                                SortMemberPath="GefahrenKm" ElementStyle="{StaticResource Zahl}" Width="Auto" />
+                            <DataGridTextColumn Header="Verbleibend (km)" Binding="{Binding VerbleibendKm, Mode=OneWay, StringFormat='N0'}"
+                                                SortMemberPath="VerbleibendKm" ElementStyle="{StaticResource Zahl}" Width="Auto" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </DockPanel>
+        </GroupBox>
+
+        <!-- 3. Wartungen -->
+        <GroupBox Header="Wartungen" Margin="4,0,4,4" Padding="4">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,2,0,4">
+                    <Button Content="_Neue Wartung…" Command="{Binding NeueWartungCommand}" Style="{StaticResource Leistenknopf}" />
+                    <Button Content="_Bearbeiten…" Command="{Binding WartungBearbeitenCommand}" Style="{StaticResource Leistenknopf}" />
+                    <Button Content="_Löschen" Command="{Binding WartungenLoeschenCommand}" Style="{StaticResource Leistenknopf}" />
+                </StackPanel>
+                <Grid>
+                    <TextBlock Text="{Binding Wartungshinweis}">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock" BasedOn="{StaticResource Leerhinweis}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding HatWartungszeilen}" Value="True">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+
+                    <DataGrid x:Name="Tabelle"
+                              Style="{StaticResource Liste}"
+                              ItemsSource="{Binding Wartungszeilen}"
+                              Visibility="{Binding HatWartungszeilen, Converter={StaticResource SichtbarWennWahr}}"
+                              SelectionChanged="Tabelle_SelectionChanged"
+                              PreviewKeyDown="Tabelle_PreviewKeyDown"
+                              PreviewMouseRightButtonDown="Liste_PreviewMouseRightButtonDown">
+                        <DataGrid.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="_Neue Wartung…" Command="{Binding NeueWartungCommand}" />
+                                <MenuItem Header="_Bearbeiten…" Command="{Binding WartungBearbeitenCommand}" />
+                                <Separator />
+                                <MenuItem Header="_Löschen" Command="{Binding WartungenLoeschenCommand}" InputGestureText="Entf" />
+                            </ContextMenu>
+                        </DataGrid.ContextMenu>
+                        <!-- Doppelklick auf eine Zeile öffnet das Wartungsfenster -->
+                        <DataGrid.RowStyle>
+                            <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
+                                <EventSetter Event="MouseDoubleClick" Handler="Zeile_MouseDoubleClick" />
+                            </Style>
+                        </DataGrid.RowStyle>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Datum" Binding="{Binding Datum, Mode=OneWay, StringFormat='ddd, dd.MM.yyyy'}"
+                                                SortMemberPath="Datum" />
+                            <DataGridTextColumn Header="Rad" Binding="{Binding Rad, Mode=OneWay}" SortMemberPath="Rad" Width="Auto" />
+                            <DataGridTextColumn Header="km-Stand" Binding="{Binding KmStand, Mode=OneWay, StringFormat='N0'}"
+                                                SortMemberPath="KmStand" ElementStyle="{StaticResource Zahl}" Width="Auto" />
+                            <!-- Haltbarkeit: km und Tage seit der letzten gleichartigen Wartung; ohne Rad leer -->
+                            <DataGridTextColumn Header="km seit letzter" Binding="{Binding KmSeitLetzter, Mode=OneWay, StringFormat='N0'}"
+                                                SortMemberPath="KmSeitLetzter" ElementStyle="{StaticResource Zahl}" Width="Auto" />
+                            <DataGridTextColumn Header="Tage seit letzter" Binding="{Binding TageSeitLetzter, Mode=OneWay, StringFormat='N0'}"
+                                                SortMemberPath="TageSeitLetzter" ElementStyle="{StaticResource Zahl}" Width="Auto" />
+                            <DataGridTextColumn Header="Tätigkeit" Binding="{Binding Taetigkeit, Mode=OneWay}" SortMemberPath="Taetigkeit" Width="Auto" />
+                            <DataGridTextColumn Header="Kommentar" Binding="{Binding Kommentar, Mode=OneWay}" SortMemberPath="Kommentar" Width="*" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </DockPanel>
+        </GroupBox>
+    </DockPanel>
+</UserControl>

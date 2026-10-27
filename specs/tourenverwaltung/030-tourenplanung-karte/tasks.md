@@ -1,0 +1,23 @@
+# Aufgaben: 030 – Tourenplanung auf der Karte
+
+- [x] 1. Modelle der Planung anlegen (Fahrprofil, Abbiegerichtung, Abbiegepunkt, Teilstück, Tourenplanung, Planungswerte)
+- [x] 2. Wegpunkte ändern (`AenderePlanung`) mit Tests
+- [x] 3. Einfügestelle auf der Linie finden mit Tests
+- [x] 4. Luftlinie erstellen mit Tests
+- [x] 5. Länge und Höhenmeter berechnen mit Tests
+- [x] 6. Abbiegung beschreiben mit Tests
+- [x] 7. Routingmodelle anlegen (Routingdienst, Routingeinstellungen, Routinganfrage)
+- [x] 8. Routinganfrage je Dienst und Fahrprofil bilden mit Tests
+- [x] 9. BRouter-Antwort lesen mit Tests
+- [x] 10. openrouteservice-Antwort lesen mit Tests
+- [x] 11. Planungs-GPX schreiben und lesen mit Tests
+- [x] 12. Dateinamen der Planung bilden mit Tests
+- [x] 13. Planungseinstellungen und Routingeinstellungen speichern (Schlüssel, Laden/Speichern) mit Tests
+- [x] 14. Routingdienst, Serveradresse und Zugangsschlüssel in den Einstellungen
+- [x] 15. Kartenebenen aus dem Tourdetail herauslösen
+- [x] 16. Routingabruf
+- [x] 17. ViewModel der Tourenplanung (Planung, Fahrprofil, Werte, Ermittlung der Teilstücke, Hinweis, Befehle)
+- [x] 18. Speichern, Öffnen und Rückfrage bei ungespeicherten Änderungen
+- [x] 19. Fenster „Tour planen“ mit Karte, Ebenen und Mausbedienung
+- [x] 20. Menü „Tourenplanung → Tour planen…“ mit Startausschnitt und gemerkten Einstellungen
+- [x] 21. Bauen, Tests und manuelle Prüfungen aller Kriterien

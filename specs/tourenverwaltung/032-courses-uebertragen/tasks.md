@@ -1,0 +1,22 @@
+# Aufgaben: 032 – Courses übertragen
+
+- [x] 1. Modell anlegen: `Course`, `Coursepunkt`, `Courseabbiegung`
+- [x] 2. `BildeCourse.AusPlanung` (15 km/h, Abbiegepunkte zuordnen) mit Tests
+- [x] 3. `BildeCourse.AusVerlauf` (eigene Fahrzeiten, Linie gleich dem Verlauf, Punkte ohne Position entfallen) mit Tests
+- [x] 4. `BildeCoursename` (Vorschläge für Planung und Etappe, Dateiname auf dem Gerät) mit Tests
+- [x] 5. Kurze Abbiegetexte für den Edge in `BeschreibeAbbiegung` mit Tests
+- [x] 6. `WaehleStuetzpunkte` (Ausdünnen, höchstens 1 km Abstand, Pakete zu 25 Punkten) mit Tests
+- [x] 7. Routinganfrage über mehrere Punkte in `BildeRoutinganfrage` mit Tests
+- [x] 8. `UebernimmAbbiegungen` (Abweichungsprüfung, Zuordnung zur Spur, abseits von Wegen keine Hinweise) mit Tests
+- [x] 9. `SchreibeFitCourse` (Punkte, Höhen, Course-Punkte, Kreisverkehr als Text) mit Rücklese-Tests
+- [x] 10. `Courseziel` und `FindeLaufwerksziele` (Edge 1000/800, vorhandene Datei erkennen, schreiben) mit Tests; `LeseGeraetename` in `FindeLaufwerksgeraete` freigeben
+- [x] 11. `FindeMtpZiele` (Edge 1040: Prüfen und Hochladen in `Garmin\NewFiles`)
+- [x] 12. `Abbiegungsabruf` (Pakete nacheinander abfragen, Grund bei Ausfall)
+- [x] 13. `Coursezeile` und `CourseUebertragenViewModel` (Namen, Fahrprofil, Geräteauswahl, Abbiegungen ermitteln, Rückfrage bei vorhandener Datei, Fehler- und Ergebnishinweise)
+- [x] 14. `CourseUebertragenFenster` (XAML und Code-Behind, Abbrechen ohne Übertragung)
+- [x] 15. Text „Kein Garmin-Gerät gefunden …“ in `HauptfensterViewModel.Import` freigeben
+- [x] 16. Tourenplanung: Befehl „Auf Garmin übertragen…“ in `TourenplanungViewModel.Datei` (nur ab zwei Wegpunkten, Hinweis ohne Gerät, Ergebnis als Meldung) und Schaltfläche in `TourenplanungFenster.xaml`
+- [x] 17. Tourdetail: Routingeinstellungen und Planungsprofil über `HauptfensterViewModel.Tourdetail` und `TourdetailViewModel` an die Streckenkarte reichen
+- [x] 18. Tourdetail: Befehl „Auf Garmin übertragen…“ in `StreckenkarteViewModel` (nur mit GPS-Daten, bearbeiteter Track, eine Zeile je Etappe, Ergebnis als Meldung) und Schaltfläche in `TourdetailFenster.xaml`
+- [x] 19. Bauen ohne Warnungen und alle Tests ausführen
+- [x] 20. Manuelle Prüfung mit dem Edge 1040: Planung und Einheit übertragen, Mehrtagestour, Abbrechen, gleicher Name, ohne Gerät, ohne Internet, Kabel ziehen; auf dem Edge Strecke, Höhenprofil und Abbiegehinweise ansehen und festhalten, ob ein übernommener Course gleichen Namens ersetzt wird

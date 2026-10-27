@@ -1,0 +1,158 @@
+# Plan: 006 – Tabelle der Trainingseinheiten
+
+## Vorgehen
+- **Zeilen:** `ErstelleEinheitszeilen` (Core) baut aus den gefilterten Einheiten und dem Datenbestand eine Liste von `Einheitszeile`.
+  - Je Zeile stehen typisierte Werte für alle 17 Spalten; Aktivität, Equipment und Kategorien sind schon als Namen aufgelöst.
+  - Fehlende Werte sind `null`: 0 bei Distanz, Fahrzeit, max km/h, Puls, Trittfrequenz, Temperatur (Entscheidung H1) und Maximalhöhe.
+  - Ø km/h wird aus Distanz und Fahrzeit berechnet (`BerechneDurchschnittsgeschwindigkeit`).
+  - Die Bestwerte bestimmt `ErmittleBestwerte` nur aus vorhandenen Werten der angezeigten Einheiten. Jede Zeile trägt fünf Merker `IstBest…`.
+- **Tabelle:** Die Karteikarte „Trainingseinheiten“ erhält ein eigenes Steuerelement `EinheitenTabelle` (UserControl) mit einem `DataGrid` (nur lesend, virtualisiert).
+  - Die Spalten sind an die typisierten Werte gebunden. Dadurch sortiert ein Klick auf die Überschrift richtig nach Zahl, Datum oder Dauer. Die Anzeige im deutschen Format kommt über `StringFormat` mit `Language="de-DE"`.
+  - Ein Zellstil färbt den Wert rot, wenn der passende `IstBest…`-Merker gesetzt ist.
+  - Beim Programmstart ist nach Datum und Startzeit absteigend sortiert. Eine per Klick gewählte Sortierung bleibt beim Wechsel der Auswahl erhalten, weil die Zeilen in derselben Sammlung ausgetauscht werden.
+- **Summenzeile (G1):** Unter dem `DataGrid` liegt eine zweite Zeile ohne Kopf.
+  - Ihre Zellen sind an Breite und Sichtbarkeit der Tabellenspalten gekoppelt und blättern waagrecht mit. Die Kopplung steckt im Code-Behind, denn sie ist reine Darstellung.
+  - Inhalt: Anzahl unter „Name“ sowie die Summen unter Distanz, Höhenmeter und Fahrzeit.
+  - `BerechneAuswahlsummen` liefert dafür zusätzlich die Fahrzeit-Summe. Die Fahrzeit wird über 24 Stunden hinaus als „512:13:45“ formatiert (`FormatiereDauer`).
+- **Leere Auswahl:** Statt Tabelle und Summenzeile erscheint der Hinweis „Keine Einheiten in dieser Auswahl.“.
+- **Spalten ein- und ausblenden:**
+  - Ein Rechtsklick auf die Spaltenüberschriften öffnet ein Kontextmenü mit einem Häkchen je Spalte.
+  - `SchalteSpalteUm` (Core) liefert die neue Menge der ausgeblendeten Spalten. Die letzte sichtbare Spalte bleibt dabei sichtbar.
+  - Die ausgeblendeten Spalten werden sofort in der Tabelle `Einstellung` des Datenordners gespeichert (`Einheitentabelle.AusgeblendeteSpalten`, Spaltennamen kommagetrennt) und beim Laden des Datenbestands gelesen. Gespeichert werden die ausgeblendeten Spalten, damit später neue Spalten automatisch sichtbar sind.
+- **Nach der ersten Prüfung ergänzt:**
+  - **Spaltenmenü:** Die Einträge bleiben beim Anklicken offen (`StaysOpenOnClick`), Häkchen und Sperre werden nach jedem Klick aktualisiert. Nach einer Trennlinie schließt der Eintrag „Übernehmen“ das Menü; die Spalten wirken weiterhin sofort (nach der zweiten Prüfung ergänzt).
+  - **Letzte Karteikarte:** Der Index der gewählten Karteikarte wird beim Schließen unter `Hauptfenster.Karteikarte` gespeichert und beim Start gesetzt, sofern er gültig ist (`LadeKarteikarte`, `SpeichereKarteikarte`; nach der zweiten Prüfung ergänzt).
+  - **Reihenfolge per Ziehen:** Die Spalten lassen sich verschieben (`CanUserReorderColumns`). Die Summenzellen werden nach `DisplayIndex` neu geordnet.
+  - **Spaltenanordnung speichern:** Reihenfolge und Breite aller Spalten liegen als `Spalteneinstellung` (Spalte, Breite) in Anzeigereihenfolge unter `Einheitentabelle.Spalten` in der Tabelle `Einstellung`, als Text `Datum:96,Startzeit:48,…`.
+    - `VervollstaendigeSpaltenanordnung` (Core) ergänzt fehlende Spalten am Ende und entfernt doppelte und unbekannte.
+    - Gespeichert wird sofort nach dem Verschieben oder dem Ändern einer Breite per Maus sowie beim Beenden; das Beenden erfasst auch die automatische Anpassung per Doppelklick.
+  - **Mindestbreite:** Die Spalten mit Summe (Name, Distanz, Höhenmeter, Fahrzeit) erhalten als `MinWidth` die gemessene Breite ihres Summentextes. Die automatische Anpassung und das Verkleinern bleiben so nie darunter. Neu berechnet wird sie bei jeder Änderung der Summen.
+  - **Hauptfenster:**
+    - Größe, Position und „maximiert“ werden beim Schließen als `Fensterposition` unter `Hauptfenster.Position` gespeichert und beim Start vor dem Anzeigen gesetzt. Beim maximierten Fenster gilt die Größe vor dem Maximieren (`RestoreBounds`).
+    - `PruefeFensterposition` (Core) prüft gegen den Bereich aller Bildschirme: Liegt nicht mindestens ein Stück der Titelleiste darauf, wird das Fenster auf dem Hauptbildschirm mittig und höchstens bildschirmgroß gezeigt.
+- **Hauptfenster:** `HauptfensterViewModel` füllt Zeilen und Summenzeile an derselben Stelle, an der heute die Summen berechnet werden (`AktualisiereSummen`). Dadurch aktualisiert sich die Tabelle bei einem Auswahlwechsel, einem Datenordnerwechsel und nach dem Wiederherstellen einer Sicherung automatisch.
+
+## Dateien
+- `src/AndyTours.Core/Modell/Einheitenspalte.cs` (neu) — Aufzählung der 17 Spalten in Anzeigereihenfolge (Name dient als Speicherschlüssel)
+- `src/AndyTours.Core/Modell/Einheitszeile.cs` (neu) — Werte einer Tabellenzeile (fehlende Werte `null`), die fünf Bestwert-Merker und `FahrzeitText` für die Anzeige (bei der Umsetzung ergänzt; sortiert wird nach `Fahrzeit`)
+- `src/AndyTours.Core/Modell/Bestwerte.cs` (neu) — Höchstwerte für Distanz, Höhenmeter, Fahrzeit, Ø km/h und max km/h (je `null`, wenn kein Wert vorhanden)
+- `src/AndyTours.Core/Modell/Auswahlsumme.cs` (ändern) — zusätzlich Fahrzeit
+- `src/AndyTours.Core/Berechnungen/BerechneAuswahlsummen.cs` (ändern) — summiert auch die Fahrzeit
+- `src/AndyTours.Core/Berechnungen/BerechneDurchschnittsgeschwindigkeit.cs` (neu) — Distanz und Fahrzeit → km/h oder `null`
+- `src/AndyTours.Core/Berechnungen/ErmittleBestwerte.cs` (neu) — Höchstwerte der übergebenen Einheiten ohne fehlende Werte
+- `src/AndyTours.Core/Berechnungen/ErstelleEinheitszeilen.cs` (neu) — Einheiten und Datenbestand → Zeilen mit Namen, `null` für fehlende Werte und Bestwert-Merkern
+- `src/AndyTours.Core/Berechnungen/FormatiereDauer.cs` (neu) — Dauer → „h:mm:ss“, auch über 24 Stunden
+- `src/AndyTours.Core/Berechnungen/SchalteSpalteUm.cs` (neu) — blendet eine Spalte ein oder aus; die letzte sichtbare bleibt
+- `src/AndyTours.Daten/Einstellungsschluessel.cs` (ändern) — Schlüssel `Einheitentabelle.AusgeblendeteSpalten`
+- `src/AndyTours.Daten/LadeAusgeblendeteSpalten.cs` (neu) — liest die Menge; unbekannte Namen werden übergangen
+- `src/AndyTours.Daten/SpeichereAusgeblendeteSpalten.cs` (neu) — schreibt die Menge (leer → Eintrag löschen)
+- `src/AndyTours.App/ViewModels/HauptfensterViewModel.cs` (ändern) — Sammlung `Einheitszeilen`, Summenzeilen-Texte, `HatEinheiten`, ausgeblendete Spalten und Befehl `SpalteUmschalten` (speichert sofort); Füllen in `AktualisiereSummen`, Laden der Spaltenwahl in `LadeDatenbank`
+- `src/AndyTours.App/Views/EinheitenTabelle.xaml` (neu) — DataGrid mit 17 Spalten, Bestwert-Stil, Summenzeile, Hinweis bei leerer Auswahl
+- `src/AndyTours.App/Views/EinheitenTabelle.xaml.cs` (neu) — Kontextmenü der Spaltenüberschriften, Sichtbarkeit der Spalten, Kopplung der Summenzeile (Breite, Sichtbarkeit, waagrechtes Blättern), Startsortierung
+- `src/AndyTours.App/Views/Hauptfenster.xaml` (ändern) — Platzhalter der Karteikarte „Trainingseinheiten“ durch `EinheitenTabelle` ersetzen; Kopfkommentar anpassen
+- `tests/AndyTours.Tests/Berechnungen/BerechneAuswahlsummenTests.cs` (ändern) — Fahrzeit-Summe
+- `tests/AndyTours.Tests/Berechnungen/BerechneDurchschnittsgeschwindigkeitTests.cs` (neu)
+- `tests/AndyTours.Tests/Berechnungen/ErmittleBestwerteTests.cs` (neu)
+- `tests/AndyTours.Tests/Berechnungen/ErstelleEinheitszeilenTests.cs` (neu)
+- `tests/AndyTours.Tests/Berechnungen/FormatiereDauerTests.cs` (neu)
+- `tests/AndyTours.Tests/Berechnungen/SchalteSpalteUmTests.cs` (neu)
+- `tests/AndyTours.Tests/Daten/AusgeblendeteSpaltenTests.cs` (neu) — Speichern, Laden, leere Menge, unbekannte Namen
+- Nach der ersten Prüfung ergänzt:
+  - `src/AndyTours.Core/Modell/Spalteneinstellung.cs` (neu) — Spalte und gespeicherte Breite (`null` = automatisch)
+  - `src/AndyTours.Core/Berechnungen/VervollstaendigeSpaltenanordnung.cs` (neu) — gespeicherte Anordnung → alle 17 Spalten genau einmal
+  - `src/AndyTours.Core/Modell/Fensterposition.cs` (neu) — Links, Oben, Breite, Höhe, maximiert
+  - `src/AndyTours.Core/Modell/Bildschirmbereich.cs` (neu) — Rechteck eines Bildschirmbereichs
+  - `src/AndyTours.Core/Berechnungen/PruefeFensterposition.cs` (neu) — gemerkte Position → sichtbare Position
+  - `src/AndyTours.Daten/LadeSpaltenanordnung.cs` (neu), `src/AndyTours.Daten/SpeichereSpaltenanordnung.cs` (neu)
+  - `src/AndyTours.Daten/LadeFensterposition.cs` (neu), `src/AndyTours.Daten/SpeichereFensterposition.cs` (neu)
+  - `src/AndyTours.Daten/Einstellungsschluessel.cs` (ändern) — Schlüssel `Einheitentabelle.Spalten` und `Hauptfenster.Position`
+  - `src/AndyTours.App/ViewModels/HauptfensterViewModel.cs` (ändern) — `Spaltenanordnung`, `GemerkteFensterposition`, Speichern beider
+  - `src/AndyTours.App/Views/EinheitenTabelle.xaml` und `.xaml.cs` (ändern) — Menü bleibt offen, Verschieben, Anordnung anwenden und speichern, Mindestbreite aus der Summe
+  - `src/AndyTours.App/Views/Hauptfenster.xaml` und `Hauptfenster.xaml.cs` (ändern) — Fensterposition setzen und beim Schließen speichern
+  - `tests/AndyTours.Tests/Berechnungen/VervollstaendigeSpaltenanordnungTests.cs` (neu), `tests/AndyTours.Tests/Berechnungen/PruefeFensterpositionTests.cs` (neu)
+  - `tests/AndyTours.Tests/Daten/SpaltenanordnungTests.cs` (neu), `tests/AndyTours.Tests/Daten/FensterpositionTests.cs` (neu)
+- Nach der zweiten Prüfung ergänzt:
+  - `src/AndyTours.Daten/LadeKarteikarte.cs` (neu), `src/AndyTours.Daten/SpeichereKarteikarte.cs` (neu); `Einstellungsschluessel.cs` (ändern) — Schlüssel `Hauptfenster.Karteikarte`
+  - `src/AndyTours.App/ViewModels/HauptfensterViewModel.cs` (ändern) — `GemerkteKarteikarte`, `MerkeKarteikarte`
+  - `src/AndyTours.App/Views/Hauptfenster.xaml` und `Hauptfenster.xaml.cs` (ändern) — Karteikarte setzen und beim Schließen merken
+  - `src/AndyTours.App/Views/EinheitenTabelle.xaml.cs` (ändern) — Eintrag „Übernehmen“ im Spaltenmenü
+  - `tests/AndyTours.Tests/Daten/KarteikarteTests.cs` (neu)
+
+## Abdeckung der Kriterien
+- Wenn das Hauptfenster geöffnet ist, dann zeigt die Karteikarte „Trainingseinheiten“ alle Einheiten der aktuellen Jahres- und Aktivitätsauswahl als Tabelle, eine Zeile je Einheit.
+  - Umsetzung: `ErstelleEinheitszeilen`, `HauptfensterViewModel`, `EinheitenTabelle.xaml`, `Hauptfenster.xaml`
+  - Prüfung: `ErstelleEinheitszeilenTests` (eine Zeile je Einheit, Namen von Aktivität, Equipment und Kategorien aufgelöst) und manuell: App starten, Karteikarte öffnen; die Zahl der Zeilen entspricht der Anzahl in der Summenzeile und in der Werkzeugleiste.
+- Wenn der Benutzer Jahr oder Aktivität ändert oder der Datenbestand neu geladen wird (Datenordnerwechsel, Wiederherstellen einer Sicherung), dann zeigt die Tabelle sofort die passenden Einheiten.
+  - Umsetzung: `HauptfensterViewModel.AktualisiereSummen` (wird bei Auswahlwechsel und aus `LadeDatenbank` aufgerufen)
+  - Prüfung: manuell: Jahr und Aktivität wechseln, die Tabelle folgt sofort; eine Sicherung wiederherstellen, die Tabelle zeigt deren Stand.
+- Wenn die Tabelle angezeigt wird, dann ist sie nach Datum sortiert, die neueste Einheit zuerst.
+  - Umsetzung: `EinheitenTabelle.xaml.cs` (Startsortierung Datum und Startzeit absteigend)
+  - Prüfung: manuell: nach dem Start steht die neueste Einheit oben, bei zwei Einheiten am selben Tag die spätere zuerst.
+- Wenn der Benutzer auf eine Spaltenüberschrift klickt, dann wird nach dieser Spalte sortiert; ein erneuter Klick kehrt die Richtung um.
+  - Umsetzung: `EinheitenTabelle.xaml` (Sortierung des DataGrid über typisierte Werte)
+  - Prüfung: manuell: nach Distanz sortieren, 99 km steht vor 100 km bzw. danach, also nicht nach Text sortiert; nach Fahrzeit und Datum ebenso; ein zweiter Klick kehrt die Richtung um.
+- Wenn der Benutzer mit der rechten Maustaste auf die Spaltenüberschriften klickt, dann kann er jede Spalte ein- oder ausblenden; anfangs sind alle Spalten sichtbar.
+  - Umsetzung: `EinheitenTabelle.xaml.cs` (Kontextmenü), `SchalteSpalteUm`, `HauptfensterViewModel.SpalteUmschalten`
+  - Prüfung: `SchalteSpalteUmTests` und manuell: Rechtsklick auf eine Überschrift, „Trittfrequenz“ abwählen, die Spalte verschwindet samt Summenzelle; wieder anwählen, sie erscheint an ihrem Platz. In einem neuen Datenordner sind alle 17 Spalten sichtbar.
+- Wenn der Benutzer Spalten ein- oder ausgeblendet hat, dann bleibt diese Wahl nach einem Neustart erhalten.
+  - Umsetzung: `SpeichereAusgeblendeteSpalten`, `LadeAusgeblendeteSpalten`, `HauptfensterViewModel`
+  - Prüfung: `AusgeblendeteSpaltenTests` und manuell: zwei Spalten ausblenden, App neu starten, beide bleiben ausgeblendet.
+- Wenn nur noch eine Spalte sichtbar ist, dann lässt sie sich nicht ausblenden.
+  - Umsetzung: `SchalteSpalteUm`, `EinheitenTabelle.xaml.cs` (Menüeintrag der letzten sichtbaren Spalte gesperrt)
+  - Prüfung: `SchalteSpalteUmTests` (letzte sichtbare Spalte → Menge unverändert)
+- Wenn der Benutzer im Spaltenmenü eine Spalte an- oder abwählt, dann bleibt das Menü offen, sodass er mehrere Spalten nacheinander umschalten kann; „Übernehmen“ am Ende des Menüs schließt es.
+  - Umsetzung: `EinheitenTabelle.xaml.cs` (`StaysOpenOnClick`, Aktualisieren der Häkchen, Eintrag „Übernehmen“)
+  - Prüfung: manuell: Menü öffnen, drei Spalten nacheinander abwählen, das Menü bleibt offen, die Häkchen stimmen; „Übernehmen“ schließt es.
+- Wenn der Benutzer eine Spaltenüberschrift an eine andere Stelle zieht, dann wird die Spalte dorthin verschoben, und die Summenzeile folgt.
+  - Umsetzung: `EinheitenTabelle.xaml` (`CanUserReorderColumns`), `EinheitenTabelle.xaml.cs` (Summenzellen nach `DisplayIndex`)
+  - Prüfung: manuell: „Fahrzeit“ vor „Name“ ziehen; die Summe der Fahrzeit steht danach unter der Spalte.
+- Wenn der Benutzer Reihenfolge oder Breite der Spalten geändert hat, dann bleiben sie nach einem Neustart erhalten.
+  - Umsetzung: `VervollstaendigeSpaltenanordnung`, `LadeSpaltenanordnung`, `SpeichereSpaltenanordnung`, `HauptfensterViewModel`, `EinheitenTabelle.xaml.cs`
+  - Prüfung: `VervollstaendigeSpaltenanordnungTests`, `SpaltenanordnungTests` und manuell: Spalten verschieben und verbreitern, neu starten, die Anordnung ist dieselbe.
+- Wenn eine Spalte automatisch an ihren Inhalt angepasst wird (Doppelklick auf den Spaltenrand) oder der Benutzer sie verkleinert, dann bleibt sie mindestens so breit, dass ihr Wert in der Summenzeile vollständig sichtbar ist.
+  - Umsetzung: `EinheitenTabelle.xaml.cs` (`MinWidth` aus der gemessenen Summenbreite)
+  - Prüfung: manuell: Auswahl „alle Jahre“, Doppelklick auf den rechten Rand von „Fahrzeit“ und „km“, dann beide schmal ziehen; die Summen bleiben vollständig lesbar.
+- Wenn der Benutzer die App beendet, dann werden Größe, Position und maximierter Zustand des Hauptfensters gemerkt und beim nächsten Start wiederhergestellt.
+  - Umsetzung: `Hauptfenster.xaml.cs`, `HauptfensterViewModel`, `LadeFensterposition`, `SpeichereFensterposition`
+  - Prüfung: `FensterpositionTests` und manuell: Fenster verkleinern und verschieben, beenden, neu starten; danach maximieren, beenden, neu starten.
+- Wenn die gemerkte Position außerhalb der vorhandenen Bildschirme liegt, dann erscheint das Hauptfenster auf dem Hauptbildschirm.
+  - Umsetzung: `PruefeFensterposition`, `Hauptfenster.xaml.cs`
+  - Prüfung: `PruefeFensterpositionTests` (Position auf einem nicht mehr vorhandenen zweiten Bildschirm → mittig auf dem Hauptbildschirm; zu großes Fenster → auf Bildschirmgröße begrenzt)
+- Wenn der Benutzer die App beendet, dann wird die zuletzt gewählte Karteikarte gemerkt und beim nächsten Start wieder angezeigt.
+  - Umsetzung: `LadeKarteikarte`, `SpeichereKarteikarte`, `HauptfensterViewModel`, `Hauptfenster.xaml.cs`
+  - Prüfung: `KarteikarteTests` und manuell: „Trainingseinheiten“ wählen, beenden, neu starten; die Karteikarte ist wieder gewählt.
+- Wenn die Tabelle Einheiten enthält, dann zeigt eine Summenzeile die Anzahl der angezeigten Einheiten sowie die Summen von Distanz, Höhenmetern und Fahrzeit.
+  - Umsetzung: `BerechneAuswahlsummen`, `FormatiereDauer`, `HauptfensterViewModel`, `EinheitenTabelle.xaml`
+  - Prüfung: `BerechneAuswahlsummenTests`, `FormatiereDauerTests` (z. B. 30 h 5 min 7 s → „30:05:07“) und manuell: Werte der Summenzeile mit der Werkzeugleiste vergleichen.
+- Wenn der Benutzer in der Tabelle blättert oder sortiert, dann bleibt die Summenzeile fest am unteren Rand sichtbar und wird nicht mitsortiert.
+  - Umsetzung: `EinheitenTabelle.xaml` (Summenzeile außerhalb des DataGrid), `EinheitenTabelle.xaml.cs` (Kopplung)
+  - Prüfung: manuell: senkrecht blättern und sortieren, die Summenzeile bleibt unten; Spaltenbreite ändern und waagrecht blättern, die Summen bleiben unter ihren Spalten.
+- Wenn eine Einheit in einer der Spalten Distanz, Höhenmeter, Fahrzeit, Ø km/h oder max km/h den höchsten Wert der angezeigten Auswahl hat, dann ist dieser Wert rot dargestellt.
+  - Umsetzung: `ErmittleBestwerte`, `ErstelleEinheitszeilen` (Merker), `EinheitenTabelle.xaml` (Zellstil)
+  - Prüfung: `ErmittleBestwerteTests`, `ErstelleEinheitszeilenTests` (Merker nur bei den Höchstwerten) und manuell: in der Auswahl 2026 sind fünf Werte rot, und sie sind nach dem Sortieren der jeweiligen Spalte die obersten.
+- Wenn mehrere Einheiten denselben Bestwert haben, dann sind alle diese Werte rot.
+  - Umsetzung: `ErstelleEinheitszeilen` (Vergleich mit dem Höchstwert)
+  - Prüfung: `ErstelleEinheitszeilenTests` (zwei Einheiten mit gleicher Höchstdistanz → beide markiert)
+- Wenn die Auswahl keine Einheiten enthält, dann zeigt die Karteikarte den Hinweis „Keine Einheiten in dieser Auswahl.“ und keine Summenzeile.
+  - Umsetzung: `HauptfensterViewModel.HatEinheiten`, `EinheitenTabelle.xaml`
+  - Prüfung: manuell: ein Jahr ohne Einheiten oder einen leeren Datenordner wählen; der Hinweis erscheint, Tabelle und Summenzeile sind nicht zu sehen.
+- Wenn bei einer Einheit ein Wert fehlt (z. B. kein Puls aufgezeichnet), dann bleibt die Zelle leer statt „0“, und der Wert zählt nicht als Bestwert.
+  - Umsetzung: `ErstelleEinheitszeilen`, `BerechneDurchschnittsgeschwindigkeit`, `ErmittleBestwerte`
+  - Prüfung: `ErstelleEinheitszeilenTests` (0 → `null` für alle betroffenen Spalten, auch Temperatur), `BerechneDurchschnittsgeschwindigkeitTests` (Fahrzeit 0 → `null`) und `ErmittleBestwerteTests` (fehlende Werte → kein Bestwert; nur fehlende → `null`)
+- Wenn Zahlen, Datum und Zeiten angezeigt werden, dann im deutschen Format (z. B. „1.234,5“ km, „Sa, 23.10.2026“, „3:45:12“).
+  - Umsetzung: `EinheitenTabelle.xaml` (`Language="de-DE"`, `StringFormat`), `FormatiereDauer`
+  - Prüfung: `FormatiereDauerTests` und manuell: Datum, Startzeit, Distanz mit Komma und Tausenderpunkt, Fahrzeit und Summen prüfen.
+
+## Entscheidungen
+- Die Summenzeile ist eine echte Zeile unter den Spalten, gekoppelt an Breite, Sichtbarkeit und waagrechtes Blättern (Benutzerwahl G1).
+- Temperatur 0 °C gilt als „nicht erfasst“ und bleibt leer (Benutzerwahl H1).
+- Die Spaltenwahl liegt in der Tabelle `Einstellung` des Datenordners, wie es `docs/Konventionen.md` für Einstellungen vorsieht. Gespeichert werden die ausgeblendeten Spalten, damit später ergänzte Spalten sichtbar erscheinen.
+- Zeilen, Bestwerte und Formatierung werden in Core berechnet und dort getestet. Das App-Projekt ist nicht testbar (WPF), deshalb enthält der Code-Behind nur Darstellung.
+- Ø km/h und Bestwerte werden aus den Rohwerten berechnet, nicht aus den gerundeten Anzeigewerten.
+- Eine per Klick gewählte Sortierung bleibt bis zum Programmende erhalten. Gespeichert wird sie nicht (Spec: Start mit Datum, neueste zuerst).
+- Nach der ersten Prüfung (Benutzerwahl I1, J1, K1): Die Fenstergröße gehört mit zu 006. Spaltenreihenfolge und -breite sowie Größe, Position und „maximiert“ des Fensters bleiben erhalten. Sie liegen wie die Spaltenwahl in der Tabelle `Einstellung` des Datenordners.
+- Fehler beim Speichern von Spaltenanordnung und Fensterposition werden ohne Meldung übergangen. Es sind reine Komfortwerte, und eine Meldung beim Beenden würde nur stören.
+
+## Risiken
+- Die Kopplung der Summenzeile an das DataGrid (Breite, Sichtbarkeit, waagrechtes Blättern, Reihenfolge) ist der aufwendigste Teil.
+- Leere Zellen (`null`) stehen beim Sortieren aufsteigend vorn und absteigend hinten.

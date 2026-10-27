@@ -1,0 +1,99 @@
+<!--
+  Programmicon von AndyTours als Vektorzeichnung (Spezifikation 034) – die einzige Quelle des Motivs.
+
+  Motiv: ein stilisiertes Fahrrad (Rahmen orange, Räder, Lenker und Sattel dunkel) vor grünen Bergen mit weißen Gipfeln und blauem Himmel
+  auf einem abgerundeten Quadrat. Alle Koordinaten beziehen sich auf eine Fläche von 256 × 256.
+
+  Zwei Fassungen:
+    - ProgrammiconGross: für 32 px und größer und für das Fenster „Über AndyTours“
+      (Himmel mit Verlauf, zwei Berge mit Schneekappen, Wiese, Fahrrad mit Rahmen, Lenker und Sattel)
+    - ProgrammiconKlein: für 16 bis 24 px (ein Berg, kräftigere Linien, Fahrrad nur aus Rädern und
+      Rahmendreieck), damit das Icon in Titelleiste und Taskleiste erkennbar bleibt
+
+  Verwendet wird die Datei an zwei Stellen:
+    - App.xaml bindet sie als Ressourcen-Wörterbuch ein (Fenster „Über AndyTours“).
+    - tools/AndyTours.Programmicon/Erstelle-Programmicon.ps1 rendert daraus AndyTours.ico.
+  Deshalb ein reines ResourceDictionary ohne x:Class und ohne Verweise auf andere Ressourcen.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- Große Fassung -->
+  <DrawingImage x:Key="ProgrammiconGross">
+    <DrawingImage.Drawing>
+      <!-- Alles wird auf das abgerundete Quadrat (8 px Rand, Eckradius 48) beschnitten -->
+      <DrawingGroup ClipGeometry="M56,8 H200 A48,48 0 0 1 248,56 V200 A48,48 0 0 1 200,248 H56 A48,48 0 0 1 8,200 V56 A48,48 0 0 1 56,8 Z">
+        <!-- Unsichtbarer Rahmen über die ganze Fläche, damit die Zeichnung immer 256 × 256 groß ist -->
+        <GeometryDrawing Brush="Transparent" Geometry="M0,0 H256 V256 H0 Z" />
+
+        <!-- Himmel: oben kräftiges Blau, zum Horizont heller -->
+        <GeometryDrawing Geometry="M0,0 H256 V256 H0 Z">
+          <GeometryDrawing.Brush>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+              <GradientStop Color="#FF2F86D6" Offset="0" />
+              <GradientStop Color="#FFA9D8F5" Offset="0.7" />
+            </LinearGradientBrush>
+          </GeometryDrawing.Brush>
+        </GeometryDrawing>
+
+        <!-- Hintere Bergkette mit zwei Gipfeln (links 70/80, rechts 150/60) -->
+        <GeometryDrawing Brush="#FF3C7A57" Geometry="M0,170 L70,80 L110,125 L150,60 L256,165 V256 H0 Z" />
+
+        <!-- Schneekappen der beiden Gipfel, unten gezackt -->
+        <GeometryDrawing Brush="#FFFFFFFF" Geometry="M150,60 L173,83 L163,79 L155,89 L146,80 L136,83 Z" />
+        <GeometryDrawing Brush="#FFFFFFFF" Geometry="M70,80 L86,98 L78,94 L70,102 L62,95 L52,102 Z" />
+
+        <!-- Vordere, sanft geschwungene Wiese -->
+        <GeometryDrawing Brush="#FF5DB264" Geometry="M0,196 Q64,150 128,182 T256,176 V256 H0 Z" />
+
+        <!-- Fahrrad: Räder, Rahmen, Gabel, Lenker und Sattel als dunkle Linien mit runden Enden -->
+        <GeometryDrawing Geometry="M112,196 A34,34 0 1 1 44,196 A34,34 0 1 1 112,196 Z M212,196 A34,34 0 1 1 144,196 A34,34 0 1 1 212,196 Z">
+          <GeometryDrawing.Pen>
+            <Pen Brush="#FF1E2A33" Thickness="11" />
+          </GeometryDrawing.Pen>
+        </GeometryDrawing>
+        <!-- Rahmen mit Sitzrohr und Gabel in Orange -->
+        <GeometryDrawing Geometry="M78,196 L124,196 L112,142 Z M112,142 L160,142 M124,196 L160,148 M108,128 L124,196 M156,128 L178,196">
+          <GeometryDrawing.Pen>
+            <Pen Brush="#FFF28C28" Thickness="10" StartLineCap="Round" EndLineCap="Round" LineJoin="Round" />
+          </GeometryDrawing.Pen>
+        </GeometryDrawing>
+        <!-- Lenker und Sattel dunkel wie die Räder -->
+        <GeometryDrawing Geometry="M150,124 L168,126 M96,126 L120,126">
+          <GeometryDrawing.Pen>
+            <Pen Brush="#FF1E2A33" Thickness="10" StartLineCap="Round" EndLineCap="Round" LineJoin="Round" />
+          </GeometryDrawing.Pen>
+        </GeometryDrawing>
+        <!-- Naben als kleine Punkte -->
+        <GeometryDrawing Brush="#FF1E2A33" Geometry="M86,196 A8,8 0 1 1 70,196 A8,8 0 1 1 86,196 Z M186,196 A8,8 0 1 1 170,196 A8,8 0 1 1 186,196 Z" />
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
+
+  <!-- Kleine Fassung für 16 bis 24 px -->
+  <DrawingImage x:Key="ProgrammiconKlein">
+    <DrawingImage.Drawing>
+      <DrawingGroup ClipGeometry="M48,0 H208 A48,48 0 0 1 256,48 V208 A48,48 0 0 1 208,256 H48 A48,48 0 0 1 0,208 V48 A48,48 0 0 1 48,0 Z">
+        <GeometryDrawing Brush="#FF2F86D6" Geometry="M0,0 H256 V256 H0 Z" />
+        <!-- Ein einzelner großer Berg mit Schneekappe; er endet über dem Fahrrad, damit das dunkle Rad
+             vor der hellen Wiese steht und nicht mit dem dunkelgrünen Berg verschwimmt -->
+        <GeometryDrawing Brush="#FF3C7A57" Geometry="M-20,130 L128,20 L276,130 V256 H-20 Z" />
+        <GeometryDrawing Brush="#FFFFFFFF" Geometry="M128,20 L165,47 L146,44 L128,58 L110,44 L91,47 Z" />
+        <GeometryDrawing Brush="#FF5DB264" Geometry="M0,130 H256 V256 H0 Z" />
+        <!-- Fahrrad nur aus zwei Rädern und dem Rahmendreieck mit Gabel; zwischen den Rädern bleibt Luft -->
+        <GeometryDrawing Geometry="M102,200 A36,36 0 1 1 30,200 A36,36 0 1 1 102,200 Z M226,200 A36,36 0 1 1 154,200 A36,36 0 1 1 226,200 Z">
+          <GeometryDrawing.Pen>
+            <Pen Brush="#FF1E2A33" Thickness="18" />
+          </GeometryDrawing.Pen>
+        </GeometryDrawing>
+        <!-- Rahmen und Gabel in Orange -->
+        <GeometryDrawing Geometry="M66,200 L120,200 L156,142 L96,142 Z M156,142 L190,200">
+          <GeometryDrawing.Pen>
+            <Pen Brush="#FFF28C28" Thickness="18" StartLineCap="Round" EndLineCap="Round" LineJoin="Round" />
+          </GeometryDrawing.Pen>
+        </GeometryDrawing>
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
+
+</ResourceDictionary>

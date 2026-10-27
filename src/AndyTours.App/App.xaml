@@ -1,0 +1,80 @@
+﻿<!--
+  Einstiegspunkt der WPF-Anwendung AndyTours.
+  Der Programmstart läuft über das Ereignis Startup (App.xaml.cs): Erst wird der Datenordner
+  ermittelt und geprüft, danach das Hauptfenster geöffnet.
+  ShutdownMode="OnExplicitShutdown": Rückfragen vor dem Hauptfenster (z. B. „Datenordner nicht
+  erreichbar“) dürfen die App beim Schließen nicht beenden. Nach dem Öffnen des Hauptfensters
+  wird auf „beim Schließen des Hauptfensters beenden“ umgestellt.
+
+  ThemeMode="Light": schaltet für alle Fenster das in WPF eingebaute Fluent-Design (Windows 11) ein,
+  immer hell, auch wenn Windows auf „Dunkel“ steht (Spezifikation 034, ADR 0006). Hervorhebungen
+  folgen der Akzentfarbe von Windows.
+-->
+<Application x:Class="AndyTours.App.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Startup="AnwendungStartet"
+             ShutdownMode="OnExplicitShutdown"
+             ThemeMode="Light">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!-- Vektorzeichnung des Programmicons (ProgrammiconGross/-Klein), z. B. für „Über AndyTours“ -->
+                <ResourceDictionary Source="Ressourcen/Programmicon.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- Beschriftungen (Label) vor Eingabefeldern: Das Fluent-Label hat kaum Innenabstand, sodass
+                 die längste Beschriftung einer Spalte direkt am Feld klebt. Rechts 12 px Abstand, oben und
+                 unten wie beim klassischen Label 5 px. Ein am Label selbst gesetztes Padding hat Vorrang. -->
+            <Style TargetType="Label" BasedOn="{StaticResource {x:Type Label}}">
+                <Setter Property="Padding" Value="5,5,12,5" />
+            </Style>
+
+            <!-- Tabellenzellen aller Tabellen: Das Fluent-Design macht die Zeilen mindestens 32 px hoch, seine
+                 Zellvorlage richtet den Inhalt aber nicht senkrecht aus, sodass der Text am oberen Rand klebt.
+                 Dieser Stil baut auf dem Fluent-Zellstil auf (Mindesthöhe, Fokusrahmen) und ersetzt nur dessen
+                 schlichte Vorlage (Rahmen mit Inhalt) durch eine, die
+                 - den Inhalt senkrecht mittig stellt, unabhängig von der Zeilenhöhe, und
+                 - die Hintergrundfarbe der Zelle übernimmt, damit fachliche Farben (z. B. fällige Alarme, auch
+                   markiert) sichtbar bleiben; die Fluent-Vorlage zeichnet immer durchsichtig.
+                 Die Markierung (Akzentfarbe) und der Fokusrahmen stehen deshalb als Stil-Trigger hier statt als
+                 Vorlagen-Trigger: So können eigene Zellstile der Ansichten (BasedOn) sie mit Fachfarben überschreiben.
+                 Der Stil ist unter dem Typ abgelegt, damit „BasedOn={StaticResource {x:Type DataGridCell}}“ in den
+                 Ansichten auf ihm aufbaut; Fluent selbst legt seinen Zellstil nur unter „DefaultDataGridCellStyle“ ab. -->
+            <Style TargetType="DataGridCell" BasedOn="{StaticResource DefaultDataGridCellStyle}">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderBrush" Value="Transparent" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="DataGridCell">
+                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}" SnapsToDevicePixels="True">
+                                <ContentPresenter VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                                  SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+                <Style.Triggers>
+                    <!-- Markierte Zelle wie bei Fluent: Akzentfarbe mit heller Schrift -->
+                    <Trigger Property="IsSelected" Value="True">
+                        <Setter Property="Background" Value="{DynamicResource DataGridRowSelectedBackgroundThemeBrush}" />
+                        <Setter Property="Foreground" Value="{DynamicResource DataGridRowSelectedForegroundThemeBrush}" />
+                    </Trigger>
+                    <!-- Zelle mit Tastaturfokus wie bei Fluent: dünner Rahmen -->
+                    <Trigger Property="IsFocused" Value="True">
+                        <Setter Property="BorderThickness" Value="1" />
+                        <Setter Property="BorderBrush"
+                                Value="{DynamicResource {ComponentResourceKey TypeInTargetAssembly={x:Type DataGrid}, ResourceId=FocusBorderBrushKey}}" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
+            <!-- Tabellen: wie Fluent, aber mit dem Zellstil oben (Fluent setzt sonst seinen eigenen Zellstil ein) -->
+            <Style TargetType="DataGrid" BasedOn="{StaticResource {x:Type DataGrid}}">
+                <Setter Property="CellStyle" Value="{StaticResource {x:Type DataGridCell}}" />
+            </Style>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

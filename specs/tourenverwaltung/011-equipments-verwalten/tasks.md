@@ -1,0 +1,27 @@
+# Aufgaben: 011 – Equipments verwalten
+
+- [x] 1. Auswahlliste um den Wert „Equipment“ ergänzen
+- [x] 2. Hilfsbestand der Tests um Wartungen und weitere Equipments ergänzen
+- [x] 3. Wirksames Standard-Equipment ermitteln, mit Tests
+- [x] 4. Equipment-Auswahl für eine Einheit zusammenstellen, mit Tests
+- [x] 5. Kategorie zur Standardkategorie eines Equipments finden, mit Tests
+- [x] 6. Eingabelisten auf die Equipment-Auswahl umstellen, Tests anpassen
+- [x] 7. Neue Einheit mit Standard-Equipment und dessen Standardkategorie vorbelegen, Tests ergänzen
+- [x] 8. Verwendung eines Equipments zählen (Einheiten, Wartungen), Tests ergänzen
+- [x] 9. Löschsperre für Equipments ermitteln, Tests ergänzen
+- [x] 10. Equipmenteingaben anlegen
+- [x] 11. Eingaben des Equipment-Fensters prüfen und umwandeln, mit Tests
+- [x] 12. Equipment in den Bestand übernehmen (Standard je Aktivität, ausgemustert nie Standard), mit Tests
+- [x] 13. Equipments einfügen, ändern und löschen in der Datenbank, mit Tests
+- [x] 14. Filter: gewähltes Equipment bei Umbenennung nachführen
+- [x] 15. ViewModel des Equipment-Fensters erstellen
+- [x] 16. Fenster „Equipment“ erstellen
+- [x] 17. Speicher-Schnittstelle um das Bearbeiten von Equipments erweitern
+- [x] 18. Hauptfenster: Equipment-Liste lesen, Fenster öffnen, speichern und löschen
+- [x] 19. Hauptfenster: Equipment-Fälle in Zählen, Löschsperre und Löschen ergänzen
+- [x] 20. Auswahllisten-ViewModel: Liste „Equipment“ mit „Hinzufügen“ und „Bearbeiten…“
+- [x] 21. Einstellungsfenster: „Bearbeiten…“, Eingabefeld und „Umbenennen“ bei „Equipment“ ausblenden
+- [x] 22. Bearbeitungsfenster der Einheit: Equipment-Liste je Aktivität, Standard-Equipment beim Aktivitätswechsel, Standardkategorie anhaken
+- [x] 23. Hauptfenster: Funktionen an das Bearbeitungsfenster der Einheit übergeben
+- [x] 24. Bauen und alle Tests ausführen
+- [x] 25. Manuelle Prüfungen laut Plan

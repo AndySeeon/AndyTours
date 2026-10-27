@@ -1,0 +1,45 @@
+<!--
+  Fenster „Eintrag wählen“ für „Aktivität ändern…“ und „Equipment ändern…“ (Menü „Einheit“ und
+  Kontextmenü der Tabelle).
+
+  Aufbau von oben nach unten:
+    1. Erklärung, z. B. „Neue Aktivität für 3 Einheiten:“
+    2. Liste der wählbaren Einträge; Doppelklick auf eine Zeile entspricht „OK“
+    3. Schaltflächen „OK“ (nur mit Auswahl) und „Abbrechen“
+
+  Das Fenster wählt nur aus. Rückfrage und Speichern folgen nach dem Schließen im Hauptfenster.
+-->
+<Window x:Class="AndyTours.App.Views.EintragWaehlenFenster"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="{Binding Titel}"
+        Width="320"
+        Height="380"
+        MinWidth="260"
+        MinHeight="220"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False">
+
+    <DockPanel Margin="16">
+
+        <!-- 1. Erklärung -->
+        <TextBlock DockPanel.Dock="Top" Text="{Binding Erklaerung}" TextWrapping="Wrap" Margin="0,0,0,8" />
+
+        <!-- 3. Schaltflächen -->
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+            <Button Content="_OK" IsDefault="True" MinWidth="90" Padding="8,3" Margin="0,0,8,0" Command="{Binding OkCommand}" />
+            <Button Content="_Abbrechen" IsCancel="True" MinWidth="90" Padding="8,3" />
+        </StackPanel>
+
+        <!-- 2. Einträge -->
+        <ListBox x:Name="Liste" ItemsSource="{Binding Eintraege}" SelectedItem="{Binding Ausgewaehlt}" DisplayMemberPath="Name">
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+                    <EventSetter Event="MouseDoubleClick" Handler="Zeile_MouseDoubleClick" />
+                    <Setter Property="Padding" Value="4,3" />
+                </Style>
+            </ListBox.ItemContainerStyle>
+        </ListBox>
+
+    </DockPanel>
+</Window>

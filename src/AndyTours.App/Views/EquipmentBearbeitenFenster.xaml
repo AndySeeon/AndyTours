@@ -1,0 +1,96 @@
+<!--
+  Fenster „Equipment“ aus den Einstellungen (Auswahlliste „Equipment“: „Hinzufügen“, „Bearbeiten…“,
+  Doppelklick auf eine Zeile).
+
+  Aufbau von oben nach unten:
+    1. Name, Aktivität („(keine)“ = passt zu jeder Aktivität), Standardkategorie („(keine)“ möglich),
+       Anschaffungsdatum, Anfangskilometer
+    2. „Standard für diese Aktivität“ (nur mit Aktivität und ohne „ausgemustert“ wählbar) und „ausgemustert“
+    3. Gerätezuordnung: die beim Garmin-Import gemerkten Rad-Kennungen und Sensoren, „Entfernen“ für die markierte
+    4. Roter Hinweis bei ungültiger Eingabe
+    5. „OK“ (nur bei gültigen Eingaben) und „Abbrechen“
+
+  Datenquelle ist das EquipmentBearbeitenViewModel. „Abbrechen“ (auch Esc) schließt ohne Rückfrage; gespeichert
+  wird nur mit „OK“.
+-->
+<Window x:Class="AndyTours.App.Views.EquipmentBearbeitenFenster"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="{Binding Titel}"
+        Width="440"
+        SizeToContent="Height"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        Language="de-DE">
+
+    <StackPanel Margin="16">
+
+        <!-- 1. Felder -->
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Label Grid.Row="0" Content="_Name:" Target="{Binding ElementName=NameFeld}" VerticalAlignment="Center" />
+            <TextBox x:Name="NameFeld" Grid.Row="0" Grid.Column="1" Margin="0,3" VerticalContentAlignment="Center"
+                     Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" />
+
+            <Label Grid.Row="1" Content="_Aktivität:" Target="{Binding ElementName=AktivitaetFeld}" VerticalAlignment="Center" />
+            <ComboBox x:Name="AktivitaetFeld" Grid.Row="1" Grid.Column="1" Margin="0,3"
+                      ItemsSource="{Binding Aktivitaeten}" SelectedItem="{Binding Aktivitaet}" DisplayMemberPath="Name" />
+
+            <Label Grid.Row="2" Content="Standard_kategorie:" Target="{Binding ElementName=KategorieFeld}" VerticalAlignment="Center" />
+            <ComboBox x:Name="KategorieFeld" Grid.Row="2" Grid.Column="1" Margin="0,3"
+                      ItemsSource="{Binding Kategorien}" SelectedItem="{Binding StandardKategorie}" />
+
+            <Label Grid.Row="3" Content="Anschaffungs_datum:" Target="{Binding ElementName=DatumFeld}" VerticalAlignment="Center" />
+            <!-- 130 px: Platz für das ganze Datum und die Löschschaltfläche (×), die das Fluent-Eingabefeld beim Bearbeiten zeigt -->
+            <TextBox x:Name="DatumFeld" Grid.Row="3" Grid.Column="1" Width="130" HorizontalAlignment="Left" Margin="0,3"
+                     VerticalContentAlignment="Center" Text="{Binding Anschaffungsdatum, UpdateSourceTrigger=PropertyChanged}" />
+
+            <Label Grid.Row="4" Content="Anfangs_kilometer:" Target="{Binding ElementName=KilometerFeld}" VerticalAlignment="Center" />
+            <TextBox x:Name="KilometerFeld" Grid.Row="4" Grid.Column="1" Width="110" HorizontalAlignment="Left" Margin="0,3"
+                     VerticalContentAlignment="Center" TextAlignment="Right"
+                     Text="{Binding Anfangskilometer, UpdateSourceTrigger=PropertyChanged}" />
+        </Grid>
+
+        <!-- 2. Kennzeichen -->
+        <CheckBox Content="_Standard für diese Aktivität" Margin="0,10,0,0"
+                  IsChecked="{Binding IstStandard}" IsEnabled="{Binding KannStandard}" />
+        <CheckBox Content="a_usgemustert" Margin="0,6,0,0" IsChecked="{Binding Ausgemustert}" />
+
+        <!-- 3. Gerätezuordnung -->
+        <Label Content="_Gerätezuordnung (beim Import gemerkt):" Target="{Binding ElementName=KennungenListe}" Margin="0,8,0,0" Padding="0,5" />
+        <DockPanel>
+            <Button DockPanel.Dock="Right" Content="_Entfernen" VerticalAlignment="Top" MinWidth="90" Padding="8,3" Margin="8,0,0,0"
+                    Command="{Binding KennungEntfernenCommand}" />
+            <ListBox x:Name="KennungenListe" Height="80" ItemsSource="{Binding Radkennungen}" SelectedItem="{Binding MarkierteKennung}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <!-- z. B. „Rad: 7af22db6-…“, „Sensor: 3452708077“, „Altwert: Bike1“ -->
+                        <TextBlock><Run Text="{Binding Art, Mode=OneWay}" />: <Run Text="{Binding Wert, Mode=OneWay}" /></TextBlock>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </DockPanel>
+
+        <!-- 4. Hinweis -->
+        <TextBlock Text="{Binding Hinweis}" Foreground="Firebrick" TextWrapping="Wrap" Margin="0,8,0,0" />
+
+        <!-- 5. Schaltflächen -->
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+            <Button Content="_OK" IsDefault="True" MinWidth="90" Padding="8,3" Margin="0,0,8,0" Command="{Binding OkCommand}" />
+            <Button Content="Abbrechen" IsCancel="True" MinWidth="90" Padding="8,3" />
+        </StackPanel>
+
+    </StackPanel>
+</Window>
