@@ -18,7 +18,7 @@ Ergänzt beim Aufruf von `/sdd-fundamentals`:
 
 > Importiere alle vorhandenen Daten aus dem Ordner „Daten“ und konvertiere sie in das Format der neuen App. Name der
 > App ist „AndyTours“. Die neue App selbst braucht keine Import-Funktion der Altdaten, nur den Import von meinem
-> Garmin Edge 1040.
+> Garmin Edge 1040, Edge 1000, Edge 800.
 
 Der Arbeitsname war zuerst „RadlDB“ und wurde in „AndyTours“ geändert (Projekte, Namespaces, Projektmappe).
 
@@ -32,6 +32,7 @@ Der Arbeitsname war zuerst „RadlDB“ und wurde in „AndyTours“ geändert (
 | Datenhaltung | SQLite |
 | Parallelbetrieb mit BikeXperience | Nein, kein Rück-Export nach `workouts.csv` |
 | Garmin-Gerät | Garmin Edge 1040 Solar. Er meldet sich per USB nur als Mediengerät (MTP), nicht als Laufwerk (siehe ADR 0002) |
+| Garmin-Gerät | Garmin Edge 1000 und Garmin Edge 800 |
 | Altdaten | Kein Altdaten-Import in der App. Ein eigenes Kommandozeilenprogramm wandelt sie einmalig um |
 | Datenordner | Frei wählbar, z. B. auf dem NAS. In der Entwicklung immer `AppDaten/` im Projektordner, sonst anfangs `Dokumente\AndyTours` |
 | Codeprüfung | Eingebauter .NET-Analyzer, Meldungen als Warnungen beim Build |
@@ -56,14 +57,13 @@ zusätzlich als ADR (z. B. 0008) und in `docs/tech.md`. Ändert sich ein Kriteri
 
 ### Regeln für die Antworten
 - Immer Deutsch mit korrekten Umlauten.
+- kurze, aber verständliche formulierte Antworten. Keine ausschweifenden Erläuterungen.
 - Auswahlmöglichkeiten in Rückfragen nummerieren (z. B. A1/A2, K1/K2, je Frage ein eigener Buchstabe) und die Empfehlung kennzeichnen.
 - Jede Antwort endet mit der nächsten erwarteten Anweisung als kopierbarem Codeblock.
 
 ### Commits
-- Nur auf ausdrückliche Bitte.
+- immer zuerst rückfragen.
 - Nachricht „NNN Titel“ (z. B. „017 Garmin-Import“), darunter `Co-Authored-By: Claude …`.
-- `sdd-workflow-beispiel.*` nie mitcommitten (auch nicht das Löschen der Datei).
-- „so starten wir von vorn.txt“ (persönliche Notiz des Benutzers für den Neustart) nie mitcommitten.
 - Versionswechsel als eigener Commit „Version x.y.z“ (nur `Directory.Build.props`); das Installationsprogramm wird danach neu gebaut, aber nicht versioniert.
 - Änderungen an dieser Beschreibung als eigener Commit, z. B. „Projektbeschreibung 1.0.1“.
 
