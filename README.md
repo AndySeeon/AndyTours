@@ -2,7 +2,7 @@
 
 Windows-Desktop-App zur Verwaltung der eigenen Fahrradtouren.
 
-AndyTours löst das Programm BikeXperience 6.0.4 ab und übernimmt dessen Daten.
+AndyTours löst bei mir das Programm BikeXperience ab und übernimmt meine Daten.
 Umgesetzt sind die Funktionen, die ich selbst tatsächlich nutze. Die App ist für
 einen einzelnen Benutzer gedacht.
 
